@@ -9,15 +9,16 @@ export default withMermaid(
     themeConfig: {
       // https://vitepress.dev/reference/default-theme-config
       nav: [
-        { text: 'Home', link: '/' },
-        { text: 'Tech Notes', link: '/posts/tech-notes' }
+        { text: '首页', link: '/' },
+        { text: 'Coze', link: '/posts/coze/index' },
+        { text: 'HarmonyOS', link: '/posts/harmonyos/index' },
+        { text: 'BaseCut', link: '/posts/BaseCut/index' }
       ],
 
       sidebar: [
         {
-          text: 'Tech Notes',
+          text: '技术笔记',
           items: [
-            { text: 'Tech Notes', link: '/posts/tech-notes' },
             { text: 'Coze', link: '/posts/coze/index' },
             { text: 'HarmonyOS', link: '/posts/harmonyos/index' },
             { text: 'BaseCut', link: '/posts/BaseCut/index' }

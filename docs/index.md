@@ -3,12 +3,12 @@ layout: home
 
 hero:
   name: "LZY Blog"
-  text: "Tech Notes"
-  tagline: Coze, HarmonyOS, BaseCut 技术探索
+  text: "技术探索"
+  tagline: Coze, HarmonyOS, BaseCut
   actions:
     - theme: brand
-      text: Tech Notes
-      link: /posts/tech-notes
+      text: Coze 系列
+      link: /posts/coze/index
     - theme: alt
       text: View on GitHub
       link: https://github.com/vuejs/vitepress
