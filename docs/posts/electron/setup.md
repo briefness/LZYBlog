@@ -1,3 +1,0 @@
-# Electron Setup
-
-Coming soon.

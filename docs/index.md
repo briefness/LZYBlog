@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: "LZY Blog"
-  text: "Tech Notes & Life"
-  tagline: Vue 3, Electron, FFmpeg, and more.
+  text: "Tech Notes"
+  tagline: Coze, HarmonyOS, BaseCut 技术探索
   actions:
     - theme: brand
       text: Tech Notes
@@ -14,16 +14,13 @@ hero:
       link: https://github.com/vuejs/vitepress
 
 features:
-  - title: Vue 3
-    details: Deep dive into Vue 3 ecosystem and best practices.
-  - title: Electron
-    details: Building cross-platform desktop apps with web technologies.
-  - title: FFmpeg
-    details: Video processing and multimedia manipulation.
+  - title: Coze
+    details: 探索 Coze AI 平台的强大功能与最佳实践。
+    link: /posts/coze/index
+  - title: HarmonyOS
+    details: 深入学习鸿蒙系统开发，从入门到进阶。
+    link: /posts/harmonyos/index
+  - title: BaseCut
+    details: 视频剪辑工具开发实战与技术分享。
+    link: /posts/BaseCut/index
 ---
-
-<div class="flex justify-center mt-10">
-  <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-    Tailwind CSS Button Test
-  </button>
-</div>

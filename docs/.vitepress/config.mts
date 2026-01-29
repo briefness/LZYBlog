@@ -16,10 +16,9 @@ export default defineConfig({
         text: 'Tech Notes',
         items: [
           { text: 'Tech Notes', link: '/posts/tech-notes' },
-          { text: 'FFmpeg Basics', link: '/posts/ffmpeg/basics' },
-          { text: 'Vue', link: '/posts/vue/index' },
-          { text: 'Electron', link: '/posts/electron/index' },
-          { text: 'Coze', link: '/posts/coze/index' }
+          { text: 'Coze', link: '/posts/coze/index' },
+          { text: 'HarmonyOS', link: '/posts/harmonyos/index' },
+          { text: 'BaseCut', link: '/posts/BaseCut/index' }
         ]
       }
     ],

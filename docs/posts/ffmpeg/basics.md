@@ -1,3 +1,0 @@
-# FFmpeg Basics
-
-Coming soon.

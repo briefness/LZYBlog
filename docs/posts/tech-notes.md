@@ -4,9 +4,9 @@ Welcome to my technical notes.
 
 ## Categories
 
-- [Vue 3](/posts/vue/index)
-- [Electron](/posts/electron/index)
-- [FFmpeg](/posts/ffmpeg/index)
+- [Coze](/posts/coze/index)
+- [HarmonyOS](/posts/harmonyos/index)
+- [BaseCut](/posts/BaseCut/index)
 
 ::: tip
 This is a tip container.

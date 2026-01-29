@@ -3,6 +3,6 @@ node_modules
 dist
 dist-ssr
 cache
-.vitepress/dist
-.vitepress/cache
+docs/.vitepress/dist
+docs/.vitepress/cache
 *.local
