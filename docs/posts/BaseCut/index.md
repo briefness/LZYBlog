@@ -2,6 +2,8 @@
 
 BaseCut 是一个基于 Web 技术的视频剪辑工具。本系列文章深入探讨其架构设计与实现细节。
 
+> **项目仓库**：[https://github.com/briefness/BaseCut](https://github.com/briefness/BaseCut)
+
 ## 文章列表
 
 - [架构设计](./01-architecture.md)
