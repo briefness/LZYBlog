@@ -1,9 +1,13 @@
 import { defineConfig } from 'vitepress'
 import { withMermaid } from 'vitepress-plugin-mermaid'
+import tailwindcss from '@tailwindcss/vite'
 
 // https://vitepress.dev/reference/site-config
 export default withMermaid(
   defineConfig({
+    vite: {
+      plugins: [tailwindcss()]
+    },
     title: "阿乐的博客",
     description: "技术探索",
     themeConfig: {

@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@tailwindcss/vite": "^4.1.18",
     "mermaid": "^11.12.2",
     "tailwindcss": "^4.1.18",
     "vitepress": "^1.6.4",
