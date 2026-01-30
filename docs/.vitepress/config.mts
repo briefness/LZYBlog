@@ -10,6 +10,7 @@ export default withMermaid(
       // https://vitepress.dev/reference/default-theme-config
       nav: [
         { text: '首页', link: '/' },
+        { text: 'AI 认知', link: '/posts/AI/index' },
         { text: 'Coze', link: '/posts/coze/index' },
         { text: 'HarmonyOS', link: '/posts/harmonyos/index' },
         { text: 'BaseCut', link: '/posts/BaseCut/index' }
@@ -19,6 +20,7 @@ export default withMermaid(
         {
           text: '技术笔记',
           items: [
+            { text: 'AI 认知', link: '/posts/AI/index' },
             { text: 'Coze', link: '/posts/coze/index' },
             { text: 'HarmonyOS', link: '/posts/harmonyos/index' },
             { text: 'BaseCut', link: '/posts/BaseCut/index' }
@@ -26,9 +28,7 @@ export default withMermaid(
         }
       ],
 
-      socialLinks: [
-        { icon: 'github', link: 'https://github.com/briefness/LZYBlog' }
-      ]
+
     },
     // Mermaid 配置
     mermaid: {

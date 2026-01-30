@@ -9,9 +9,7 @@ hero:
     - theme: brand
       text: Coze 系列
       link: /posts/coze/index
-    - theme: alt
-      text: View on GitHub
-      link: https://github.com/briefness/LZYBlog
+
 
 features:
   - title: Coze
