@@ -4,14 +4,20 @@ layout: home
 hero:
   name: "阿乐的博客"
   text: "技术探索"
-  tagline: Coze, HarmonyOS, BaseCut
+  tagline: AI 认知, Coze, HarmonyOS, BaseCut
   actions:
     - theme: brand
+      text: AI 认知
+      link: /posts/AI/index
+    - theme: alt
       text: Coze 系列
       link: /posts/coze/index
 
 
 features:
+  - title: AI 认知
+    details: 从神经网络原理到 Agent 开发，系统构建 AI 知识体系。
+    link: /posts/AI/index
   - title: Coze
     details: 探索 Coze AI 平台的强大功能与最佳实践。
     link: /posts/coze/index

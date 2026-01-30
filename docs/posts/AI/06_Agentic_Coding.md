@@ -162,26 +162,27 @@ Workflow 是将复杂的任务流程化。比如一个 **Feature Dev Workflow**�
 4.  **Verify (验证)**:
     *   Action: 运行 `npm test`。如果有错，自动进入 Debug Loop。
 
-## 5. 社区精选：GitHub Star Top 10 Skills (MCP Servers)
+## 5. 实战精选：Top 10 Agent Skills (技能)
 
-为了不让大家重复造轮子，这里整理了 GitHub 上最热门的 10 个 MCP Server，安装即用：
+MCP 是工具 (Tools)，Skill 是用法 (Patterns)。只有把工具组合成 SOP，才能发挥最大威力。
+这里整理了 Agent 开发中最常用的 10 个通用技能：
 
 | 排名 | Skill Name | 作用 | 核心场景 |
 | :--- | :--- | :--- | :--- |
-| **01** | **[Filesystem](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem)** | 文件读写 | **必装**。允许 AI 读取、修改本地代码和文档。 |
-| **02** | **[Git](https://github.com/modelcontextprotocol/servers/tree/main/src/git)** | 版本控制 | 允许 AI 自动 Commit, Push, 查看 Diff。 |
-| **03** | **[Brave Search](https://github.com/modelcontextprotocol/servers/tree/main/src/brave-search)** | 联网搜索 | 让 AI 拥有实时信息，不再受限于训练数据截止日期。 |
-| **04** | **[PostgreSQL](https://github.com/modelcontextprotocol/servers/tree/main/src/postgres)** | 数据库操作 | 允许 AI 直接查询 DB，进行 schema 检查或数据分析。 |
-| **05** | **[Puppeteer](https://github.com/modelcontextprotocol/servers/tree/main/src/puppeteer)** | 浏览器操控 | 让 AI 打开网页，截图，从动态 JS 页面抓取数据。 |
-| **06** | **[Slack](https://github.com/modelcontextprotocol/servers/tree/main/src/slack)** | 团队协作 | AI 可以读取即时通讯记录，甚至在群里发送通知。 |
-| **07** | **[Sentry](https://github.com/modelcontextprotocol/servers/tree/main/src/sentry)** | 错误监控 | AI 自动拉取最新的报错日志，分析堆栈，提出修复建议。 |
-| **08** | **[Google Drive](https://github.com/modelcontextprotocol/servers/tree/main/src/gdrive)** | 办公文档 | 读取公司共享的 Doc/Sheet，作为知识库来源。 |
-| **09** | **[Memory](https://github.com/modelcontextprotocol/servers/tree/main/src/memory)** | 长期记忆 | 给 AI 一个简单的知识图谱，记住用户的偏好。 |
-| **10** | **[Sequential Thinking](https://github.com/modelcontextprotocol/servers/tree/main/src/sequential-thinking)** | 深度思考 | 强制开启 System 2 慢思考模式，适合复杂逻辑推理。 |
+| **01** | **Systematic Debugging** | 系统化调试 | 遇到报错不慌，自动分析堆栈，阅读源码，定位根因。 |
+| **02** | **Frontend Design** | 前端设计 | 调用 Pencil 等设计工具，从线框图到 Tailwind 代码一步到位。 |
+| **03** | **Implementation Planner** | 实施规划 | 动手前先写 `implementation_plan.md`，想清楚再写代码。 |
+| **04** | **Code Reviewer** | 代码审查 | 模拟 Senior Engineer，对代码进行严格审查。 |
+| **05** | **Test Driven Dev (TDD)** | 测试驱动 | 先写测试用例，再写实现代码 (Red-Green-Refactor)。 |
+| **06** | **Git Worktree Manager** | 分支管理 | 在独立环境开发新功能，不污染主分支。 |
+| **07** | **Doc Crawler (RAG)** | 文档知识库 | 自动爬取文档建立本地知识库，随时查阅 API。 |
+| **08** | **Tech Writer** | 技术写作 | 去除 AI 味，编写通俗易懂的技术文档。 |
+| **09** | **Recursive Thinking** | 深度思考 | 遇到复杂问题，自动拆解成子任务递归解决。 |
+| **10** | **Brainstorming** | 头脑风暴 | 在需求模糊时，提供多个创意方案供选择。 |
 
 > [!TIP]
-> **如何安装？**
-> 大多数通过 `npx` 或 `pip` 即可直接安装。建议查看 `modelcontextprotocol/servers` 官方仓库获取最新配置。
+> **Skills 是可以组合的**
+> 高级 Agent 会根据任务自动编排这些 Skill。比如修 Bug 时先调用 `Systematic Debugging`，修完后调用 `Code Reviewer` 自查。
 
 ## 6. 总结：如何构建 AI 团队？
 
