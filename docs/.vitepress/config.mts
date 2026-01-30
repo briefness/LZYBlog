@@ -4,8 +4,8 @@ import { withMermaid } from 'vitepress-plugin-mermaid'
 // https://vitepress.dev/reference/site-config
 export default withMermaid(
   defineConfig({
-    title: "LZY Blog",
-    description: "Tech Notes & Life",
+    title: "阿乐的博客",
+    description: "技术探索",
     themeConfig: {
       // https://vitepress.dev/reference/default-theme-config
       nav: [

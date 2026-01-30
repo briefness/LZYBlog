@@ -2,7 +2,7 @@
 layout: home
 
 hero:
-  name: "LZY Blog"
+  name: "阿乐的博客"
   text: "技术探索"
   tagline: Coze, HarmonyOS, BaseCut
   actions:
