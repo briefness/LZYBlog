@@ -55,9 +55,9 @@ Coze 支持通过 JSON 配置渲染出精美的 UI 卡片（类似飞书/钉钉�
 
 Coze 提供了多种模型（GPT-4, Doubao, MiniMax, Moonshot 等）。
 
-*   **GPT-4 / Claude 3 (Opus)**：逻辑推理最强，适合写代码、复杂分析。**缺点**：慢、贵（消耗更多额度）。
-*   **Doubao-Pro / MiniMax**：中文理解极佳，速度快。适合聊天、文案生成、简单查询。
-*   **GPT-3.5 / Turbo**：极速。适合做简单的分类、格式化、提取关键词。
+*   **Doubao-Pro / Moonshot (Kimi)**：中文理解极佳，逻辑能力强，是 Coze 国内版的主力模型。
+*   **MiniMax / Yi**：各有千秋，适合角色扮演或长文本分析。
+*   **GPT-4 (Intl)**：在 Coze 海外版中可用，逻辑推理最强。
 
 **进阶策略 —— 模型路由 (Model Routing)**：
 在一个复杂 Bot 中，混用模型。
@@ -91,6 +91,10 @@ Coze 提供了多种模型（GPT-4, Doubao, MiniMax, Moonshot 等）。
 3.  **变量污染**：
     *   **Database** 是全局持久化的，**Variable** 可能是会话级的。
     *   不要把“用户本次想喝什么咖啡”这种临时信息存进 Database，否则下次通过 Database 查出来的永远是旧咖啡。
+
+4.  **记忆功能 (Long-term Memory) 辨析**：
+    *   Coze Bot 设置里有个 **"Memory"** 开关。它能自动总结对话摘要。
+    *   **区别**：如果你只需 Bot 记住用户的名字、喜好，开启这个开关即可，不用大费周章建 Database。数据库更适合存结构化订单、日志。
 
 ---
 

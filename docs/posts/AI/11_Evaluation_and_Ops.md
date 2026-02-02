@@ -1,9 +1,9 @@
 # 11. 质量控制：LLMOps 与 Ragas 评测体系
 
 > [!NOTE]
-> **不要靠“看着这感觉不错”**
+> **避免主观臆断**
 > 
-> 很多 AI 项目死在 Demo 阶段，就是因为无法量化效果。今天 RAG 回答对了，明天改了个 Prompt 好像又变笨了。
+> 众多 AI 项目止步于 Demo 阶段，归因于无法量化效果。调整 Prompt 后性能可能出现波动。
 > 需要科学的 **Evaluation (评测)** 体系。
 
 ## 1. 为什么 LLM 评测这么难？
@@ -14,7 +14,7 @@ LLM 测试：`assert chat("你好") == ???`。它是概率生成的，甚至含�
 通常有三种评测方法：
 1.  **基于规则 (Rule-based)**: 检查是否包含关键字、JSON 格式是否合法。
 2.  **基于模型 (Model-based)**: 用一个更强的模型 (GPT-4) 去给小模型打分。
-3.  **基于人 (Human)**: 也就是 Chatbot Arena 的模式，最准但最贵。
+3.  **基于人 (Human)**: 即 Chatbot Arena 模式，准确度最高但成本昂贵。
 
 ## 2. RAG 专属评测：Ragas 框架
 
@@ -57,7 +57,7 @@ print(results)
 你需要监控以下指标：
 
 *   **Trace (链路追踪)**: 使用 LangSmith 或 LangFuse。记录每一次 LLM 调用，包括 Latency, Token Usage, Cost。
-*   **Feedback (用户反馈)**: 那个 "点赞/点踩" 按钮非常重要。这是最真实的线上数据 (RLHF 的来源)。
+*   **Feedback (用户反馈)**: "点赞/点踩" 反馈机制至关重要。这是最真实的线上数据 (RLHF 的来源)。
 *   **Red Teaming (红队测试)**: 专门攻击模型，看它会不会输出有害内容（Prompt Injection, Jailbreak）。
 
 ## 4. 完整的开发闭环
@@ -80,14 +80,14 @@ graph TD
     FineTuning --> Dev
 ```
 
-这就是 **Data Flywheel (数据飞轮)**。
+此即 **Data Flywheel (数据飞轮)**。
 
 ## 小结
 
-做 Demo 靠灵感，做产品靠体系。
+Demo 依赖灵感，产品依赖体系。
 1.  **Ragas** 提供了量化 RAG 质量的数学工具。
 2.  **LLM-as-a-Judge** 是目前自动化测试的主流方案。
 3.  **LLMOps** 保证了系统的可观测性和持续进化。
 
-到此为止，你已经掌握了从原理 (Math) 到应用 (Agent) 再到运维 (Ops) 的全套武功。
-最后一篇，我们稍作休息，展望一下 AGI 的未来。
+至此，已涵盖从原理 (Math) 到应用 (Agent) 再到运维 (Ops) 的全链路知识。
+最后一篇将展望 AGI 的未来。

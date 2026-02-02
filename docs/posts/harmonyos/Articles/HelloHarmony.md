@@ -2,7 +2,7 @@
 
 > 🔗 **项目地址**：[https://github.com/briefness/HarmonyDemo](https://github.com/briefness/HarmonyDemo)
 
-欢迎来到鸿蒙（HarmonyOS）开发的世界。鸿蒙Next（HarmonyOS NEXT）作为华为推出的全场景分布式操作系统，带来了全新的原生体验。本系列文章将带从零开始，一步步探索鸿蒙应用开发。
+欢迎来到鸿蒙（HarmonyOS）开发的世界。鸿蒙Next（HarmonyOS NEXT）作为华为推出的全场景分布式操作系统，带来了统一的原生体验。本系列文章将带从零开始，一步步探索鸿蒙应用开发。
 
 这是系列的第一篇，主要内容涵盖环境搭建，并编写第一个“Hello World”应用。除操作步骤外，还会探讨 **ArkTS 的编译原理**以及**HAP 包的结构**，旨在让读者知其然，更知其所以然。
 
@@ -138,7 +138,20 @@ graph TD
 
 点击 IDE 上方的运行按钮，选择模拟器或真机，将看到如下界面：
 
-
+```mermaid
+graph TD
+    Screen[手机屏幕]
+    Center[居中布局]
+    Text[文本: Hello HarmonyOS]
+    
+    Screen --> Center
+    Center --> Text
+    
+    style Screen fill:#fff,stroke:#333
+    style Center fill:#eee,stroke:#333,stroke-dasharray: 5 5
+    style Text fill:#9f9,stroke:#333
+```
+> *（运行效果示意图：屏幕中央显示 Hello HarmonyOS 字样）*
 
 ## 六、常见易错点 (Pitfalls)
 

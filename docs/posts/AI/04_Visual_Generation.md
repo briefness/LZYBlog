@@ -4,8 +4,8 @@
 > **Generating Reality**
 > 
 > 如果说 GPT 理解了人类语言的**语法 (Syntax)**。
-> 那么 Sora 则理解了物理世界的**规律 (Physics)**。
-> 本文将带你深入理解视觉生成的底层数学原理 (Diffusion) 和最新的架构演进 (DiT)。
+那么 Sora 则理解了物理世界的**规律 (Physics)**。
+本文将深入解析视觉生成的底层数学原理 (Diffusion) 和最新的架构演进 (DiT)。
 
 ---
 
@@ -13,11 +13,11 @@
 
 ### 1. 扩散模型 (Diffusion)：拆解上帝的画笔
 
-Diffusion 的本质不是“绘画”，而是**受控的去噪**。
+Diffusion 的本质并非“绘画”，而是**受控的去噪**。
 它受非平衡热力学的启发：一杯墨水滴入水中会自然扩散（从有序到无序），而生成过程就是逆转这个时间轴（从无序到有序）。
 
 #### 数学直觉：Reparameterization Trick
-我们不需要一步步加噪。利用高斯分布的性质，我们可以一步直接算出任意时刻 $t$ 的坏图像 $x_t$：
+无需逐步加噪。利用高斯分布的性质，可以直接算出任意时刻 $t$ 的坏图像 $x_t$：
 $$ x_t = \sqrt{\bar{\alpha}_t} x_0 + \sqrt{1 - \bar{\alpha}_t} \epsilon $$
 *   $\sqrt{\bar{\alpha}_t} x_0$: 原始信号的残留（Signal）。
 *   $\sqrt{1 - \bar{\alpha}_t} \epsilon$: 添加的噪声（Noise）。
@@ -26,7 +26,7 @@ $$ x_t = \sqrt{\bar{\alpha}_t} x_0 + \sqrt{1 - \bar{\alpha}_t} \epsilon $$
 #### 为什么 Loss 这么简单？
 令人惊讶的是，尽管背后的变分推导（ELBO）极其复杂，最终的 Loss 函数却退化为了简单的 **MSE (均方误差)**：
 $$ Loss = \| \epsilon_{True} - \epsilon_{Predicted} \|^2 $$
-这就好比给模型看一张“雪花点图”，问它：“请指出这里面哪部分是刚才人为加进去的噪点？”
+类似给模型看一张“雪花点图”，要求识别出“人为添加的噪点”。
 
 ### 2. DiT (Diffusion Transformer)：架构的范式转移
 
@@ -38,7 +38,7 @@ $$ Loss = \| \epsilon_{True} - \epsilon_{Predicted} \|^2 $$
 *   **Transformer 的优势**：Attention 机制天生具有**全局视野 (Global Context)**。
 
 #### DiT 核心机制：AdaLN (Adaptive Layer Norm)
-DiT 如何理解“画一只猫”这个指令？
+DiT 理解“画一只猫”指令的机制？
 它通过 **AdaLN** 机制，将 Condition（提示词/时间步）注入到了网络的每一层。
 
 *   **标准 LayerNorm**: 归一化 $\rightarrow$ 乘 $\gamma$ 加 $\beta$ (静态参数)。
@@ -53,7 +53,7 @@ DiT 如何理解“画一只猫”这个指令？
 
 ### 1. 3D VAE：时空压缩机
 
-视频的数据量是惊人的 (1分钟 1080p ≈ 1440张图)。直接在像素空间 (Pixel Space) 算 Diffusion 会算死显卡。
+视频的数据量是惊人的 (1分钟 1080p ≈ 1440张图)。直接在像素空间 (Pixel Space) 算 Diffusion 会导致显存溢出。
 解决方案是 **3D VAE (Variational Autoencoder)**。
 
 *   **2D 压缩**: 将一张 $1024 \times 1024$ 的图压缩成 $128 \times 128$ 的 Latent。
@@ -63,8 +63,8 @@ DiT 如何理解“画一只猫”这个指令？
 
 ### 2. World Simulator：物理规律的涌现
 
-这是最让人兴奋的地方。
-我们没有给 DiT 写过一行物理代码（没有 `gravity = 9.8`）。
+关键突破在于。
+未曾为 DiT 编写任何物理代码（没有 `gravity = 9.8`）。
 但通过学习海量视频，DiT 在 Latent Space 中**自发涌现**了物理常识：
 
 *   **物体恒存性**: 人走到树后面，不会凭空消失，走出来时还在。

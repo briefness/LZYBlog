@@ -76,7 +76,7 @@ sequenceDiagram
 3.  **`onHidden`**:
     *   **用途**: 停止视频播放、停止高频动画。
 
-    *   **用途**: 停止视频播放、停止高频动画。
+
 
 ### 3.3 参数传递限制 (Parameter Limits)
 在 `pushPath` 时传递的 `param` 参数，虽然支持 Object，但**不建议**传递过大的数据（如 Base64 图片字符串）。
@@ -106,7 +106,7 @@ Navigation 同时也负责界面展示。
 3.  **详情页 -> 设置页** (`replace`)：模拟场景转换。
 4.  **设置页 -> 首页** (`clear`)：回到首页。
 
-*(具体代码请见 `Code/Part4_Navigation/Index.ets`)*
+*(具体代码请见 `Code/HarmonyHub/entry/src/main/ets/pages/Index.ets`)*
 
 ### 5.1 拦截返回事件 (Interceptor)
 很多时候需要拦截左上角的返回按钮（例如：表单未保存）。

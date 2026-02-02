@@ -57,7 +57,7 @@ graph LR
 2. **获取 Bot ID**：在 Bot 编排页面的 URL 里能找到。
 3. **调用代码示例**：
    ```bash
-   curl --location 'https://api.coze.cn/open_api/v2/chat' \
+   curl --location 'https://api.coze.cn/v3/chat' \
    --header 'Authorization: Bearer YOUR_API_KEY' \
    --header 'Content-Type: application/json' \
    --data '{

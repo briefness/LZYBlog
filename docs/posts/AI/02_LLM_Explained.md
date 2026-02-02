@@ -3,7 +3,7 @@
 > [!NOTE]
 > **Evolution of Architecture**
 > 
-> 大模型的架构演进史，本质上是 **"Memory vs Efficiency" (记忆力 vs 效率)** 的权衡史。
+> 大模型的架构演进史，本质上是 **"Memory vs Efficiency" (记忆力 vs 效率)** 的权衡。
 > **The Science**: 数学原理（Attention, SSM 离散化）。
 > **The Art**: 架构设计（Hybrid 策略，如何像搭积木一样混合使用它们）。
 
@@ -13,7 +13,7 @@
 
 ### 1. Transformer：暴力美学的 $O(N^2)$
 
-Transformer 的核心哲学很简单：**Don't Compress (不压缩)**。
+Transformer 的核心设计理念为：**Don't Compress (不压缩)**。
 它把历史上的每一个 Token 都完完整整地存在显存里 (KV Cache)。
 
 #### 数学直觉：Attention 的物理意义
@@ -22,18 +22,18 @@ $$ \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right
 *   **$QK^T$**: 这是一个 $N \times N$ 的相似度矩阵。
     *   $N=1k$ 时，矩阵大小是 $10^6$。
     *   $N=100k$ 时，矩阵大小是 $10^{10}$ (100亿)。
-*   这就是为什么 Transformer 处理长文本这么贵。它的计算量随着长度 **平方级爆炸**。
+*   导致 Transformer 处理长文本成本极高。它的计算量随着长度 **平方级爆炸**。
 
 #### 为什么是 $\sqrt{d_k}$? (梯度稳定性)
-如果不除以 $\sqrt{d_k}$，点积结果会随着维度增加变得巨大。这会导致 Softmax 函数进入“饱和区”，梯度趋近于 0（梯度消失），模型根本训练不动。这是一个为了**数值稳定性**而设计的数学补丁。
+如果不除以 $\sqrt{d_k}$，点积结果会随着维度增加变得巨大。这会导致 Softmax 函数进入“饱和区”，梯度趋近于 0（梯度消失），导致模型无法训练。这是一个为了**数值稳定性**而设计的数学补丁。
 
 ### 2. Mamba (SSM)：回归 RNN 的线性复杂度
 
-为了解决 $O(N^2)$ 问题，Mamba (State Space Model) 复活了 RNN 的思想：**Compress (压缩)**。
-它试图把无限的历史，压缩进一个固定大小的状态 $h_t$ 中。
+为了解决 $O(N^2)$ 问题，Mamba (State Space Model) 沿用了 RNN 的思想：**Compress (压缩)**。
+它将无限的历史，压缩进一个固定大小的状态 $h_t$ 中。
 
 #### 核心公式：选择性状态空间 (Selective SSM)
-Mamba 并不死板。它引入了 **"Selection Mechanism" (选择机制)**：
+Mamba 具有动态性。它引入了 **"Selection Mechanism" (选择机制)**：
 $$ h_t = (1 - \Delta_t) h_{t-1} + \Delta_t x_t $$
 *(注：这是简化版理解，实际是离散化 ODE)*
 
@@ -41,7 +41,7 @@ $$ h_t = (1 - \Delta_t) h_{t-1} + \Delta_t x_t $$
 *   如果 $x_t$ 是垃圾广告 $\rightarrow$ $\Delta_t \approx 0$ (忽略，保持 $h_{t-1}$)。
 *   如果 $x_t$ 是关键人名 $\rightarrow$ $\Delta_t \approx 1$ (遗忘旧的，写入新的)。
 
-这种**由输入决定遗忘门**的机制，让 Mamba 拥有了 Transformer 级别的推理能力，却只需要 $O(1)$ 的推理显存。
+这种**由输入决定遗忘门**的机制，使得 Mamba 具备 Transformer 级别的推理能力，却只需要 $O(1)$ 的推理显存。
 
 ---
 
@@ -62,9 +62,17 @@ $$ h_t = (1 - \Delta_t) h_{t-1} + \Delta_t x_t $$
     *   **作用**: 这几层用来“精准查阅”最近的上下文，保证细节不瞎编。
     *   **优势**: 找回精准的“Copy-Paste”能力。
 
+### 2. 显存救星：KV Cache Quantization
+Transformer 虽然强大，但在推理时面临巨大的**显存瓶颈**。
+为了生成下一个 token，必须把之前所有 token 的 Key 和 Value 记在显存里 (KV Cache)。
+*   **问题**: 对于 128k 上下文，KV Cache 会占用大量 A100 显存。
+*   **解法 (2026)**: **KV Cache 量化**。
+    *   不像权重需要 int8/int4，KV Cache 对精度不那么敏感。
+    *   2026 年的主流是用 **FP4** 甚至 **Binary** 格式存储 KV Cache。这就让显存占用下降了 4-8 倍，使得在单张显卡上跑 100k context 成为可能。
+
 ### 2. PyTorch 实现：Scaled Dot-Product Attention
 
-既然我们保留了 Attention 作为关键组件，理解它的代码实现依然至关重要。
+保留 Attention 作为关键组件时，理解它的代码实现依然至关重要。
 
 ```python
 import torch

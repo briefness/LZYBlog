@@ -3,7 +3,7 @@
 > [!NOTE]
 > **从脚本到自主系统**
 > 
-> Agent 不是魔法，它是**循环 (Loop)** 和 **状态管理 (State Management)** 的结合体。
+> Agent 并非魔法，它是**循环 (Loop)** 和 **状态管理 (State Management)** 的结合体。
 > 从计算机科学的角度看，Agent 本质上是一个运行在 LLM 之上的 **有限状态机 (Finite State Machine)**。
 
 ## 1. 理论模型：ReAct 的 FSM 视角
@@ -34,7 +34,7 @@ stateDiagram-v2
 
 ## 2. 代码级拆解：ReAct Prompt 模版
 
-Agent 到底是怎么跑起来的？核心在于这个 Prompt 模版（以 LangChain 为例）：
+Agent 的运行机制核心在于这个 Prompt 模版（以 LangChain 为例）：
 
 ```text
 Answer the following questions as best you can. 
@@ -60,12 +60,12 @@ Thought: {agent_scratchpad}  <-- 历史对话记录在这里
 ```
 
 **Stop Sequence (停止符)**:
-这一点非常重要。LLM 生成完 `Action Input` 后，必须立刻由程序强行打断（Stop Generation），不能让 LLM 自己生成 `Observation`（那是幻觉）。
+此点至关重要。LLM 生成完 `Action Input` 后，必须立刻由程序强行打断（Stop Generation），需防止 LLM 自行生成 `Observation`（那是幻觉）。
 程序接管，运行 Python 函数，拿到真实结果，拼接到 Prompt 后面，再让 LLM 继续生成。
 
 ## 3. 多智能体协作：图论架构 (Graph)
 
-当单个 Agent 搞不定时，需要 Multi-Agent。
+当单个 Agent 无法完成任务时，需要 Multi-Agent。
 LangGraph 等框架引入了 **图 (Graph)** 的概念。
 
 $$ G = (V, E) $$
@@ -95,7 +95,7 @@ graph LR
     Executor -- 报错 --> Coder
     Executor -- 成功 --> Reviewer
     
-    Reviewer -- 也就是不行 --> Coder
+    Reviewer -- 拒绝/需要修改 --> Coder
     Reviewer -- 通过 --> Publisher
 ```
 

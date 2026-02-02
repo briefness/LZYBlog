@@ -11,25 +11,25 @@
 
 ## 第一部分：Deep Dive 原理 (The Science)
 
-为什么给几个例子 (Few-Shot)，模型就能学会新任务？
+为何少量示例(Few-Shot)即可让模型习得新任务？
 这背后的数学机制被称为 **In-Context Learning (ICL)**。
 
 ### 1. 隐式的梯度下降 (Implicit Gradient Descent)
 
-你可能以为 Prompt 只是告诉模型“怎么做”。
+此前观点或认为 Prompt 仅是告知模型“如何操作”。
 但斯坦福大学的研究表明，Transformer 在处理 Prompt 时，实际上是在内部进行了一次**“不用改权重的微调”**。
 
 *   **Fine-tuning**: 通过反向传播更新参数 $\theta$，最小化 Loss。
 *   **Prompting**: Transformer 的 Attention 层在推理过程中算出了一组 $Attention(Q, K, V)$。这组 Attention 权重，在数学上等价于利用 Context 中的示例 $(x_i, y_i)$ 执行了一步梯度下降。
 
-**结论**：你在写 Prompt 里的 Examples 时，其实是在**实时构建训练集**。
+**结论**：编写 Example 时，实际上是在**实时构建训练集**。
 
 ### 2. Induction Heads (归纳头)：复读机的智慧
 
 Anthropic 发现 Transformer 内部有一组特殊的电路，叫 **Induction Heads**。
-它们的工作原理就是简单的**“模式匹配与复制”**：
+它们的工作原理为**“模式匹配与复制”**：
 
-> *"我之前见过 [A] 后面跟着 [B]。现在我又看到了 [A]，那我也预测 [B]。"*
+> *"曾出现 [A] 后接 [B]，再次出现 [A] 时预测 [B]。"*
 
 这解释了为什么 Few-Shot 有效：
 1.  输入 `国家: 此时 -> 首都: 巴黎` (Example 1)
@@ -38,9 +38,9 @@ Anthropic 发现 Transformer 内部有一组特殊的电路，叫 **Induction He
 
 ### 3. CoT (思维链) 的概率场解释
 
-直接问大模型数学题，它常会瞎猜。
+直接提问时，模型容易产生幻觉。
 $$ P(\text{Answer} | \text{Question}) $$
-这个概率分布往往是多峰的 (Multimodal)，模型很容易滑向错误的局部最优解。
+这个概率分布往往是多峰的 (Multimodal)，模型易陷入错误的局部最优解。
 
 加入思维链 (Chain of Thought)：
 $$ P(\text{Answer} | \text{Step 1, Step 2, ..., Question}) $$
@@ -54,7 +54,7 @@ $$ P(\text{Answer} | \text{Step 1, Step 2, ..., Question}) $$
 
 ## 第二部分：实战框架 (The Art)
 
-懂了原理，如何写出利用好 Induction Heads 的 Prompt？
+基于原理，构建高效 Prompt 的方法？
 新加坡政府科技局提出的 **CO-STAR** 框架是目前的最佳实践。
 
 ### 1. CO-STAR 框架详解
@@ -70,7 +70,7 @@ $$ P(\text{Answer} | \text{Step 1, Step 2, ..., Question}) $$
 
 ### 2. 结构化提示词 (Structured Prompting)
 
-对于复杂任务，不要写小作文，要写**伪代码**。
+对于复杂任务，避免长篇大论，建议使用**伪代码**。
 这种 XML 风格利用了 LLM 对代码结构的敏感性（代码通常逻辑严密），能大幅减少幻觉。
 
 ```xml

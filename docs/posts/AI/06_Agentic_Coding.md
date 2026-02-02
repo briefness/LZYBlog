@@ -3,14 +3,14 @@
 > [!IMPORTANT]
 > **警告：硬核内容**
 > 
-> 本文不再讨论“AI 能帮人写什么代码”，而是探讨“**如何构建一个自动化的 AI 研发团队**”。
+> 本文将探讨“**如何构建一个自动化的 AI 研发团队**”。
 > 本文会拆解 **Antigravity / Claude Code** 的运行机制，并详细介绍如何配置 **.agent/rules** 和编写 **MCP Server**。
 
 ## 1. 架构演进：从 “补全” 到 “循环”
 
 ### Copilot 的局限 (Stateless)
-传统的 Copilot 是**无状态**的。它只看当前文件的光标位置 + 最近打开的 Tabs。
-它就像一个**健忘的实习生**：告诉它改了 A 文件，它下一秒去 B 文件时就忘了 A 的改动。
+传统的 Copilot 是**无状态**的。它仅关注当前文件的光标位置 + 最近打开的 Tabs。
+类似于一个**健忘的实习生**：告诉它改了 A 文件，它下一秒去 B 文件时就忘了 A 的改动。
 
 ### Agent 的核心：OODA 循环
 Antigravity 和 Claude Code 引入了 **OODA Loop (Observe-Orient-Decide-Act)**。
@@ -34,11 +34,18 @@ stateDiagram-v2
 *   **持久化记忆 (Memory)**：它会维护一个 `context` 窗口，记录过去 10 轮的操作。
 *   **主动式终端 (Active Terminal)**：它不光会生成代码，还会**真的运行** `ls`, `grep`, `npm test` 来验证自己的假设。
 
+> [!CAUTION]
+> **Safety First: 沙盒与权限**
+> 
+> 赋予 Agent 终端权限存在极高风险。
+> 1.  **Sandboxing (沙盒)**: 生产环境必须在 Docker 容器或受限环境中运行 Agent，防止 `rm -rf /` 等灾难性误操作。
+> 2.  **Human Verification**: 对于关键操作（删除文件、Push 代码、部署），必须设置“人类确认”卡点。
+
 ---
 
 ## 2. 核心配置：Rules (构建 AI 宪法)
 
-Antigravity/Cursor 允许用户通过配置文件定义 AI 的行为准则。这不只是提示词，这是**系统级约束**。
+Antigravity/Cursor 允许用户通过配置文件定义 AI 的行为准则。不仅是提示词，更是**系统级约束**。
 
 ### 实战：编写一个生产级的 `.agent/rules` (或 `.cursorrules`)
 
@@ -66,7 +73,7 @@ State Management: Zustand only (No Redux).
 ```
 
 **为什么这很重要？**
-如果不写这个，AI 可能会给你写 Class Component，或者引入 Redux，导致每次都要花时间纠正它。**Rules 是提效杠杆率最高的地方。**
+若无此配置，AI 可能生成 Class Component，或者引入 Redux，导致需要时间纠正。**Rules 是提效杠杆率最高的地方。**
 
 ---
 
@@ -81,8 +88,8 @@ MCP 是 Anthropic 提出的开放标准，是为了解决“AI 无法访问外�
 
 ### 实战：手写一个简单的 MCP Server
 
-假设想让 AI 能**查询实时的加密货币价格**（这是训练数据里没有的）。
-我们需要写一个简单的 Python MCP Server。
+假设需要 AI 能**查询实时的加密货币价格**（这是训练数据里没有的）。
+需要编写一个简单的 Python MCP Server。
 
 **1. 安装依赖**
 ```bash
@@ -135,8 +142,8 @@ if __name__ == "__main__":
 ```
 
 **4. 效果**
-现在，在对话框里问：“比特币现在多少钱？”，AI 会自动调用 `get_crypto_price("bitcoin")` 并告诉你实时价格。
-**这就是 MCP 的威力：无限扩展 AI 的能力边界。**
+现在，在交互中提问：“比特币现在多少钱？”，AI 将自动调用 `get_crypto_price("bitcoin")` 并告知实时价格。
+**此即 MCP 的威力：无限扩展 AI 的能力边界。**
 
 ---
 
@@ -184,11 +191,24 @@ MCP 是工具 (Tools)，Skill 是用法 (Patterns)。只有把工具组合成 SO
 > **Skills 是可以组合的**
 > 高级 Agent 会根据任务自动编排这些 Skill。比如修 Bug 时先调用 `Systematic Debugging`，修完后调用 `Code Reviewer` 自查。
 
-## 6. 总结：如何构建 AI 团队？
+## 6. 开发者角色的转变：从 Writer 到 Reviewer
 
-1.  **立规矩 (Rules)**：先把项目规范写进 `.agent/rules`。
-2.  **加装备 (MCP)**：把数据库、Git、设计工具（Pencil）通过 MCP 连接给 AI。
-3.  **练技能 (Skills)**：针对特定任务（修Bug、写前端、写SQL）加载对应的 Skill。
-4.  **定流程 (Workflows)**：用 SOP 约束 AI 的行为，防止它发散。
+在 Agentic Coding 时代，开发者的核心竞争力不再是“手速”，而是“鉴赏力”。
 
-做到这四点，面对的就不再是一个冷冰冰的聊天机器人，而是一个**经过严格训练、装备精良、懂用户习惯的数字化研发团队**。
+### The Human-in-the-Loop
+开发者角色将从单纯的代码**撰写者 (Writer)**，转化为：
+1.  **Product Manager (产品经理)**：定义清晰的 `.agent/rules` 和需求文档（Prompt Engineering）。
+2.  **System Architect (架构师)**：设计 MCP 架构，决定 Agent 能连接什么数据。
+32.  **Code Reviewer (终极把关)**：**这是最重要的工作**。AI 生成速度越快，意味着幻觉越隐蔽。必须具备极强的 Code Review 能力，为安全性与架构合理性兜底。
+
+---
+
+## 7. 总结：如何构建 AI 团队？
+
+1.  **立规矩 (Rules)**：基本宪法。
+2.  **加装备 (MCP)**：感知器官。
+3.  **练技能 (Skills)**：专业能力。
+4.  **定流程 (Workflows)**：协作SOP。
+5.  **守底线 (Safety)**：安全边界。
+
+做到这五点，面对的就不再是一个冷冰冰的聊天机器人，而是一个**经过严格训练、装备精良、懂用户习惯的数字化研发团队**。
