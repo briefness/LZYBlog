@@ -1,62 +1,107 @@
-# 02. 大模型逻辑：从 Transformer 到 Mamba (2026 版)
+# 02. 大模型架构深度解析：从 Transformer 到 Mamba Hybrid
 
-> [!WARNING]
-> **架构演进**
+> [!NOTE]
+> **Evolution of Architecture**
 > 
-> 虽然 Transformer 统治了 AI 十年，但到了 2026 年，单纯的 Attention 机制已经遇到瓶颈。
-> 面对 **无限长上下文 (Infinite Context)** 的需求，**SSM (State Space Models)** 和 **Hybrid 架构** 成为了新标准。
+> 大模型的架构演进史，本质上是 **"Memory vs Efficiency" (记忆力 vs 效率)** 的权衡史。
+> **The Science**: 数学原理（Attention, SSM 离散化）。
+> **The Art**: 架构设计（Hybrid 策略，如何像搭积木一样混合使用它们）。
 
-## 1. Transformer 的阿喀琉斯之踵
+---
 
-前文中讲到 Self-Attention 的公式：
-$$Attention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_k}})V$$
+## 第一部分：Deep Dive 原理 (The Science)
 
-这里的 $QK^T$ 是一个 $N \times N$ 的矩阵。
-*   **计算复杂度**: $O(N^2)$。
-*   **内存占用**: $O(N^2)$。
-*   **KV Cache**: 推理时需要显存缓存所有的 Key 和 Value。一个 128k 窗口的请求，光 KV Cache 就要吃掉几十 G 显存。
+### 1. Transformer：暴力美学的 $O(N^2)$
 
-这意味着：Transformer **越长越慢，越长越贵**。
+Transformer 的核心哲学很简单：**Don't Compress (不压缩)**。
+它把历史上的每一个 Token 都完完整整地存在显存里 (KV Cache)。
 
-## 2. 复古与革新：SSM (State Space Models)
+#### 数学直觉：Attention 的物理意义
+$$ \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V $$
 
-SSM (如 Mamba) 的灵感来自 60 年代的控制理论（卡尔曼滤波）和 RNN。
-它的核心思想是：**不要记下所有历史，而是把历史压缩成一个状态 $h_t$**。
+*   **$QK^T$**: 这是一个 $N \times N$ 的相似度矩阵。
+    *   $N=1k$ 时，矩阵大小是 $10^6$。
+    *   $N=100k$ 时，矩阵大小是 $10^{10}$ (100亿)。
+*   这就是为什么 Transformer 处理长文本这么贵。它的计算量随着长度 **平方级爆炸**。
 
-### 核心公式 (线性递归)
-$$ h_t = A h_{t-1} + B x_t $$
-$$ y_t = C h_t $$
+#### 为什么是 $\sqrt{d_k}$? (梯度稳定性)
+如果不除以 $\sqrt{d_k}$，点积结果会随着维度增加变得巨大。这会导致 Softmax 函数进入“饱和区”，梯度趋近于 0（梯度消失），模型根本训练不动。这是一个为了**数值稳定性**而设计的数学补丁。
 
-*   $h_t$: 当前的隐状态 (Hidden State)。
-*   $x_t$: 当前输入。
-*   $y_t$: 当前输出。
+### 2. Mamba (SSM)：回归 RNN 的线性复杂度
 
-**优势**：
-1.  **线性复杂度 $O(N)$**: 无论序列多长，计算量只和长度成线性关系。
-2.  **推理恒定显存**: 不需要 KV Cache。只需要存一个固定大小的 $h_t$。
-3.  **极速推理**: 生成速度比 Transformer 快 5-10 倍。
+为了解决 $O(N^2)$ 问题，Mamba (State Space Model) 复活了 RNN 的思想：**Compress (压缩)**。
+它试图把无限的历史，压缩进一个固定大小的状态 $h_t$ 中。
 
-## 3. 2026 标准：Hybrid Architecture (混合架构)
+#### 核心公式：选择性状态空间 (Selective SSM)
+Mamba 并不死板。它引入了 **"Selection Mechanism" (选择机制)**：
+$$ h_t = (1 - \Delta_t) h_{t-1} + \Delta_t x_t $$
+*(注：这是简化版理解，实际是离散化 ODE)*
 
-纯 Mamba 模型在“回忆具体细节”（Recall）上不如 Transformer。
-所以，2026 年的主流模型（如 Jamba, Griffin）采用了 **Hybrid (混合)** 策略：
+这里的 $\Delta_t$ 是关键。它是**动态的**，由当前输入 $x_t$ 决定：
+*   如果 $x_t$ 是垃圾广告 $\rightarrow$ $\Delta_t \approx 0$ (忽略，保持 $h_{t-1}$)。
+*   如果 $x_t$ 是关键人名 $\rightarrow$ $\Delta_t \approx 1$ (遗忘旧的，写入新的)。
 
-```mermaid
-graph TD
-    Input --> Block1[Mamba Block]
-    Block1 --> Block2[Mamba Block]
-    Block2 --> Block3[Mamba Block]
-    Block3 --> Attn[Attention Layer (Sliding Window)]
-    Attn --> Block4[Mamba Block]
+这种**由输入决定遗忘门**的机制，让 Mamba 拥有了 Transformer 级别的推理能力，却只需要 $O(1)$ 的推理显存。
+
+---
+
+## 第二部分：实战架构 (The Architecture)
+
+纯 Mamba 在处理“查电话簿”这种任务时表现不佳（因为状态被压缩了，细节丢失）。
+2026 年的主流架构是 **"Jamba-Style" Hybrid**。
+
+### 1. 混合架构设计 (Hybrid Design)
+
+就像计算机有 RAM (大而慢) 和 L1 Cache (小而快) 一样。
+现代 LLM 也是分层的：
+
+*   **主体 (Body)**: 90% 的层是 **Mamba/SSM**。
+    *   **作用**: 快速吞噬海量文本，建立宏观的世界观。
+    *   **优势**: $O(N)$ 训练，极低显存占用。
+*   **关键点 (Heads)**: 10% 的层是 **Attention** (通常是 Sliding Window)。
+    *   **作用**: 这几层用来“精准查阅”最近的上下文，保证细节不瞎编。
+    *   **优势**: 找回精准的“Copy-Paste”能力。
+
+### 2. PyTorch 实现：Scaled Dot-Product Attention
+
+既然我们保留了 Attention 作为关键组件，理解它的代码实现依然至关重要。
+
+```python
+import torch
+import torch.nn.functional as F
+
+def scaled_dot_product_attention(query, key, value, mask=None):
+    """
+    Args:
+        query: [Batch, Heads, Len_Q, Dim]
+        key:   [Batch, Heads, Len_K, Dim]
+        value: [Batch, Heads, Len_K, Dim]
+    """
+    d_k = query.size(-1)
     
-    style Attn fill:#ffccbc
-    style Block1 fill:#e1f5fe
+    # 1. 计算相似度分数 (The "Search")
+    # [Len_Q, Dim] @ [Dim, Len_K] -> [Len_Q, Len_K]
+    scores = torch.matmul(query, key.transpose(-2, -1)) / torch.sqrt(torch.tensor(d_k))
+    
+    # 2. 掩码 (Masking): 遮住未来，或者遮住 Padding
+    if mask is not None:
+        scores = scores.masked_fill(mask == 0, -1e9)
+    
+    # 3. 归一化 (Softmax): 变成概率分布
+    p_attn = F.softmax(scores, dim=-1)
+    
+    # 4. 加权求和 (The "Retrieval")
+    # [Len_Q, Len_K] @ [Len_K, Dim] -> [Len_Q, Dim]
+    return torch.matmul(p_attn, value), p_attn
 ```
 
-*   **90% 层使用 Mamba**: 处理海量日常信息，保持高效。
-*   **10% 层使用 Attention**: 在关键时刻“睁开眼”查阅历史，保证精准度。
+---
 
-这种架构兼顾了无限长度处理和高精度召回。
+## 小结
 
-## 4. Tokenization (BPE) ... (保留原始内容)
-## 5. Inference (Temperature) ... (保留原始内容)
+*   **Transformer**: 是豪宅。住得舒服（效果好），但太贵（显存爆炸）。适合短上下文高精度任务。
+*   **Mamba**: 是胶囊旅馆。极度高效，虽然有点挤（压缩损失），但能住很多人（几百万 Token）。
+*   **Hybrid (2026)**: 是**豪宅+胶囊**的混合体。
+    *   大部分时候住胶囊（用 Mamba 处理长文档）。
+    *   关键时刻住豪宅（用 Attention 提取关键信息）。
+    *   这是目前实现 **无限上下文 (Infinite Context)** 的最佳工程解。

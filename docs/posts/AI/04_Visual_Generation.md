@@ -1,94 +1,83 @@
-# 04. 视觉生成：从 UNet 图片到 DiT 视频
+# 04. 视觉生成原理：从 Diffusion 数学到 Sora 架构
 
-> [!WARNING]
-> **这不只是画画**
+> [!NOTE]
+> **Generating Reality**
 > 
-> 生成式 AI 的视觉能力已经从 2D 静态图进化到了 3D 动态视频。
-> 本篇将剖析 **Stable Diffusion (图片)** 和 **Sora/Kling (视频)** 背后的两套核心架构：**U-Net** 与 **DiT**。
+> 如果说 GPT 理解了人类语言的**语法 (Syntax)**。
+> 那么 Sora 则理解了物理世界的**规律 (Physics)**。
+> 本文将带你深入理解视觉生成的底层数学原理 (Diffusion) 和最新的架构演进 (DiT)。
 
-## 1. 扩散模型的本质：加噪与去噪
+---
 
-Stable Diffusion 的核心思想源于非平衡热力学。
-它包含两个过程：**前向扩散的过程 (Forward)** 和 **逆向去噪的过程 (Reverse)**。
-(这部分原理前文已讲，此处略，重点看架构演进)
+## 第一部分：Deep Dive 原理 (The Science)
 
-## 2. 图片霸主：U-Net 架构
+### 1. 扩散模型 (Diffusion)：拆解上帝的画笔
 
-Stable Diffusion 使用的是 **U-Net**。
-它因为长得像字母 "U" 而得名。
+Diffusion 的本质不是“绘画”，而是**受控的去噪**。
+它受非平衡热力学的启发：一杯墨水滴入水中会自然扩散（从有序到无序），而生成过程就是逆转这个时间轴（从无序到有序）。
 
-```mermaid
-graph TD
-    subgraph Encoder [下采样 (Downsampling)]
-        L1[Conv + ResNet] --> P1[Pool]
-        P1 --> L2[Conv + ResNet] --> P2[Pool]
-        P2 --> L3[Conv + ResNet]
-    end
-    
-    subgraph Bottleneck [中间层]
-        L3 --> BN[Self-Attention / Cross-Attention]
-    end
-    
-    subgraph Decoder [上采样 (Upsampling)]
-        BN --> UP1[UpConv]
-        UP1 --> R1[Concat + Conv]
-        R1 --> UP2[UpConv]
-        UP2 --> R2[Concat + Conv]
-    end
-    
-    L2 -.->|Skip Connection| R1
-    L1 -.->|Skip Connection| R2
-    
-    style U-Net fill:#e1f5fe
-```
+#### 数学直觉：Reparameterization Trick
+我们不需要一步步加噪。利用高斯分布的性质，我们可以一步直接算出任意时刻 $t$ 的坏图像 $x_t$：
+$$ x_t = \sqrt{\bar{\alpha}_t} x_0 + \sqrt{1 - \bar{\alpha}_t} \epsilon $$
+*   $\sqrt{\bar{\alpha}_t} x_0$: 原始信号的残留（Signal）。
+*   $\sqrt{1 - \bar{\alpha}_t} \epsilon$: 添加的噪声（Noise）。
+*   **任务**：随着 $t$ 增大，信号越来越弱，噪声越来越强。模型的任务就是在给定 $t$ 的时刻，把 $\epsilon$ 预测出来并减掉。
 
-*   **卷积网络 (CNN)**：U-Net 的核心是卷积层 (Conv)。卷积极其擅长处理局部特征（纹理、边缘）。
-*   **归纳偏置 (Inductive Bias)**：CNN 假设像素之间有局部相关性。这对图片很有效。
+#### 为什么 Loss 这么简单？
+令人惊讶的是，尽管背后的变分推导（ELBO）极其复杂，最终的 Loss 函数却退化为了简单的 **MSE (均方误差)**：
+$$ Loss = \| \epsilon_{True} - \epsilon_{Predicted} \|^2 $$
+这就好比给模型看一张“雪花点图”，问它：“请指出这里面哪部分是刚才人为加进去的噪点？”
 
-## 3. 视频新皇：DiT (Diffusion Transformer)
+### 2. DiT (Diffusion Transformer)：架构的范式转移
 
-当要生成视频时，U-Net 就力不从心了。
-视频不光是连续的图片，它包含**时间维度 (Temporal)** 的连贯性。
-Sora, Kling (可灵), Luma 等视频模型，抛弃了 U-Net，全面拥抱 **DiT**。
+在 Stable Diffusion 时代，霸主是 **U-Net**（基于卷积 CNN）。
+但到了视频生成时代 (Sora/Kling)，**DiT** 成为了唯一标准。
 
-### 为什么选择 Transformer?
-1.  **Patches (切片)**: DiT 把图片/视频切成一个个小方块 (Patches)，就像 GPT 把文字切成 Token。
-2.  **Global Attention (全局注意力)**: CNN 只能看局部，Transformer 能看全局。对于视频来说，第 1 帧的物体可能在第 100 帧再次出现，必须有全局视野。
-3.  **Scaling Law**:Transformer 已经被证明了，堆越多算力，效果越好（大力出奇迹）。
+#### 为什么要抛弃 U-Net？
+*   **CNN 的局限**：卷积只能看到局部（Local Receptive Field）。在视频中，第1帧的鸟可能飞到第100帧，CNN 很难捕捉这种长距离的时空依赖。
+*   **Transformer 的优势**：Attention 机制天生具有**全局视野 (Global Context)**。
 
-### DiT 架构图解
+#### DiT 核心机制：AdaLN (Adaptive Layer Norm)
+DiT 如何理解“画一只猫”这个指令？
+它通过 **AdaLN** 机制，将 Condition（提示词/时间步）注入到了网络的每一层。
 
-```mermaid
-graph LR
-    Input[视频/图片 Noise] --> Patchify[切分成 Patches]
-    Patchify --> Linear[线性投影 (Embedding)]
-    Linear --> Transformer[标准 Transformer Block<br/>(Self-Attention + MLP)]
-    Transformer --> Unpatchify[还原成像素]
-    Unpatchify --> Output[生成结果]
-    
-    Condition[文本 Prompt / 物理规律] -.->|Cross-Attention| Transformer
-```
+*   **标准 LayerNorm**: 归一化 $\rightarrow$ 乘 $\gamma$ 加 $\beta$ (静态参数)。
+*   **AdaLN**: 归一化 $\rightarrow$ **根据提示词动态生成** $\gamma(c)$ 和 $\beta(c)$。
+    *   如果提示词是“白天”，$\gamma$ 可能放大亮度通道。
+    *   如果提示词是“夜晚”，$\gamma$ 可能抑制亮度通道。
+    *   **本质**：Prompt 实际上是在动态修改神经网络的**层参数**。
 
-### 3D VAE：时空压缩
-生成视频的数据量太大了（1分钟视频 = 1440 帧图片）。
-所以 Sora 使用了 **3D VAE**。
-*   不仅在空间上压缩（把 1080p 压成小图）。
-*   还在**时间上压缩**（把连续 10 帧压成 1 帧 Latent）。
-这意味着 DiT 处理的不是“视频”，而是高度浓缩的“时空立方体”。
+---
 
-## 4. 物理世界模拟器
+## 第二部分：实战演进 (The Evolution)
 
-为什么说视频生成是“物理模拟器”？
-因为 DiT 没有任何关于“重力”、“碰撞”的预设代码。
-但通过学习海量视频，它**涌现**出了物理常识：
-*   扔出的球会画抛物线。
-*   水倒在桌子上会流开。
-*   这是因为在 Latent Space 中，它学会了 $s_{t+1} = f(s_t, physics)$ 的隐式规律。
+### 1. 3D VAE：时空压缩机
+
+视频的数据量是惊人的 (1分钟 1080p ≈ 1440张图)。直接在像素空间 (Pixel Space) 算 Diffusion 会算死显卡。
+解决方案是 **3D VAE (Variational Autoencoder)**。
+
+*   **2D 压缩**: 将一张 $1024 \times 1024$ 的图压缩成 $128 \times 128$ 的 Latent。
+*   **3D 压缩**: 将连续的 10 帧画面，压缩成 1 帧 Latent。
+
+这意味着 Sora 看到的不是“视频”，而是一个个高度浓缩的**时空立方体 (Spacetime Patches)**。
+
+### 2. World Simulator：物理规律的涌现
+
+这是最让人兴奋的地方。
+我们没有给 DiT 写过一行物理代码（没有 `gravity = 9.8`）。
+但通过学习海量视频，DiT 在 Latent Space 中**自发涌现**了物理常识：
+
+*   **物体恒存性**: 人走到树后面，不会凭空消失，走出来时还在。
+*   **流体动力学**: 咖啡倒在桌子上，会根据液体粘度自然铺开。
+*   **光影反射**: 墨镜里会反射出对面的霓虹灯。
+
+这证明了：当模型足够大、数据量足够多时，**预测下一个 Frame** 等价于 **模拟世界运行的规律**。
+
+---
 
 ## 小结
 
-视觉生成的演进路线：
-1.  **Pixel Space -> Latent Space**: 引入 VAE，解决计算量问题。
-2.  **U-Net (CNN) -> DiT (Transformer)**: 引入 Transformer，解决时空长程依赖问题。
-
-现在的视频模型，本质上是一个**懂得物理规律的图形渲染引擎**。
+*   **Diffusion**：利用高斯分布的逆过程，从噪声中重构信号。
+*   **DiT 架构**：用 Transformer 取代 U-Net，获得处理长时序视频的能力。
+*   **AdaLN**：让 Prompt 动态控制神经网络的层参数，实现精准生成。
+*   **终局**：视频生成模型不仅仅是做特效，它是通往 **General World Model (通用世界模型)** 的必经之路。
