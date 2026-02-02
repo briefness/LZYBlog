@@ -25,6 +25,9 @@ features:
   - title: 📱 HarmonyOS
     details: 深入学习鸿蒙系统开发，从入门到进阶，掌握未来生态。
     link: /posts/harmonyos/index
+  - title: 💙 Flutter
+    details: 跨平台应用开发实战，构建高性能移动应用。
+    link: /posts/Flutter/index
   - title: 🎬 BaseCut
     details: 视频剪辑工具开发实战与技术分享，探索 WebAV 技术。
     link: /posts/BaseCut/index

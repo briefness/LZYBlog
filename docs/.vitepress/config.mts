@@ -13,6 +13,7 @@ export default withMermaid(
         { text: 'AI 认知', link: '/posts/AI/index' },
         { text: 'Coze', link: '/posts/coze/index' },
         { text: 'HarmonyOS', link: '/posts/harmonyos/index' },
+        { text: 'Flutter', link: '/posts/Flutter/index' },
         { text: 'BaseCut', link: '/posts/BaseCut/index' }
       ],
 
@@ -23,6 +24,7 @@ export default withMermaid(
             { text: 'AI 认知', link: '/posts/AI/index' },
             { text: 'Coze', link: '/posts/coze/index' },
             { text: 'HarmonyOS', link: '/posts/harmonyos/index' },
+            { text: 'Flutter', link: '/posts/Flutter/index' },
             { text: 'BaseCut', link: '/posts/BaseCut/index' }
           ]
         }
