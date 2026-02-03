@@ -32,5 +32,8 @@ features:
   - title: 🎬 BaseCut
     details: 视频剪辑工具开发实战与技术分享，探索 WebAV 技术。
     link: /posts/BaseCut/index
+  - title: ⚛️ React
+    details: 深入理解 React 原理与生态，掌握现代前端开发核心。
+    link: /posts/React/index
 ---
 
