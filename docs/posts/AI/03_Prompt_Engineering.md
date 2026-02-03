@@ -104,7 +104,7 @@ $$ P(\text{Answer} | \text{Step 1, Step 2, ..., Question}) $$
 > 帮我重写一个完美的 Prompt。
 > 在输出 Prompt 之前，先问我 3 个问题，以确保你完全理解了我的需求。"
 
-这叫 **Interactive Metaprompting**。你只需提供 60 分的想法，AI 帮你补全成 100 分的工程级 Prompt。
+这叫 **Interactive Metaprompting**。只需提供 60 分的想法，AI 帮你补全成 100 分的工程级 Prompt。
 
 ---
 

@@ -5,7 +5,8 @@ hero:
   name: "阿乐的博客"
   text: "技术探索"
   image:
-    src: /hero-logo.png
+    light: /hero-logo.png
+    dark: /hero-logo-dark.png
     alt: Blog Logo
   tagline: 专注 AI 认知、鸿蒙开发与全栈技术分享
   actions:

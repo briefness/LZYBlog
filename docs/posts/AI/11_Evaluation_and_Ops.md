@@ -54,7 +54,7 @@ print(results)
 ## 3. LLMOps：生产环境的监控
 
 上线不是结束，是开始。
-你需要监控以下指标：
+需要监控以下指标：
 
 *   **Trace (链路追踪)**: 使用 LangSmith 或 LangFuse。记录每一次 LLM 调用，包括 Latency, Token Usage, Cost。
 *   **Feedback (用户反馈)**: "点赞/点踩" 反馈机制至关重要。这是最真实的线上数据 (RLHF 的来源)。
