@@ -111,7 +111,13 @@ function Parent() {
 ## 7. 避坑指南 (Anti-Patterns)
 
 *   **内联对象地狱**：
-    `style={{ color: 'red' }}` 或 `options={['a', 'b']}`。每次渲染都会生成新引用，导致 memo 失效。
+    
+    ```jsx
+    // Bad
+    <div style={{ color: 'red' }} />
+    <Component options={['a', 'b']} />
+    ```
+    每次渲染都会生成新引用，导致 memo 失效。
     **解法**：提到组件外定义常量，或使用 `useMemo`。
 *   **Props 穿透**：
     把不知名的 `{...props}` 一股脑传下去，导致子组件接收了无关的属性变化。
