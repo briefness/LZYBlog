@@ -32,9 +32,11 @@ graph TD
         direction TB
         Nav --> Anim[5. 动效 & 转场]
         Anim --> Draw[6. 自定义绘图 Canvas]
-        Draw --> Comp[7. 组件化 & 工程架构]
+        Draw --> Unique[7. 独有交互体验 Unique Interactions]
+        Unique --> Smart[8. 智慧功能 Smart Features]
+        Smart --> Comp[9. 组件化 & 工程架构]
     end
-    class Nav,Anim,Draw,Comp visual;
+    class Nav,Anim,Draw,Unique,Smart,Comp visual;
 
     Phase2 --> Net[8. 网络请求 RCP]
 
@@ -102,7 +104,15 @@ graph TD
     *   **内容**: 使用 Canvas 绘制任意图形。实现股票走势图或仪表盘。
     *   *关键点*: `Canvas`, `Path` 路径, 2D 绘图上下文, DisplayList.
 
-7.  **[组件化与工程架构 (Components & Architecture)](./Articles/Components.md)**
+7.  **[独有交互体验 (Unique Interactions)](./Articles/UniqueInteractions.md)**
+    *   **内容**: 探索鸿蒙独有的闪控球、智感握姿与碰一碰。
+    *   *关键点*: `floatingBall`, `MultimodalAwareness`, `OneHop`.
+
+8.  **[智慧功能 (Smart Features)](./Articles/SmartFeatures.md)**
+    *   **内容**: 利用实况窗展示实时进度，使用原生 AI 实现视觉与语音功能。
+    *   *关键点*: `LiveViewKit`, `VisionKit`, `CoreSpeechKit`.
+
+9.  **[组件化与工程架构 (Components & Architecture)](./Articles/Components.md)**
     *   **内容**: 封装复用组件，掌握官方推荐的**三层架构 (Product-Feature-Common)**。使用 HSP/HAR 打造模块化应用。
     *   *关键点*: `@Builder`, `AttributeModifier`, Layered Architecture, HSP/HAR.
 

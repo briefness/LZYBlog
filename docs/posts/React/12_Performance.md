@@ -95,7 +95,39 @@ function Parent() {
 
 滥用 memoization 也是有代价的（需要消耗内存来存旧值，需要消耗 CPU 来对比依赖项）。
 
-## 总结
+## 6. 实战工具：Profiler 深度解读
+
+不要只凭借感觉去优化。使用 **React DevTools Profiler**。
+
+1.  **记录 (Record)**：点击圆形按钮开始录制，操作页面，点击停止。
+2.  **火焰图 (Flamegraph)**：
+    *   **灰色**：未渲染 (Good)。
+    *   **绿色**：渲染速度快 (OK)。
+    *   **黄色/红色**：渲染极慢 (Need Optimization)。
+3.  **Why did this render?**：
+    *   勾选设置里的 "Record why each component rendered while profiling"。
+    *   Hover 到组件上，DevTools 会告诉你原因："Props changed: (style)" -> 说明你可能传入了内联样式对象。
+
+## 7. 避坑指南 (Anti-Patterns)
+
+*   **内联对象地狱**：
+    `style={{ color: 'red' }}` 或 `options={['a', 'b']}`。每次渲染都会生成新引用，导致 memo 失效。
+    **解法**：提到组件外定义常量，或使用 `useMemo`。
+*   **Props 穿透**：
+    把不知名的 `{...props}` 一股脑传下去，导致子组件接收了无关的属性变化。
+    **解法**：明确 Props 定义。
+
+## 8. 总结 Checklist
+
+在提交代码前，过一遍这个清单：
+
+1.  [ ] **是否有明显卡顿？** (没有就别动！)
+2.  [ ] **Profiler 检查**：是否有组件无缘无故渲染了？
+3.  [ ] **Props 稳定性**：传递给 memo 组件的 props (对象/函数) 是否用 `useMemo`/`useCallback` 包裹了？
+4.  [ ] **Context 粒度**：是否有 Context Value 变动导致全树重绘？(考虑拆分 Context)。
+5.  [ ] **Key 的唯一性**：列表渲染是否用了 Index 做 Key？(大忌)。
+
+## 9. 总结
 
 1.  **React 默认行为**：父组件渲染，子组件无条件跟着渲染。
 2.  **memo**：阻止不必要的子组件渲染（仅当 Props 变化时）。

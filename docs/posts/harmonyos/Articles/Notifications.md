@@ -76,6 +76,8 @@ let delayId = backgroundTaskManager.requestSuspendDelay('reason', () => {
 必须绑定一个 `NOTIFICATION_ID`。
 这也体现了**前台服务 (Foreground Service)** 的设计逻辑：**用户必须知情**。后台运行必须在通知栏体现。
 
+> **进阶**：如果是打车、外卖等进度类长时任务，推荐使用视觉体验更好的 **[实况窗 (Live View)](./SmartFeatures.md)**。
+
 ## 四、总结
 
 传统的保活机制在 HarmonyOS 上不再适用。

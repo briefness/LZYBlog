@@ -11,6 +11,8 @@
 *   **文件隔离**: App A 看到的 `/data/storage` 和 App B 看到的完全不同。其他应用的文件不可直接访问。
 *   **进程隔离**: 前文提到的 Actor 模型，保证了内存隔离。
 
+> **延伸阅读**：除了基础的硬件访问，HarmonyOS 还支持通过 **[智感握姿](./UniqueInteractions.md)** 感知用户的使用状态。
+
 ```mermaid
 graph TD
     Kernel["HarmonyOS 内核"]

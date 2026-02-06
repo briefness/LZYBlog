@@ -74,6 +74,23 @@ Flutter 包体积通常比原生大。
 *   **Deferred Components (延迟加载)**: 仅在 Android 上支持。把不常用的功能（如“高级编辑器”）做成动态模块，用户用到时再下载。
 *   **构建分析**: 使用 `flutter build apk --analyze-size` 查看具体是哪个资源或库占了空间。
 
+## 5. 上线前核对清单 (Go-Live Checklist)
+
+发布前，请务必执行以下“飞行前检查”：
+
+1.  [ ] **去除 Debug Banner**: 确保 `MaterialApp(debugShowCheckedModeBanner: false)`.
+2.  [ ] **版本号自增**: 检查 `pubspec.yaml` 中的 `version: 1.0.1+2`，+号后面必须增加。
+3.  [ ] **混淆验证**: 解压 APK/IPA，确保类名已被混淆 (如 `a.class`, `b.class`).
+4.  [ ] **ProGuard 规则**: 如果引入了原生 SDK (Map, Push)，确保在 `android/app/proguard-rules.pro` 中添加了对应的 `-keep` 规则，否则 Release 包会 Crash。
+5.  [ ] **真机无障碍**: 打开 TalkBack 闭眼操作一遍关键流程。
+6.  [ ] **CI 自动化**: 
+    在 GitHub Actions / GitLab CI 中配置：
+    ```yaml
+    - run: flutter analyze
+    - run: flutter test
+    ```
+    禁止有 Lint Error 的代码入库。
+
 ## 完结撒花
 
 
