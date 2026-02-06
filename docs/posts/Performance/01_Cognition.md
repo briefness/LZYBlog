@@ -1,8 +1,6 @@
 # 第一部分：认知篇 —— 为什么要优化？
 
-> "If you can't measure it, you can't improve it." — Peter Drucker（彼得·德鲁克）
-
-很多开发者谈性能优化，上来就是“图片懒加载”、“防抖节流”。这种碎片化的优化往往收效甚微。真正的性能优化专家，是拿着**数据（Metrics）**和**规范（Specs）**说话的医生。本章我们将抛弃“感觉很快”的玄学，从浏览器底层视角重新审视什么是性能。
+很多开发者谈性能优化，往往从“图片懒加载”、“防抖节流”入手。这种碎片化的优化往往收效甚微。真正的性能优化专家，是拿着**数据（Metrics）**和**规范（Specs）**说话的医生。本章抛弃“感觉很快”的玄学，从浏览器底层视角重新审视什么是性能。
 
 ## 1.1 性能与业务：不仅是体验，更是生死
 
@@ -14,11 +12,15 @@
     *   LCP: 4.2s -> **1.8s**
     *   Bounce Rate (跳出率): **降低 18%**
     *   Ad Revenue (广告收入): 并未因脚本推迟而下降，反而因流量留存增加而 **提升 5%**。
-*   **结论**：性能预算（Performance Budget）必须作为业务 KPI 的一部分。
+*   **数据洞察**：注意区分 **P50（中位数）** 与 **P99（长尾）**。优化往往是为了拯救那 1% 的极慢用户，因为在电商场景下，他们可能贡献了极高的流失率。
+*   **结论**：性能预算（Performance Budget）必须作为业务 KPI 的一部分。建议团队设定明确红线，例如：
+    *   首屏关键 JS < 170KB (Gzip后)
+    *   LCP < 2.5s
+    *   所有长任务 (Long Task) 总和 < 100ms
 
 ## 1.2 性能指标演进：从 “加载中” 到 “交互中”
 
-我们不再关注 `window.onload`，因为在这个单页应用（SPA）横行的时代，`onload` 触发时页面可能还是白的。Google 在 2020 年提出了 **Core Web Vitals**，重新定义了性能标准。
+不再关注 `window.onload`，因为在这个单页应用（SPA）横行的时代，`onload` 触发时页面可能还是白的。Google 在 2020 年提出了 **Core Web Vitals**，重新定义了性能标准。
 
 ### 1. LCP (Largest Contentful Paint) - 最大内容绘制
 *   **定义**：视口内最大可见元素（通常是 Banner 图或 H1 标题）完成渲染的时间。
@@ -27,15 +29,47 @@
     new PerformanceObserver((entryList) => {
       for (const entry of entryList.getEntries()) {
         console.log('LCP candidate:', entry.startTime, entry.element);
+        // 生产环境建议通过 Beacon API 上报到日志服务器
       }
     }).observe({type: 'largest-contentful-paint', buffered: true});
     ```
+*   **深度拆解**：LCP 不仅仅是“图片下载快慢”。完整的 LCP 链路包含：
+    *   `TTFB` (服务器响应)
+    *   `Resource Load Delay` (资源排队/发现延迟)
+    *   `Resource Load Time` (下载耗时)
+    *   `Element Render Delay` (渲染延迟)
+    *   *这表明：优化 LCP 不止要压缩图片，还要优化后端接口响应（TTFB）和消除 CSS 阻塞（Render Delay）。*
+*   **[Diagram Trigger]**: *插入核心指标时间轴图：展示 TTFB -> Load -> Render 的流水线。*
+```mermaid
+gantt
+    title 前端性能核心指标时间轴
+    dateFormat  X
+    axisFormat %s
+    
+    section 网络层
+    DNS/TCP/TLS握手     :a1, 0, 30
+    TTFB (服务器响应)    :a2, 30, 80
+    内容下载 (HTML)      :a3, 80, 110
+    
+    section 浏览器解析
+    DOM解析             :a4, 110, 160
+    
+    section 关键指标
+    FCP (首次绘制)       :milestone, m1, 160, 0
+    LCP (最大内容绘制)   :milestone, m2, 240, 0
+    
+    section 渲染完成
+    DOMContentLoaded    :160, 180
+    Window Load         :260, 280
+```
 *   **为什么重要**：它代表了用户**感知**到的加载速度。
 
 ### 2. INP (Interaction to Next Paint) - 交互到下一次绘制
-*   **取代 FID**：FID 只看“延迟”，INP 看“全过程”。
+*   **离散交互的全量衡量**：INP 衡量的是**所有**离散交互（点击、键盘输入、拖拽），而不仅仅是第一次。
+    *   *INP vs FID*：FID (First Input Delay) 仅关注“第一印象”的响应延迟；INP 关注由于交互逻辑复杂导致的“全生命周期”卡顿。Google 替换它的原因正是为了捕捉那些发生在页面使用中途的卡顿。
 *   **底层原理**：INP = Input Delay（输入延迟）+ Processing Time（事件处理耗时）+ Presentation Delay（渲染延迟）。
-    *   *Case Study*: 用户点击“添加到购物车”，按钮卡住不动。如果是 FID，只要事件回调开始跑就算结束了；但如果是 INP，它会一直计时直到按钮变色给用户反馈为止。这倒逼开发者必须优化**整个**交互链路（比如不要在 点击回调里做全量 DOM Diff）。
+    *   *Case Study*: Vue 3 中常见的 `v-model` 绑定在大表单上，每次输入都触发全量组件更新，这就是典型的 INP 杀手。
+    *   *Case Study*: 用户点击“添加到购物车”，按钮卡住不动。这倒逼开发者必须优化**整个**交互链路（比如不要在 点击回调里做全量 DOM Diff）。
 
 ### 3. CLS (Cumulative Layout Shift) - 累积布局偏移
 *   **计算公式**：`Layout Shift Score = Impact Fraction × Distance Fraction`。
@@ -50,10 +84,39 @@
 #### 🔴 火焰图 (Flame Chart) 怎么看？
 *   **X 轴**：时间。
 *   **Y 轴**：调用栈深度。
-*   **颜色**：
-    *   🟨 **黄色**：Scripting（JS 执行）。
-    *   🟪 **紫色**：Rendering（样式计算、布局）。
-    *   🟩 **绿色**：Painting（绘制、合成）。
+*   **颜色与像素管道**：
+    *   🟨 **黄色 (Scripting)**：JavaScript 执行。
+    *   🟪 **紫色 (Rendering)**：涉及 Style 计算与 Layout 布局。
+    *   🟩 **绿色 (Painting)**：涉及 Paint 绘制与 Composite 合成。
+    *   *理解这一点，就能明白为什么 JS 耗时太久会阻塞后续的 样式 -> 布局 -> 绘制 流程。*
+*   **[Diagram Trigger]**: *插入渲染流水线图：JavaScript -> Style -> Layout -> Paint -> Composite。*
+```mermaid
+graph LR
+    JS[1. JavaScript/API] --> Style[2. Style/CSSOM]
+    Style --> Layout[3. Layout/回流]
+    Layout --> Paint[4. Paint/重绘]
+    Paint --> Composite[5. Composite/合成]
+
+    %% 状态说明
+    subgraph Calculation [计算几何]
+    Layout
+    end
+
+    subgraph Pixel_Generation [生成像素]
+    Paint
+    end
+
+    subgraph GPU_Accelerated [GPU加速]
+    Composite
+    end
+
+    %% 样式美化
+    style JS fill:#fff9c4,stroke:#fbc02d
+    style Style fill:#f3e5f5,stroke:#7b1fa2
+    style Layout fill:#ffebee,stroke:#c62828,stroke-width:2px
+    style Paint fill:#fff3e0,stroke:#ef6c00
+    style Composite fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+```
 *   **Long Task（长任务）**：如果在 Main 线程上看到一个任务条带红色三角形（Red Triangle），且时长 > 50ms，这就是我们要杀的“怪”。
     *   *实战技巧*：点击红色任务，在 Bottom-Up 面板中按 `Self Time` 排序，直接定位到是哪个函数（如 `calculateExpensiveData`）占用了 CPU。
 
@@ -77,4 +140,11 @@ console.log('DOM解析:', timing.domInteractive - timing.responseEnd);
 
 ---
 
-**(下一章预告)**：了解了怎么看病（测量），接下来我们要开药方。首先解决最致命的瓶颈——网络传输。如何让资源“瞬移”到浏览器？
+
+## 1.4 实践练习
+
+**操作**：打开项目，按 F12 进入 Performance 面板录制一次刷新，观察 Main 线程里有多少个“红色小三角”？
+
+---
+
+**(下一章预告)**：了解了怎么看病（测量），接下来要开药方。首先解决最致命的瓶颈——网络传输。如何让资源“瞬移”到浏览器？
