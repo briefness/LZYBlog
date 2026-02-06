@@ -15,7 +15,8 @@ export default withMermaid(
         { text: 'HarmonyOS', link: '/posts/harmonyos/index' },
         { text: 'Flutter', link: '/posts/Flutter/index' },
         { text: 'BaseCut', link: '/posts/BaseCut/index' },
-        { text: 'React', link: '/posts/React/index' }
+        { text: 'React', link: '/posts/React/index' },
+        { text: '前端性能', link: '/posts/Performance/index' }
       ],
 
       sidebar: [
@@ -27,7 +28,8 @@ export default withMermaid(
             { text: 'HarmonyOS', link: '/posts/harmonyos/index' },
             { text: 'Flutter', link: '/posts/Flutter/index' },
             { text: 'BaseCut', link: '/posts/BaseCut/index' },
-            { text: 'React', link: '/posts/React/index' }
+            { text: 'React', link: '/posts/React/index' },
+            { text: '前端性能', link: '/posts/Performance/index' }
           ]
         }
       ],

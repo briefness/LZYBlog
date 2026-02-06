@@ -35,5 +35,8 @@ features:
   - title: ⚛️ React
     details: 深入理解 React 原理与生态，掌握现代前端开发核心。
     link: /posts/React/index
+  - title: 🚀 前端性能
+    details: 从网络传输到渲染机制，全方位掌握前端性能优化体系与最佳实践。
+    link: /posts/Performance/index
 ---
 
