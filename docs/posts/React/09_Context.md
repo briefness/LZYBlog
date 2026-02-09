@@ -101,7 +101,7 @@ const [state, dispatch] = useReducer(reducer, initialState);
 
 **优化策略**：
 1.  **拆分 Context**：不要把所有全局状态塞进一个巨大的 Context 对象。将不相关的数据拆分到不同的 Context 中（如 `UserContext` 和 `ThemeContext` 分离）。
-2.  **Memoize Value**：传递给 Provider 的 `value` 对象必须是用 `useMemo` 缓存过的。如果直接写 ``<Provider value={{ a: 1, b: 2 }}>``，每次父组件渲染都会生成新对象，导致所有子组件强制重绘。
+2.  **Memoize Value**：传递给 Provider 的 `value` 对象必须是用 `useMemo` 缓存过的。如果直接写 ``<Provider value={ { a: 1, b: 2 } }>``，每次父组件渲染都会生成新对象，导致所有子组件强制重绘。
 
 ## 最佳实践与反模式
 
