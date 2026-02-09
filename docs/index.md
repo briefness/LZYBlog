@@ -8,7 +8,7 @@ hero:
     light: /hero-logo.png
     dark: /hero-logo-dark.png
     alt: Blog Logo
-  tagline: 专注 AI 认知、鸿蒙开发与全栈技术分享
+  tagline: 专注 AI 认知、Coze实践、鸿蒙开发、前端性能优化
   actions:
     - theme: brand
       text: 开始探索
@@ -32,6 +32,9 @@ features:
   - title: 🎬 BaseCut
     details: 视频剪辑工具开发实战与技术分享，探索 WebAV 技术。
     link: /posts/BaseCut/index
+  - title: 💚 Vue3
+    details: 深入源码解析与实战技巧，掌握 Vue3 核心原理与最佳实践。
+    link: /posts/Vue3/index
   - title: ⚛️ React
     details: 深入理解 React 原理与生态，掌握现代前端开发核心。
     link: /posts/React/index

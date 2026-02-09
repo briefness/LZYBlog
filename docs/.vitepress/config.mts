@@ -15,6 +15,7 @@ export default withMermaid(
         { text: 'HarmonyOS', link: '/posts/harmonyos/index' },
         { text: 'Flutter', link: '/posts/Flutter/index' },
         { text: 'BaseCut', link: '/posts/BaseCut/index' },
+        { text: 'Vue3', link: '/posts/Vue3/index' },
         { text: 'React', link: '/posts/React/index' },
         { text: '前端性能', link: '/posts/Performance/index' }
       ],
@@ -28,6 +29,7 @@ export default withMermaid(
             { text: 'HarmonyOS', link: '/posts/harmonyos/index' },
             { text: 'Flutter', link: '/posts/Flutter/index' },
             { text: 'BaseCut', link: '/posts/BaseCut/index' },
+            { text: 'Vue3', link: '/posts/Vue3/index' },
             { text: 'React', link: '/posts/React/index' },
             { text: '前端性能', link: '/posts/Performance/index' }
           ]

@@ -102,13 +102,44 @@ graph TD
 
 这就是为什么 Provider 等库能实现**局部刷新**的底层原理。
 
-## 为什么需要 Provider/Riverpod/Bloc？
+## 状态管理选型指南 (State Management Guide)
 
-为何在拥有原生 `InheritedWidget` 的前提下仍需第三方库？
-因原生实现较为繁琐：
-1.  样板代码多。
-2.  无法分离逻辑 (Business Logic) 和视图 (UI)。
-3.  很难处理复杂的依赖注入 (DI)。
+Flutter 社区百花齐放，如何选择适合项目的方案？
+
+| 方案 | 适用场景 | 优点 | 缺点 | 推荐指数 |
+| :--- | :--- | :--- | :--- | :--- |
+| **Provider** | 小型项目 / 入门 | 官方推荐，基于 InheritedWidget 封装，简单直观 | 处理复杂依赖（DI）繁琐，无法跨页面/全局轻松访问 | ⭐⭐⭐ |
+| **GetX** | 个人项目 / MVP | 功能大杂烩（路由、状态、依赖注入），极简语法，开发快 | 非官方架构，侵入性强，且 context-less 虽然方便但易导致不可维护 | ⭐⭐ |
+| **Riverpod** | 中大型应用 | Provider 的作者重写。编译时安全，极佳的依赖注入，完美的异步处理 | 学习曲线稍陡峭，引入了全新的 mental model | ⭐⭐⭐⭐⭐ |
+| **Bloc/Cubit** | 企业级 / 团队协作 | 严格区分 Event/State，强制逻辑分离，极易测试 | 需要写大量样板代码（尽管有 Freezed/Equatable 辅助） | ⭐⭐⭐⭐ |
+
+### Riverpod 2.0+: 现代化的选择
+
+Riverpod 本质上不仅是一个状态管理库，更是一个 **Reactive Caching Framework**。
+特别是其 `AsyncValue` 机制，完美解决了异步加载的三种状态：
+
+```dart
+// 声明一个 Provider
+final userProvider = FutureProvider((ref) => api.fetchUser());
+
+// UI 层自动处理 Loading/Error/Data
+return ref.watch(userProvider).when(
+  data: (user) => Text(user.name),
+  loading: () => CircularProgressIndicator(),
+  error: (err, stack) => Text('Error: $err'),
+);
+```
+
+### 新星：Signals
+
+受到 SolidJS 和 Preact 的启发，**Signals** (响应式原语) 开始进入 Flutter 视野（如 `flutter_signals`）。
+它通过自动追踪依赖来实现细粒度的更新，而非重绘整个 Widget 树。
+
+```dart
+final count = signal(0);
+// UI
+Watch((context) => Text('${count.value}')); // 仅重绘 Text
+```
 
 第三方库封装了底层细节，核心依然是：**Element Tree 的上下文查找与标记机制**。
 

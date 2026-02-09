@@ -133,10 +133,60 @@ function Parent() {
 4.  [ ] **Context 粒度**：是否有 Context Value 变动导致全树重绘？(考虑拆分 Context)。
 5.  [ ] **Key 的唯一性**：列表渲染是否用了 Index 做 Key？(大忌)。
 
-## 9. 总结
+## 9. 现代性能工具：useTransition & useDeferredValue
+
+在 React 18+，除了“缓存”（减少渲染次数），我们有了新的武器：“并发”（降低渲染优先级）。
+
+有时候，渲染是不可避免的（比如用户搜了一万条数据，确实需要展示）。这时候 `memo` 救不了你，但 **Concurrent React** 可以。
+
+### 1. useTransition：非阻塞更新
+
+想象你在输入框打字，同时过滤一个巨大的列表。
+如果列表渲染太慢，打字就会卡顿（因为主线程被卡住了）。
+
+`useTransition` 可以把更新分为两类：
+*   **紧急更新 (Urgent)**：打字、点击、悬停（必须立刻响应，不能卡）。
+*   **过渡更新 (Transition)**：渲染列表、切换页面（可以稍微等等，可以被中断）。
+
+```javascript
+/* 
+ * 这种模式常用于路由切换或大列表过滤
+ * 能够让 UI 保持 responsive
+ */
+const [isPending, startTransition] = useTransition();
+
+function handleChange(e) {
+  // 1. 紧急：立刻回显用户输入
+  setInput(e.target.value);
+
+  // 2. 过渡：低优先级更新列表
+  startTransition(() => {
+    setList(filterList(e.target.value));
+  });
+}
+```
+
+当 React 处理 `Transition` 更新时，如果用户又敲了一个字，React 会**暂停**列表渲染，先处理打字，等打字处理完了，再回来继续算列表。这让应用感觉极其流畅。
+
+### 2. useDeferredValue：数据滞后
+
+如果你无法控制 `setState`（比如数据是从 Props 传下来的），可以使用 `useDeferredValue`。它就像是一个“自动防抖”的影子变量。
+
+```javascript
+// 得到一个低优先级的副本
+const deferredQuery = useDeferredValue(query);
+
+// 用这个副本去渲染耗时的列表
+// 当 query 变化时，React 会先用旧的 deferredQuery 渲染（保持界面响应）
+// 并在后台计算新的结果
+return <SlowList query={deferredQuery} />;
+```
+
+## 10. 性能优化总结
 
 1.  **React 默认行为**：父组件渲染，子组件无条件跟着渲染。
 2.  **memo**：阻止不必要的子组件渲染（仅当 Props 变化时）。
 3.  **useMemo**：缓存昂贵的计算结果。
 4.  **useCallback**：缓存函数的引用地址，配合 `memo` 使用。
-5.  **性能优化原则**：先跑通，再探测瓶颈，最后才优化。
+5.  **useTransition / useDeferredValue**：让耗时渲染主线程让路，保证关键交互（如打字）不卡顿。
+6.  **性能优化原则**：先跑通，再探测瓶颈，最后才优化。

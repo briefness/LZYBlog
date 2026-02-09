@@ -190,7 +190,43 @@ CDN 将内容推送到离用户只有 5ms 的“家门口”基站。
     *   **区别**：
         *   `rel=preload`: 优先级高，明确告诉浏览器“这个资源页面渲染马上要用，赶紧下！”
         *   `rel=preconnect`: 仅建立 TCP/TLS 连接，不下载。
-    *   **场景**：当 HTML 还在后端生成时，浏览器利用这段闲置时间利用 Early Hints 提前开始 DNS 解析 + TCP 握手 + 资源下载。这在 LCP 曲线上表现为资源下载时间轴的显著左移。
+4.  **场景**：当 HTML 还在后端生成时，浏览器利用这段闲置时间利用 Early Hints 提前开始 DNS 解析 + TCP 握手 + 资源下载。这在 LCP 曲线上表现为资源下载时间轴的显著左移。
+
+## 2.4 资源提示符 (Resource Hints) 详解
+
+很多开发者分不清 `preload`, `prefetch`, `preconnect`，导致乱用。
+
+### 1. Preload vs Prefetch：这一页用 vs 下一页用
+*   **`<link rel="preload">`**：
+    *   **语义**：“当前页面**必须**要用的资源，而且是**立刻**要用的”。
+    *   **优先级**：High (与 CSS 同级)。
+    *   **场景**：
+        *   LCP图片（Banner大图）。
+        *   关键字体（避免 FOIT）。
+        *   关键 CSS（避免 FOUC）。
+    *   **警告**：不要滥用！如果 preload 了资源但 3 秒内没用上，Chrome 控制台会报黄色警告。因为你浪费了首屏带宽。
+*   **`<link rel="prefetch">`**：
+    *   **语义**：“下一页**可能**会用的资源”。
+    *   **优先级**：Low (浏览器空闲时才下载)。
+    *   **场景**：
+        *   用户在登录页输入账号时，prefetch 首页的 JS/CSS。
+        *   电商列表页，prefetch 点击率最高的详情页资源。
+
+### 2. Preconnect vs DNS-prefetch：握手 vs 解析
+*   **`<link rel="preconnect">`**：
+    *   **动作**：执行 DNS 解析 + TCP 握手 + TLS 协商。
+    *   **成本**：昂贵！保持连接需要消耗 CPU 和内存。
+    *   **限制**：同域名下不要超过 6 个，通常只对**关键第三方域名**（如 API 域名、CDN 域名）使用。
+    *   **代码**：`<link rel="preconnect" href="https://api.example.com">`
+*   **`<link rel="dns-prefetch">`**：
+    *   **动作**：仅 DNS 解析。
+    *   **成本**：极低。
+    *   **场景**：对所有**可能**会用到的第三方域名（如 Google Analytics, Sentry）进行 DNS 预解析。
+    *   **最佳实践**：把它作为 preconnect 的**Fallback**。
+        ```html
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+        ```
 
 ---
 

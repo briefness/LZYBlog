@@ -69,3 +69,13 @@ React 数据流的终极统一。一个 Hook 同时处理 Context 和 Promise，
 
 ### [18. 生态与框架：如何启动](./18_The_Ecosystem.md)
 Vite vs Next.js vs Remix。理解为什么 React 官方推荐使用框架，以及如何选择适合的“交通工具”。
+
+---
+
+## 深度原理：并发模型
+
+### [19. 并发特性：时间切片与流畅度](./19_Concurrent_Features.md)
+Start Transition, Suspense, Automatic Batching. 理解 React 18 的核心：由于渲染可中断，UI 始终保持响应。
+
+### [20. 外部存储：React 之外的数据](./20_External_Stores.md)
+useSyncExternalStore. 解决并发渲染带来的“撕裂 (Tearing)”问题，正确订阅外部数据源。

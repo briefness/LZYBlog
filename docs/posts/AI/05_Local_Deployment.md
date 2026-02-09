@@ -1,80 +1,81 @@
-# 05. 本地部署原理：从量化算法到 NPU 架构
+# 05. 本地部署原理：从量化算法到 vLLM
 
 > [!NOTE]
 > **Why Local?**
-> 
-> 本地部署不仅关乎成本。它是关于**隐私 (Privacy)** 和 **延迟 (Latency)** 的战争。
-本文剖析让大模型在本地设备运行的两大核心技术：**Quantization (量化)** 和 **NPU (专用架构)**。
+>
+> 本地部署不仅关乎省钱。它是关于**隐私 (Privacy)** 和 **延迟 (Latency)** 的战争。
+> 本文剖析让大模型在本地飞起来的核心技术：**Quantization (量化)**, **PagedAttention (显存管理)** 和 **NPU 架构**。
 
----
+## 1. 瓶颈在哪？(Memory Bound)
 
-## 第一部分：Deep Dive 原理 (The Science)
+GPU 虽强，但 LLM 推理是典型的 **Memory Bound (显存受限)** 任务。
 
-### 1. 为什么 GPU 不是最优解？(Memory Bound)
+*   **算术强度**: $\frac{\text{FLOPs (计算量)}}{\text{Bytes (访存量)}}$。
+*   **现状**: 每生成 1 个 Token，就要把几十 GB 的参数从显存搬运一遍到计算单元。
+*   **结果**: Tensor Core 算得飞快，但大部分时间在等显存带宽 (High Bandwidth Memory)。
 
-GPU 是为了计算密集型任务（渲染）设计的，而 LLM 推理是典型的 **Memory Bound (内存受限)** 任务。
+这也是为什么 Apple Silicon (M系列芯片) 在推理上能打平甚至超越部分独显——它的**统一内存带宽 (United Memory Bandwidth)** 高达 800GB/s。
 
-*   **算术强度 (Arithmetic Intensity)**: $\frac{\text{FLOPs (计算量)}}{\text{Bytes (访存量)}}$。
-*   **LLM 推理特性**: 每生成 1 个 Token，就要把几十 GB 的权重全部从显存搬运一遍到计算单元。
-*   **瓶颈**: 计算单元 (Tensor Core) 算得飞快，但大部分时间在等显存带宽 (HBM Bandwidth) 搬数据。
+## 2. 量化技术 (Quantization)
 
-因此 **LPU (Language Processing Unit)** 和 **Apple Silicon** 甚至比某些独显还快——因为它们不仅有算力，更有恐怖的**统一内存带宽**。
+既然搬运数据慢，那就把数据变小。
+量化的本质是将高精度浮点数 (`FP16`) 映射到低精度整数 (`INT4` 甚至 `INT2`)。
 
-### 2. 量化技术 (Quantization)：精度的艺术
-
-大模型原本全是 `FP16` (16-bit 浮点数)。但是否需要如此高精度？
-量化的本质是将高精度浮点数映射到低精度整数 (如 `INT4`，甚至 `1.58-bit`)。
-
-#### 线性量化公式 (Affine Quantization)
-这是目前最通用的量化数学基础。
+### 线性量化 (Affine Quantization)
+最通用的方案。
 $$ Q = \text{round}(S \cdot (R - Z)) $$
-$$ R = S^{-1} \cdot (Q + Z) $$
-*   $R$ (Real): 真实的 FP16 数值。
-*   $Q$ (Quantized): 量化后的 INT8/INT4 整数。
-*   $S$ (Scale): 缩放因子（步长）。
-*   $Z$ (Zero Point): 零点偏移（确保 0 能被精确表示）。
+把参数映射到 0-15 (INT4) 的整数区间。
 
-#### 离群点挑战 (The Outlier Problem)
-如果参数分布是完美的高斯分布，则较易处理。
-但研究发现，LLM 的激活值中存在极端的 **Outliers (离群点)**，某些通道的值比平均值大 100 倍。
-*   如果强行量化，这些大值会被截断 (Clip)，模型瞬间变傻。
-*   **SmoothQuant / AWQ** 算法的核心思想：**把激活值的难度转移到权重上**。既然激活值很难量化，则在数学上把激活值除以一个系数，同时把权重乘以这个系数。
-$$ X \cdot W = (X/s) \cdot (W \cdot s) $$
+### 离群点挑战 (The Outlier Problem)
+LLM 的激活值中存在极端的 **Outliers (离群点)**，比平均值大 100 倍。直接截断会让模型变傻。
+*   **SmoothQuant / AWQ**: 数学上的 trick。既然激活值难量化，就把激活值的难度转移到权重上（等价变换）。
 
----
+## 3. 推理加速引擎：vLLM & PagedAttention
 
-## 第二部分：实战架构 (The Engineering)
+只有量化还不够。2024 年后的生产环境部署，**vLLM** 是绝对的标准。
 
-### 1. 2026 新物种：LPU 与专有 NPU
+### 显存碎片化问题
+传统推理引擎就像乱停车。一个 Request 来了，分配一块连续显存。产生的 Token 长度不确定，预分配太少会溢出，太多会浪费。
+结果：显存利用率极其低下，明明有空闲显存却跑不了新请求。
 
-*   **LPU (Language Processing Unit)**: 如 Groq。抛弃 HBM，全用超高速 SRAM。确定性数据流设计，杜绝 Cache Miss。
-*   **NPU (Neural Processing Unit)**: 手机端（Apple A系列/骁龙/麒麟）。针对矩阵乘法优化的专用电路，能耗比极高，让 10B 模型在手机上只耗 3W 电。
+### PagedAttention
+受操作系统 **虚拟内存 (Virtual Memory)** 的启发。
+*   把显存切成一个个小的 **Blocks** (比如 16MB)。
+*   KV Cache 不需连续，可以分散存储。
+*   通过查表 (Page Table) 逻辑映射。
 
-### 2. GGUF 格式：mmap 的胜利
+**效果**: 显存浪费率从 60% 降到 <4%。吞吐量 (Throughput) 提升 20 倍。
 
-曾经通用 `.bin` 或 `.pth`。目前 `GGUF` 已成为主流。
-GGUF 的杀手锏是完美支持 **mmap (Memory Mapping)**。
+## 4. Context Caching (上下文缓存)
 
-*   **传统加载**: Read file -> RAM -> VRAM。需要消耗双倍内存，且启动慢。
-*   **mmap 加载**: 操作系统直接把硬盘文件映射到虚拟内存地址。
-    *   **零拷贝**: 编程体验近似读取内存，实际上 OS 在后台按需从硬盘搬运数据 (Page Fault)。
-    *   **瞬间启动**: 几十 GB 的模型，双击即用，无需漫长的 Loading 进度条。
+这是 2024 下半年最重要的优化之一 (DeepSeek/Anthropic 均支持)。
 
-### 3. BitNet b1.58：1-bit LLM 的革命
+**场景**: 同样一份 50页 的 PDF，你问了 10 个不同的问题。
+**传统**: 每次提问，都要把这 50页 PDF 重新计算一遍 KV Cache。
+**Caching**: 计算一次，把 KV Cache 存到显存/内存里。下次直接复用。
 
-2026 年最震撼的工程突破之一。
-微软提出的 BitNet 证明了：不再需要矩阵乘法 (Mul-Add)。
-参数只有三个值：`{-1, 0, +1}`。
+*   **延迟**: 首字延迟 (TTFT) 降低 90%。
+*   **成本**: 价格降低 90%（API 提供商通常对 Cache 命中部分打折）。
 
-*   **计算**: 所有的乘法变成了 **加减法 (Addition/Subtraction)**。
-*   **能耗**: 降低 70%。这让手机端跑 100B 模型成为可能。
-*   **原理**: 训练时就加入量化噪声 (Quantization Aware Training, QAT)，强迫模型适应低精度。
+## 5. 工程实践：GGUF 与本地运行
 
----
+大众用户不需要折腾 vLLM，**GGUF** 格式是最佳选择。
+
+### GGUF & mmap
+曾经的模型加载需要把文件读进 RAM，再拷进 VRAM。
+GGUF 支持 **mmap (Memory Mapping)**:
+*   操作系统直接把硬盘文件映射到虚拟地址。
+*   **零拷贝**: 需要哪块数据，OS 自动从硬盘搬运。
+*   **秒开**: 几十 GB 的模型，点击即用。
+
+### 推荐工具
+*   **Ollama**: 命令行神器，后端基于 llama.cpp。
+*   **LM Studio**: 图形界面，适合新手。
+*   **vLLM** (Python): 适合企业级、高并发服务部署。
 
 ## 小结
 
-*   **Roofline Model**: 决定了 LLM 推理是拼带宽，而不是拼算力。
-*   **Quantization**: 从 Affine 到 SmoothQuant，是为了在降低显存的同时保留离群点信息。
-*   **GGUF**: 利用 OS 的 mmap 机制实现了模型的分发与秒开。
-*   **NPU**: 让 AI 从云端回到了掌心。
+1.  **量化** 是为了解决带宽瓶颈。
+2.  **vLLM (PagedAttention)** 彻底解决了显存碎片化。
+3.  **Context Caching** 让长文档对话不再昂贵。
+4.  **NPU/LPU** 正在取代通用 GPU 成为推理主力。

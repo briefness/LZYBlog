@@ -27,8 +27,8 @@ graph TD
         DataB["/data/app/el2/100/base/..."]
     end
     
-    ProcessA -.->|无权访问| DataB
-    ProcessB -.->|无权访问| DataA
+    ProcessA -.->|❌ 拒绝| DataB
+    ProcessB -.->|❌ 拒绝| DataA
     Kernel -->|管理| Sandbox_A
     Kernel -->|管理| Sandbox_B
     
@@ -57,7 +57,56 @@ graph TD
     *   如果有权限 -> 放行。
     *   如果没有 -> 抛出 SecurityException。
 
-## 二、安全控件 (Security Component)
+
+## 二、关键资产存储 (Asset Store Kit)
+
+> 💡 **实战红线**：永远不要把密码、Token、生物特征等敏感信息明文存放在 Preferences 或 Database 中。手机 root 后这些文件极易被导出。
+
+HarmonyOS NEXT 提供了 **Asset Store Kit**，类似于 iOS 的 Keychain。它将数据加密存储在安全芯片（SE）或可信执行环境（TEE）中，连操作系统层都无法直接读取明文。
+
+### 2.1 适用场景
+*   用户登录后的 **Access Token / Refresh Token**。
+*   支付密码。
+*   加密解密的 **私钥**。
+
+### 2.2 核心代码实现
+
+```typescript
+import { asset } from '@kit.AssetStoreKit';
+import { util } from '@kit.ArkTS';
+
+// 1. 存储敏感数据 (Add)
+async function storeToken(token: string) {
+  const attr: asset.AssetMap = new Map();
+  // 关键：定义别名 (Alias)，后续查询用
+  attr.set(asset.Tag.ALIAS, util.generateRandomBinary(16)); 
+  attr.set(asset.Tag.SECRET, new Uint8Array(Buffer.from(token, 'utf-8').buffer));
+  // 关键：设置访问控制，例如仅在用户解锁设备后可访问
+  attr.set(asset.Tag.ACCESSIBILITY, asset.Accessibility.DEVICE_POWERED_ON);
+
+  try {
+    await asset.add(attr);
+    console.info('Token secured in TEE.');
+  } catch (error) {
+    console.error(`Secure storage failed: ${error.code}`);
+  }
+}
+
+// 2. 读取敏感数据 (Query)
+async function getToken() {
+  const query: asset.AssetMap = new Map();
+  query.set(asset.Tag.ALIAS, ...); // 使用之前生成的 Alias
+  query.set(asset.Tag.RETURN_TYPE, asset.ReturnType.ALL); // 请求返回明文
+
+  const res = await asset.query(query);
+  if (res.length > 0) {
+    const token = util.TextDecoder.create('utf-8').decodeWithStream(res[0].get(asset.Tag.SECRET));
+    return token;
+  }
+}
+```
+
+## 三、安全控件 (Security Component)
 
 基于交互的授权模式。
 
@@ -94,7 +143,7 @@ LocationButton()
   })
 ```
 
-## 三、隐私与 Picker
+## 四、隐私与 Picker
 
 ### 3.1 最小化授权
 以前读取相册需要 `READ_IMAGE` 权限，这意味着应用能扫描所有照片。
@@ -107,9 +156,10 @@ LocationButton()
 ## 四、总结
 
 HarmonyOS 的安全体系构建在：
-1.  **沙箱**: 物理隔离。
-2.  **Token**: 身份认证。
-3.  **安全控件**: 交互即授权。
+1.  **沙箱**: 物理隔离，App 只能在自己的地盘活动。
+2.  **Token**: 身份认证，内核级权限校验。
+3.  **Asset Store**: 资产保险箱，敏感数据进 TEE。
+4.  **安全控件**: 交互即授权，无需弹窗打扰用户。
 
 至此，已完成了系统能力的学习。
 下一阶段（也是最后阶段），将进入 **生态融合与工程化**，探讨原子化服务、性能调优和发布签名的流程。

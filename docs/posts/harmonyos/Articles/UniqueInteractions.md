@@ -1,4 +1,4 @@
-# 鸿蒙开发进阶（七）：独有交互体验 (Unique Interactions)
+# 鸿蒙开发高级（十六）：独有交互体验 (Unique Interactions)
 
 > 🔗 **项目地址**：[https://github.com/briefness/HarmonyDemo](https://github.com/briefness/HarmonyDemo)
 
@@ -60,16 +60,25 @@ HarmonyOS 的 **MultimodalAwarenessKit** (多模态感知服务) 赋予了设备
 ```typescript
 import { motion } from '@kit.MultimodalAwarenessKit';
 
-// 订阅握姿变化
-motion.on('holdingHandChanged', (hand: motion.Hand) => {
-  if (hand === motion.Hand.LEFT) {
-    // 调整 UI 按钮到左侧
-    this.buttonAlign = Alignment.BottomStart;
-  } else if (hand === motion.Hand.RIGHT) {
-    // 调整 UI 按钮到右侧
-    this.buttonAlign = Alignment.BottomEnd;
-  }
-});
+// 最佳实践：按需订阅以降低功耗
+// 建议在 UIAbility 的 onForeground() 中调用
+function startMotionListening() {
+  motion.on('holdingHandChanged', (hand: motion.Hand) => {
+    if (hand === motion.Hand.LEFT) {
+      // 调整 UI 按钮到左侧
+      this.buttonAlign = Alignment.BottomStart;
+    } else if (hand === motion.Hand.RIGHT) {
+      // 调整 UI 按钮到右侧
+      this.buttonAlign = Alignment.BottomEnd;
+    }
+  });
+}
+
+// ⚠️ 关键点：必须在 onBackground() 中取消订阅
+// 否则传感器持续运行会导致系统耗电异常
+function stopMotionListening() {
+  motion.off('holdingHandChanged');
+}
 ```
 
 ### 2.2 隔空手势 (Air Gestures)
@@ -77,6 +86,9 @@ motion.on('holdingHandChanged', (hand: motion.Hand) => {
 通过前置摄像头识别用户的手势（如挥手、抓取），实现免接触操作。常用于烹饪、吃饭等不方便触碰屏幕的场景。
 
 > **注意**：该功能高度依赖硬件支持（通常需要 ToF 摄像头或专用传感器）。
+>
+> **🛠️ 开发实战技巧：模拟开发环境**
+> 由于在 DevEco Studio 模拟器中难以完全模拟“智感握姿”，建议在代码中使用 `Environment` 变量或 `AppStorage` 设置一个“调试开关”。手动切换开关来改变 UI 布局，从而测试不同握姿下的适配效果。
 
 ## 三、碰一碰 (OneHop / NFC)
 
@@ -90,11 +102,13 @@ motion.on('holdingHandChanged', (hand: motion.Hand) => {
 
 ### 3.2 实现原理
 
-核心是 **Product ID** 与 **NFC 标签** 的绑定。
+核心是 **Product ID** 与 **NFC 标签** 的绑定，以及云端配置。
 
 1.  **标签写入**：将特定格式的 URI 写入 NFC 标签。
     *   URI 格式: `https://hapjs.org/app/<package_name>`
-2.  **应用处理**：
+2.  **原子化服务关联 (关键)**：
+    不仅仅是解析 Want，更关键的是在 **AppGallery Connect (AGC)** 后台，需要将 **NFC 标签 ID** 与应用的 **App ID** 和特定 **Ability** 进行绑定。这解释了为什么“碰一下”能精准打开某个特定页面，而不是只打开 App 首页。
+3.  **应用处理**：
     在 `EntryAbility` 的 `onCreate` 或 `onNewWant` 中解析 NFC 传递的参数。
 
 ```typescript
@@ -126,7 +140,15 @@ export default class EntryAbility extends UIAbility {
 > **👉 提示**：实况窗的详细开发实战（LiveViewKit）将在下一章 **[智慧功能 (Smart Features)](./SmartFeatures.md)** 中专门讲解。
 
 
-## 五、总结
+## 五、鸿蒙交互设计原则
+
+💡 **HarmonyOS 交互设计原则**：
+
+1.  **轻量化**：能用“实况窗”解决的，绝不使用“悬浮窗”。
+2.  **无感化**：碰一碰应该是自动触发业务逻辑，而不是让用户再点一次确认。
+3.  **意图感知**：利用 **IntentsKit** 结合智感能力，预测用户下一步操作（例如：检测到用户正在跑步 + 接入耳机 -> 自动拉起音乐实况窗）。
+
+## 六、总结
 
 HarmonyOS 的交互不仅仅局限于屏幕内的点击和滑动：
 *   **空间延伸**：通过隔空手势和闪控球，打破了屏幕边界。

@@ -110,21 +110,28 @@ graph LR
     Worker -- Send: Result Object --> Main
 ```
 
-**Flutter 提供了简便写法 `compute`**:
+### 现代并发：Isolate.run (Dart 2.19+)
+
+在旧版本中，我们常使用 Flutter 提供的 `compute` 函数。
+但在 Dart 2.19 以后，官方直接内置了更轻量、符合直觉的 API：`Isolate.run`。
+
+它允许你直接把一个闭包扔到新线程去执行，且自动处理数据的跨线程传递。
 
 ```dart
-// 耗时计算函数，甚至都不能访问外部变量
-int fibonacci(int n) {
-  if (n < 2) return n;
-  return fibonacci(n - 1) + fibonacci(n - 2);
-}
-
 void main() async {
-  // 自动创建 Isolate -> 执行 -> 返回结果 -> 销毁 Isolate
-  int result = await compute(fibonacci, 40); 
+  // 1. 无需像 compute 那样必须定义顶级函数
+  // 2. 闭包里的代码跑在另一个 Isolate (拥有独立内存堆)
+  final result = await Isolate.run(() {
+    // 这里的耗时操作（如解析巨大 JSON）不会阻塞 UI 线程
+    var heavyList = List.generate(1000000, (i) => i);
+    return heavyList.reduce((a, b) => a + b);
+  });
+  
   print(result);
 }
 ```
+
+> **注意**: `Isolate.run` 适合“一次性计算”。如果你需要频繁的双向通信（比如维持一个后台 Socket 长连接），则需使用 `Isolate.spawn` 配合 `SendPort` 手动搭建双向管道。
 
 ## 总结
 

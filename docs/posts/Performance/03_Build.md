@@ -132,6 +132,18 @@ graph TD
 *   **工具推荐**：`rollup-plugin-visualizer` (Vite) 或 `webpack-bundle-analyzer`。
 *   **实战价值**：构建后生成一张 Treemap，直观展示包体积占比，发现潜在的冗余依赖。可能会发现看似人畜无害的工具库里竟然藏着完整的 `lodash`。
 
+### 4. Polyfill：兼容性的代价
+这是最容易被忽视的“隐形杀手”。很多时候 `vendor.js` 一半的体积都是为了兼容 IE11。
+*   **按需 Polyfill (`useBuiltIns: 'usage'`)**：
+    *   **Bad**: 全量引入 `@babel/polyfill` (几百 KB)。
+    *   **Good**: 配置 babel 让它根据源代码**实际上**用到的特性（如 `Promise`, `Map`）去按需引入对应的垫片。如果你的代码只有 `Promise`，垫片就只引入 `core-js/modules/es.promise.js`。
+*   **Modern Mode (现代模式)**：
+    *   **原理**：既然现代浏览器（Chrome > 61）原生支持 ES Modules 和 async/await，为什么还要喂给它转译后的 ES5 代码？
+    *   **动作**：生成两套包。
+        *   `<script type="module" src="app.modern.js">`: 给 90% 的现代浏览器。体积极小（无 Polyfill，ES6+ 语法）。
+        *   `<script nomodule src="app.legacy.js">`: 给 10% 的老旧浏览器。体积大。
+    *   **收益**：绝大部分用户的首屏 JS 体积大幅缩减（通常减小 10%-15%）。
+
 ## 3.2 图片专项优化：AVIF 与 响应式
 ```mermaid
 graph TD

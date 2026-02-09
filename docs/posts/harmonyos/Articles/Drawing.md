@@ -28,7 +28,73 @@ graph LR
 1.  **非阻塞**: JS 线程录制指令速度快。
 2.  **硬件加速**: 复杂的渐变、阴影可由 GPU Shader 处理。
 
-## 二、Canvas 基础
+
+### 1.2 为什么需要 RenderNode?
+Canvas 是一块“画布”，但它仍然挂在 ArkUI 的组件树上。
+如果你要做**粒子爆炸效**、**游戏引擎适配**，或者需要**单帧控制上千个节点**，ArkUI 的组件 Diff 机制（即使是 Canvas）依然太重。
+
+这是 **RenderNode** 登场的时刻。它直接在 C++ 层的 Render Tree 上挂载节点，绕过了 ArkUI 的 Diff 流程，性能极高。
+
+---
+
+## 二、进阶：RenderNode (自绘制节点)
+
+RenderNode 是鸿蒙 API 11+ 提供的底层的自绘制能力。
+
+### 2.1 核心流程
+
+1.  **创建节点**: `new RenderNode()`
+2.  **自定义绘制**: 继承 `NodeController`，重写 `makeNode`。
+3.  **操作属性**: 直接修改 `renderNode.translation` 或 `opacity`，**无需状态变量更新**，下一帧自动生效。
+
+### 2.2 实战代码
+
+```typescript
+import { RenderNode, NodeController, FrameNode } from '@kit.ArkUI';
+
+class MyNodeController extends NodeController {
+  private rootNode: RenderNode | null = null;
+
+  makeNode(uiContext: UIContext): FrameNode | null {
+    this.rootNode = new RenderNode();
+    this.rootNode.frame = { x: 0, y: 0, width: 300, height: 300 };
+    this.rootNode.backgroundColor = 0xFFFF0000; // 直接操作 C++ 属性
+    
+    // 挂载到 FrameNode (ArkUI 和 RenderNode 的桥梁)
+    return new FrameNode(uiContext); 
+  }
+
+  updatePosition() {
+    if (this.rootNode) {
+      // 这里的移动也是直接作用于底层，不经过 ArkUI 布局系统
+      this.rootNode.translation = { x: 100, y: 100 };
+      // 必须显式标记刷新
+      this.rootNode.invalidate(); 
+    }
+  }
+}
+
+@Entry
+@Component
+struct RenderNodeDemo {
+  private controller = new MyNodeController();
+
+  build() {
+    Column() {
+      // 占位容器
+      NodeContainer(this.controller)
+        .width(300)
+        .height(300)
+      
+      Button('Move').onClick(() => {
+        this.controller.updatePosition();
+      })
+    }
+  }
+}
+```
+
+## 三、Canvas 基础
 
 HarmonyOS 的 Canvas API 与 Web Canvas (HTML5) 高度一致。
 
@@ -37,7 +103,7 @@ HarmonyOS 的 Canvas API 与 Web Canvas (HTML5) 高度一致。
 *   **X 轴**: 向右增加。
 *   **Y 轴**: 向下增加。
 
-## 三、实战案例：动态仪表盘
+## 四、实战案例：动态仪表盘
 
 本节将绘制一个带渐变色的圆形进度条：
 
@@ -46,7 +112,7 @@ HarmonyOS 的 Canvas API 与 Web Canvas (HTML5) 高度一致。
 *   `ctx.createLinearGradient(...)`: 创建渐变笔刷。
 *   `ctx.clearRect(...)`: **动画每一帧之前必须清空画布**。否则画面会重叠。
 
-## 四、性能深度优化
+## 五、性能深度优化
 
 Canvas 绘图强大，但滥用会导致掉帧。
 
@@ -88,7 +154,7 @@ graph TD
     style Loop fill:#e6fffa,stroke:#333
 ```
 
-## 五、总结
+## 六、总结
 
 Canvas 提供了强大的绘图能力，同时也要求理解图形管线。
 *   DisplayList 机制提升了速度。

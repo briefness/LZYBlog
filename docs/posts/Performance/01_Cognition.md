@@ -18,9 +18,16 @@
     *   LCP < 2.5s
     *   所有长任务 (Long Task) 总和 < 100ms
 
-## 1.2 性能指标演进：从 “加载中” 到 “交互中”
+## 1.2 性能指标演进：从 RAIL 到 Core Web Vitals
 
-不再关注 `window.onload`，因为在这个单页应用（SPA）横行的时代，`onload` 触发时页面可能还是白的。Google 在 2020 年提出了 **Core Web Vitals**，重新定义了性能标准。
+### 0. 理论基石：RAIL 模型
+所有性能指标的阈值并非凭空捏造，而是基于 Google 的 **RAIL 模型**，它定义了用户感知的四个维度：
+*   **R (Response)**: 事件处理应在 **50ms** 内完成，确保用户感觉是“即时”的。
+*   **A (Animation)**: 每一帧必须在 **16ms** (1000ms/60fps) 内完成，否则就是“掉帧”。
+*   **I (Idle)**: 利用空闲时间执行非关键任务，但每个任务块不超过 **50ms**。
+*   **L (Load)**: 在 **1s** 内完成首屏加载，留住用户注意力。
+
+基于此，Google 在 2020 年提出了 **Core Web Vitals**，并明确将其纳入 **SEO 搜索排名权重**。这意味着：性能差 = 排名低 = 流量少。
 
 ### 1. LCP (Largest Contentful Paint) - 最大内容绘制
 *   **定义**：视口内最大可见元素（通常是 Banner 图或 H1 标题）完成渲染的时间。
@@ -141,9 +148,68 @@ console.log('DOM解析:', timing.domInteractive - timing.responseEnd);
 ---
 
 
-## 1.4 实践练习
+## 1.4 性能的内功：代码质量与算法
 
-**操作**：打开项目，按 F12 进入 Performance 面板录制一次刷新，观察 Main 线程里有多少个“红色小三角”？
+很多时候，页面卡顿不是因为框架慢，也不是网络慢，而是因为**代码写得烂**。在浏览器主线程（Main Thread）寸土寸金的前端，低效的算法和糟糕的内存管理是性能的隐形杀手。
+
+### 1. 时间复杂度 (Time Complexity)
+前端不再只是切图，现代 Web App 需要在客户端处理海量数据（如复杂的表格、图表）。
+*   **Case Study**: 在一个包含 10,000 个商品的列表中进行根据 ID 查找。
+    *   **Bad**: 使用 `array.find()` 在循环中查找，复杂度是 $O(n^2)$。随着数据量增加，耗时指数级上升，直接阻塞主线程（Scripting 变黄/红）。
+    *   **Good**: 使用对象 (`Object`) 或 `Map` 建立哈希索引，将查找复杂度降为 $O(1)$。
+*   **警惕**: 那些看似无害的数组方法（`includes`, `indexOf`, `filter`）如果在高频触发的场景（如 `scroll`, `resize`）或大循环中被滥用，就是性能瓶颈的源头。
+
+### 2. 避免强制同步布局 (Forced Synchronous Layout)
+这是比纯计算更昂贵的性能杀手。
+*   **原理**: 浏览器的渲染流是 `JS -> Style -> Layout -> Paint`。如果你在 JS 中修改了样式（写入），紧接着又去读取布局属性（如 `offsetHeight`, `scrollTop`），浏览器为了返回正确的值，必须**立即**中断 JS，强制执行一次回流（Layout）。
+*   **Bad Example**: 在循环中读写 DOM。
+    ```javascript
+    // 🔴 灾难：读 -> 写 -> 读 -> 写 (触发 N 次 Layout)
+    for (let i = 0; i < items.length; i++) {
+        let box = items[i];
+        let height = box.offsetHeight; // 读：触发 Layout
+        box.style.width = (height + 10) + 'px'; // 写：标记 Dirty
+    }
+    ```
+*   **Good Example**: 读写分离。
+    ```javascript
+    // 🟢 修正：先全读，再全写 (只触发 1 次 Layout)
+    let heights = items.map(box => box.offsetHeight); // 全读
+    items.forEach((box, i) => {
+        box.style.width = (heights[i] + 10) + 'px'; // 全写
+    });
+    ```
+
+### 3. 空间复杂度与内存泄漏 (Memory Leak)
+JavaScript 拥有自动垃圾回收（GC）机制，但这不代表你可以肆无忌惮地创建对象。
+*   **GC 抖动**: 如果代码在短时间内创建并丢弃大量对象，会触发浏览器频繁进行垃圾回收。GC 进行时会暂停主线程（Stop The World），导致页面出现瞬间的**掉帧**（Janky）。
+*   **常见泄漏点**: 
+    *   未注销的事件监听器 (`addEventListener` 没解绑)。
+    *   闭包中意外持有了大对象的引用。
+    *   被遗忘的 `setInterval`。
+
+## 1.5 性能的另一面：感知性能 (Perceived Performance)
+
+如果物理极限无法突破（比如网络延迟就在那里，物理传输就是需要 200ms），我们可以通过“用户体验心理学”来“欺骗”用户的大脑，让他们**觉得**快。
+
+### 1. 乐观 UI (Optimistic UI)
+*   **策略**: 先以此为真。用户点击“点赞”或“发送”时，**立即**在界面上反馈成功状态，然后再去后台发请求。
+*   **效果**: 用户感觉交互是“零延迟”的。如果请求失败，再悄悄回滚并提示。
+
+### 2. 骨架屏 (Skeleton Screens)
+*   **策略**: 在内容加载完成前，展示一个灰色的轮廓占位。
+*   **心理学**: 相比于空白页面或单一的 Loading 转圈，骨架屏能提供一种“内容布局已定，马上就来”的确定感，有效降低用户的等待焦虑。
+
+### 3. 空闲预加载 (Idle Preloading)
+*   **策略**: 利用用户决策的间隙。当用户鼠标 Hover 到导航链接上时，利用这 200-300ms 的犹豫时间，浏览器早已在后台悄悄预加载了下一个页面的资源。
+*   **结果**: 当用户真正点击时，页面几乎是“瞬间”打开的。
+
+---
+
+
+## 1.6 实践练习
+
+**操作**: 打开项目，按 F12 进入 Performance 面板录制一次刷新，观察 Main 线程里有多少个“红色小三角”？
 
 ---
 

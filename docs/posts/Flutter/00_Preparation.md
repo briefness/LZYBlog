@@ -94,5 +94,33 @@ var paint = Paint()
   ..strokeWidth = 5.0; // 链式调用，不用重复写 paint.xxx
 ```
 
+### (6) Dart 3+ 现代特性 (Modern Dart)
+
+Dart 3 带来了语言层面的巨大革新：
+
+*   **Records (记录类型)**: 允许函数返回多个值，无需定义临时类。
+    ```dart
+    (String, int) getUser() {
+      return ('Lucas', 18);
+    }
+    var (name, age) = getUser(); // 解构
+    ```
+
+*   **Pattern Matching (模式匹配)**: 极大地简化了 switch 和 JSON 解析。
+    ```dart
+    var json = {'type': 'text', 'content': 'Hello'};
+    switch (json) {
+      case {'type': 'text', 'content': String c}: // 匹配结构并提取变量
+        print('Text: $c');
+      case {'type': 'image'}:
+        print('Image');
+    }
+    ```
+
+*   **Class Modifiers (类修饰符)**: 
+    *   `sealed class`: 密封类，强制 switch 检查所有子类（配合 Bloc 状态管理的神器）。
+    *   `interface class`: 强制实现接口，禁止继承。
+    *   `final class`: 禁止在此库之外继承。
+
 准备好砖头（Dart）和工具（FVM）后，即刻开始搭建 Flutter 的大厦。
 下一篇，将直击 Flutter 的核心灵魂：**架构**.

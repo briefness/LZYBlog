@@ -138,15 +138,35 @@ Image.network(
 *   **优化**: 给 Item 固定宽高（如果可能），阻断 Layout 脏链向上传播。
 
 
-## 错误处理与日志
+## 错误处理 (Error Handling)
 
-避免仅依赖 `print()`。在生产环境，`print` 既影响性能且容易丢。
+避免仅依赖 `try-catch` 和 `print()`。
+在生产级代码中，建议采用 **函数式错误处理 (Functional Error Handling)**。
 
-建议封装 LogUtil：
-*   开发模式 (Debug): `print` 到控制台。
-*   生产模式 (Release): 上报到 Sentry / Firebase Crashlytics，或者直接静默。
+使用 `fpdart` 或 `dartz` 库，返回 `Either<Failure, Success>` 而不是抛出异常。这强制调用者必须处理错误，而不是遗忘。
 
-同时，利用 `FlutterError.onError` 和 `runZonedGuarded` 捕获全局未处理异常。
+```dart
+Future<Either<Failure, User>> getUser() async {
+  try {
+    return Right(await api.fetch());
+  } catch (e) {
+    return Left(ServerFailure());
+  }
+}
+```
+
+## 大型项目架构：Monorepo
+
+当你的 App 变得巨大，或者需要拆分多个 Package / Plugin 时，**Monorepo** 是最佳选择。
+推荐使用 **[Melos](https://melos.invertase.dev/)** 工具。
+*   统一管理多个包的依赖版本。
+*   一键运行所有包的测试。
+*   自动化发布流程。
+
+## 日志与监控
+
+封装 LogUtil，在 Release 模式下静默或上报 Sentry / Firebase。
+利用 `runZonedGuarded` 捕获全局未处理异常。
 
 ```dart
 void main() {

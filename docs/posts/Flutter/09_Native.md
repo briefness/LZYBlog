@@ -29,6 +29,26 @@ graph LR
 *   `EventChannel`: 数据流通信 (一次监听，持续响应，如传感器数据)。
 *   `BasicMessageChannel`: 传递字符串或半结构化数据。
 
+### 最佳实践：Pigeon (类型安全)
+
+手写 `MethodChannel` 容易出现 "Dart 传 String 但 Native 想要 Int" 的运行时错误，且两端样板代码极多。
+**强烈推荐使用官方工具 [Pigeon](https://pub.dev/packages/pigeon)**。
+
+1.  **定义接口**: 使用 Dart 定义 API。
+    ```dart
+    class Book {
+      String? title;
+      String? author;
+    }
+    
+    @HostApi()
+    abstract class BookApi {
+      List<Book> search(String keyword);
+    }
+    ```
+2.  **生成代码**: Pigeon 会自动生成 Java/Kotlin, ObjC/Swift, C++ 代码。
+3.  **调用**: 直接调用生成的强类型 API，无需手动处理编解码和方法名字符串。
+
 ## 2. 性能瓶颈与 FFI (Foreign Function Interface)
 
 Platform Channels 存在显著代价：**序列化与反序列化**。

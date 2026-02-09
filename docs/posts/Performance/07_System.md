@@ -37,7 +37,6 @@ graph LR
 无论自建监控还是使用 Sentry / Datadog，核心 API 均为 PerformanceObserver。
 
 ```javascript
-```javascript
 // 核心监控代码示例
 const reportWebVital = (metric) => {
   const body = JSON.stringify(metric);
@@ -61,6 +60,14 @@ new PerformanceObserver((entryList) => {
   reportWebVital({ name: 'LCP', value: lastEntry.startTime });
 }).observe({ type: 'largest-contentful-paint', buffered: true });
 ```
+
+### 3. 实战：错误关联分析
+单纯知道 FCP 变慢了 2s 没用，你得知道**为什么**。
+*   **技巧**：在 RUM 上报时，不仅上报数值，还要带上当前会话是否发生了 Error。
+*   **关联点**：
+    *   **JS 报错**：`window.onerror` 是否捕获到了异常？如果是，大概率是因为某个组件渲染崩了，导致后续逻辑阻塞。
+    *   **接口 500**：PerformanceObserver 监听 `resource` 时，如果发现某个 API 的 `responseStatus >= 500` 或 `duration > 5000ms`，这往往是 LCP 劣化的直接凶手。
+*   **Actionable Insight**: 当大盘 LCP 飙升时，先看同期的 Error Rate 曲线。如果两条线同步上涨，**先修 Bug，再谈优化**。
 
 ## 7.2 性能防腐化：把性能当成一种测试
 

@@ -1,4 +1,4 @@
-# 鸿蒙开发高级（十七）：性能调优实战 (Performance Deep Dive)
+# 鸿蒙开发高级（十九）：性能调优实战 (Performance Deep Dive)
 
 > 🔗 **项目地址**：[https://github.com/briefness/HarmonyDemo](https://github.com/briefness/HarmonyDemo)
 
@@ -11,7 +11,8 @@
 ### 1.1 16.6ms 刷新率与 VSync
 大多数手机屏幕刷新率为 60Hz，意味着每帧的时间窗口仅有 **16.6ms**（1000ms / 60）。
 *   **VSync (垂直同步信号)**：每 16.6ms 发送一次信号，通知 CPU/GPU 开始准备下一帧画面。
-*   **掉帧 (Jank)**：如果代码逻辑（JS 执行 + 布局计算 + 渲染指令生成）耗时超过 16.6ms，错过了当次 VSync 信号，屏幕就会保持显示上一帧的画面。连续丢帧会导致明显的“卡顿”。
+*   **掉帧 (Jank)**：耗时超过 16.6ms，导致画面更新不连续。
+*   **冻结帧 (Frozen Frame)**：这是鸿蒙特有的严重卡顿指标。如果应用主线程**连续几秒**没有响应（通常定义为 > 3s），系统会记录为一次“冻结”。严重时会触发 Watchdog 强杀应用。
 
 ### 1.2 渲染管线 (Render Pipeline)
 HarmonyOS 的渲染流程大致如下：
@@ -35,9 +36,28 @@ graph TD
 ```
 **优化核心目标**：减少 Diff 范围、降低 Layout 复杂度、缩短 JS 执行时间。
 
+
+## 二、编译级优化 (ArkTS Compiler)
+
+除了写好代码，利用编译器也是一种“免费”的性能提升手段。HarmonyOS NEXT 彻底抛弃了 JIT (Just-In-Time)，全面转向 **AOT (Ahead-Of-Time)**。
+
+### 2.1 AOT (预先编译)
+*   **原理**：在安装包构建阶段，直接把 ArkTS 代码编译成机器码 (Machine Code)。
+*   **优势**：应用启动时无需“解释执行”，启动速度提升显著。
+*   **注意**：必须使用严格的类型标注 (Strict Mode)，帮助编译器生成高效指令。
+
+### 2.2 PGO (Profile Guided Optimization)
+编译器通常只能做静态分析，而 PGO 允许它利用“运行时数据”来优化。
+
+1.  **采集 (Profile)**：在测试跑这台设备时，记录热点代码路径（.ap 文件）。
+2.  **构建 (Build)**：在打正式包时，将 .ap 文件喂给编译器。
+3.  **结果**：编译器会针对高频执行的分支做内联 (Inline) 或指令重排。
+
+> **实战建议**：对于核心业务流（如冷启动、Feed 流滑动），务必开启 PGO 采集，通常能带来 10%-15% 的性能红利。
+
 ---
 
-## 二、列表渲染优化：重中之重
+## 三、列表渲染优化：重中之重
 
 长列表（List/Grid）是性能问题的常见区域。
 
@@ -118,7 +138,7 @@ struct ArticleCard {
 
 ---
 
-## 三、布局与渲染优化技巧
+## 四、布局与渲染优化技巧
 
 ### 3.1 减少嵌套层级 (Layout Flattening)
 布局层级越深，`Measure` 和 `Layout` 耗时呈指数级增长。
@@ -137,7 +157,29 @@ struct ArticleCard {
 
 ---
 
-## 四、状态管理优化
+---
+
+## 五、ArkTS 高性能编程规范
+
+除了 UI，逻辑层的代码质量直接影响 CPU 占用。
+
+### 4.1 避免在循环中创建闭包
+每次循环创建闭包都会产生新的函数对象，增加 GC 压力。
+
+❌ **Bad**:
+```typescript
+this.items.forEach(item => {
+  // 匿名函数闭包
+  item.doSomething = () => { ... } 
+})
+```
+
+✅ **Good**: 将函数定义在类或外部。
+
+### 4.2 类型明确 (Strict Typing)
+ArkTS 已禁止 `any`，但仍需注意尽量使用具体的 `class` 或 `interface`，帮助 AOT 编译器生成更高效的机器码。
+
+## 六、状态管理优化
 
 ### 4.1 状态更新的精确控制
 不要把整个大对象设为 `@State` 并传递给子组件。ArkUI 的状态观测是基于第一层属性的。
@@ -159,7 +201,7 @@ ChildComponent({ data: this.bigData })
 
 ---
 
-## 五、线程模型与并发 (Concurrency)
+## 七、线程模型与并发 (Concurrency)
 
 UI 线程（主线程）极其宝贵，任何超过 5ms 的逻辑都应该警惕。
 
@@ -184,7 +226,7 @@ async function runTask() {
 
 ---
 
-## 六、实战工具：DevEco Profiler
+## 八、实战工具：DevEco Profiler
 
 没有数据支撑的优化不可靠。DevEco Studio 内置的 Profiler 是强大的诊断工具。
 
@@ -202,12 +244,23 @@ async function runTask() {
     *   查看 Heap Dump（堆快照）。
     *   如果发现某种对象（如 `EntryAbility` 或自定义组件）数量只增不减，说明存在**内存泄漏**。
 
-### 6.3 SmartPerf Host (高级)
-对于系统级性能分析（如查看 RenderService、System 进程耗时），可以使用 SmartPerf 工具抓取 trace 文件分析。
+### 8.3 SmartPerf Host (系统级深钻)
+当 Profiler 无法解释“为什么 GPU 没跑满但界面还是卡”时，就需要 SmartPerf Host。
+它能抓取 System Trace，展示每一帧在 CPU 每个核心上的调度情况。
+
+*   **Frame Timeline**：这是最直观的视角。它会把每一帧标记为：
+    *   **Expected Timeline** (预期时间)：16.6ms。
+    *   **Actual Timeline** (实际时间)：如果条状图变红且超长，说明这一帧“迟到”了。
+*   **Binder Transaction**：如果发现主线程有一大段 `IPC_Binder` 耗时，说明你在主线程通过 IPC 疯狂调用其他服务（如频繁请求位置、蓝牙），必须移入后台线程。
 
 ---
 
-## 七、总结 Checklist
+### 8.4 响应时延 (Input Latency)
+不仅要看帧率，还要看**点击响应速度**。
+如果主线程被繁重的 `compute` 任务阻塞，用户点击按钮时会感觉“手不跟手”。
+**原则**：点击事件的回调中，只做轻量的 UI 状态变更。将重活扔给 `TaskPool`。
+
+## 九、总结 Checklist
 
 在发布 App 前，请对照以下清单自查：
 

@@ -140,7 +140,28 @@ graph TD
 *   **`content-visibility: auto`**：一行 CSS 就能让浏览器跳过视口外元素的内容渲染（Layout/Paint），效果类似虚拟滚动但成本极低。
 *   **`object-fit: contain`**：配合 `aspect-ratio` 使用，防止图片加载过程中的布局跳动。
 
-## 5.3 总结：心智负担 vs 自动优化
+## 5.3 迈向未来：细粒度响应 (Signals) 与孤岛架构
+ 
+ ### 1. Signals：终结 VDOM Diff 的开销
+ *   **背景**：无论是 React 的 Fiber 还是 Vue 的 Proxy，本质上都是为了解决“怎么快点更新组件”。但即便再快，只要是基于 Component 的更新，就不可避免地会有多余的开销。
+ *   **理念**：**Use Update, Not Render**。数据变了，直接改 DOM 文本节点，完全跳过组件树的 Diff。
+ *   **Code**:
+     ```javascript
+     const count = signal(0);
+     // 这一行逻辑不需要组件 context，它可以直接把 DOM 里的 textContent 绑定给 count
+     // 就算组件里还有 1000 个其他元素，count 变了，也就只更新这行 text 节点
+     <div>Count: {count()}</div>
+     ```
+ *   **代表**：SolidJS, Preact Signals, Vue 3.4 Refs (内部优化借鉴)。连 React 官方也在研究类似机制（RSC 其实是另一种思路的解法）。
+ 
+ ### 2. Islands Architecture (孤岛架构)
+ *   **核心痛点**：SPA (单页应用) 和 SSR (服务端渲染) 的最大问题是 **Hydration (注水)**。即便是一个只有页脚才交互的静态博客，浏览器也要下载并执行整个 React 框架。
+ *   **Astro / Qwik 的解法**：
+     *   **HTML First**：默认全是静态 HTML (0 JS)。
+     *   **Islands**：只有被标记为“岛屿”的组件（比如一个点赞按钮）才会独立加载 JS 并注水。
+     *   **效果**：对于内容型网站（文档、博客、营销页），首屏 JS 体积能减少 80% 以上。
+ 
+ ## 5.4 总结：心智负担 vs 自动优化
 
 *   **React**：默认“暴力”重渲染。
     *   **优化策略**：**“减法优化”**。

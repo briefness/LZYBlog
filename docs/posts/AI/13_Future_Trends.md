@@ -34,10 +34,19 @@ $$ s_{t+1} = \text{Predictor}(s_t, a_t, z_t) $$
 
 ## 3. 具身智能 (Embodied AI)
 
-*   具备世界模型后，AI 方可应用于具身智能。
+具备世界模型后，AI 方可应用于具身智能 (Robotics)。
 *   **VLA (Vision-Language-Action)**: 像 Google RT-2。
 *   机器人无需硬编码 `if distance < 5cm then stop`。
 *   通过世界模型推演：若继续行走会导致撞墙 -> 撞墙造成损伤 -> 故应停止。
+
+## 4. 端侧 AI (On-Device Intelligence)
+
+除了云端大模型，另一个趋势是 **Small Language Models (SLM)**。
+如 **Phi-4** 或 **Gemma 2**。
+
+*   **隐私第一**: 你的聊天记录、照片永远不用上传云端。
+*   **零延迟**: 哪怕没网也能用。
+*   **混合推断 (Hybrid Inference)**: 手机处理简单任务，只有当问题太难时，才路由到云端 DeepSeek R1。
 
 ## 小结
 

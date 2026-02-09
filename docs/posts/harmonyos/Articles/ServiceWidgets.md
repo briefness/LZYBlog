@@ -1,4 +1,4 @@
-# 鸿蒙开发进阶（十六）：元服务与万能卡片 (Atomic Services & Cards)
+# 鸿蒙开发高级（十八）：元服务与万能卡片 (Atomic Services & Cards)
 
 > 🔗 **项目地址**：[https://github.com/briefness/HarmonyDemo](https://github.com/briefness/HarmonyDemo)
 
@@ -8,6 +8,8 @@
 
 ### 1.1 为什么卡片的交互受限？
 万能卡片（Form）不是一个迷你 App，而是由 **SystemUI 进程** 渲染的界面。
+> **💡 元服务 (Atomic Service) 必读**：
+> 如果你正在开发元服务，**服务卡片是强制要求的**。元服务在桌面上没有图标，用户唯一的入口就是你开发的这张卡片。因此，卡片的设计质量直接决定了元服务的生死。
 
 ```mermaid
 graph TD
@@ -36,7 +38,8 @@ graph TD
 
 ### 2.1 生命周期
 *   `onAddForm`: 用户把卡片拖到桌面上。
-*   `onUpdateForm`: 定时刷新（最小 30 分钟）。
+*   `onUpdateForm`: 定时刷新。
+    *   **注意**：系统默认最小间隔为 30 分钟。如果需要更精准的刷新（例如：电影开场前 10 分钟），请使用 `formProvider.setFormNextRefreshTime(formId, nextTime)`。
 *   `onRemoveForm`: 用户移除卡片。
 
 ```mermaid
@@ -55,7 +58,9 @@ graph TD
     style Show fill:#9f9,stroke:#333
 ```
 
-> **最佳实践**: 在 `onUpdateForm` 里，不要做耗时操作。通过 TaskPool 异步获取数据，再调用 `formProvider.updateForm`。
+> **最佳实践**: 
+> 1.  **异步获取**：在 `onUpdateForm` 里，通过 TaskPool 异步获取数据，再调用 `formProvider.updateForm`。
+> 2.  **数据轻量化**：`updateForm` 传递的数据通过 IPC 通信。**单次更新数据量应小于 200KB**，否则会导致更新失败甚至 crash。不要把整张 Base64 图片塞进去，尽量传递图片 URI 或本地资源路径。
 
 ## 三、开发约束 (Restrictions)
 
@@ -65,9 +70,18 @@ graph TD
 
 ## 四、交互：postCardAction
 卡片的主要交互方式。
-*   **router**: 跳回 App。
-*   **call**: 后台静默执行（如：切歌）。
-    *   注意：`call` 事件有 5 秒限制。超时未返回，系统会终止 Action。
+*   **router**: 跳回 App。最常用的方式，点击直接拉起 UIAbility。
+*   **call**: 后台静默执行（如：切歌、点赞）。
+    *   **约束**：`call` 事件有 **5 秒限制**。超时未返回，系统会强制终止 Action。适用于轻量级逻辑。
+*   **message**: 发送自定义消息给 FormExtensionAbility，触发 `onFormEvent` 回调。
+
+```typescript
+postCardAction(this, {
+  action: 'call',
+  abilityName: 'EntryAbility',
+  params: { method: 'playMusic' }
+});
+```
 
 ## 五、总结
 

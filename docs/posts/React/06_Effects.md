@@ -86,9 +86,28 @@ const fullName = firstName + ' ' + lastName;
 如果逻辑是为了响应“用户点击”，那么代码应该写在 **Event Handler (onClick)** 里，而不是 Effect 里。
 Effect 是为了响应“因为状态变了，所以需要同步外部系统”，而不是响应“用户刚刚点了按钮”。
 
-## 总结
+## 9. 为什么我的 Effect 会跑两次？
+
+在开发环境（Only in Development），开启 **Strict Mode** 后，你会发现很多 Effect 运行了两次：
+
+Mount -> Unmount -> Mount (Connect -> Disconnect -> Connect)
+
+**React 是故意这么做的。**
+它是为了帮你检查清理函数 (Cleanup) 是否写对了。
+
+想象一个聊天室组件：
+1.  React 先连接聊天室 (Connect)。
+2.  React 紧接着断开连接 (Disconnect)。
+3.  React 再次连接聊天室 (Connect)。
+
+如果你的 Cleanup 没写好（比如没有真正断开连接），那么这时候你就会建立两个连接。用户可能会收到两条一模一样的消息。通过这种“压力测试”，React 逼迫你写出健壮的清理逻辑。
+
+**如果在两次运行之间没有出错，那么在生产环境中即使 Effect 运行多次也是安全的。**
+
+## 10. 总结
 
 1.  **Effect 是逃生舱**，用于连接 React 之外的外部系统（API、DOM、事件）。
 2.  **核心不仅仅是运行，而是同步**。重点在于如何正确地 Setup 和 Cleanup。
 3.  **依赖数组是诚实列表**。它必须如实列出用到的所有 React 变量。
 4.  **不要滥用 Effect**。如果在渲染期间能算出结果，或者逻辑是响应用户点击的，那就别用 Effect。
+5.  **Strict Mode 会双重挂载**。这是一种安全检查，用来验证 Effect 是否能正确清理自己。

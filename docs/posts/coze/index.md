@@ -45,6 +45,8 @@
     *   **运维**：扣子罗盘，科学评测与监控 Agent 质量。
 *   **[16_Hardcore_Development_SDK.md](./16_Hardcore_Development_SDK.md)**
     *   **硬核**：Python SDK 实战，代码构建微服务与复杂逻辑。
+*   **[17_DeepSeek_Model_Guide.md](./17_DeepSeek_Model_Guide.md)**
+    *   **深度**：万字详解 DeepSeek-R1 (Preview) 满血版最强应用指南。
 
 ---
 

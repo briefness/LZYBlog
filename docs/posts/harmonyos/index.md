@@ -2,7 +2,7 @@
 
 这份指南是为想要掌握 HarmonyOS NEXT 开发准备的。从零基础入手，直到能独立开发商业级应用。
 
-全系列分 **5 个阶段**，共 **18 个主题**，从环境搭建讲到性能优化。
+全系列分 **5 个阶段**，共 **20 个主题**，从环境搭建讲到性能优化与发布。
 
 ## 🗺️ 学习路线图 (Learning Path)
 
@@ -32,11 +32,9 @@ graph TD
         direction TB
         Nav --> Anim[5. 动效 & 转场]
         Anim --> Draw[6. 自定义绘图 Canvas]
-        Draw --> Unique[7. 独有交互体验 Unique Interactions]
-        Unique --> Smart[8. 智慧功能 Smart Features]
-        Smart --> Comp[9. 组件化 & 工程架构]
+        Draw --> Comp[7. 组件化 & 工程架构]
     end
-    class Nav,Anim,Draw,Unique,Smart,Comp visual;
+    class Nav,Anim,Draw,Comp visual;
 
     Phase2 --> Net[8. 网络请求 RCP]
 
@@ -58,14 +56,16 @@ graph TD
     end
     class Media,Noti,Web,Conc,Hard system;
 
-    Phase4 --> Widget[16. 元服务 & 卡片]
+    Phase4 --> Unique[16. 独有交互体验]
 
-    subgraph Phase5 [第五阶段：生态与工程化]
+    subgraph Phase5 [第五阶段：鸿蒙特色与工程化]
         direction TB
-        Widget --> Perf[17. 性能调优]
-        Perf --> Pub[18. 分发 & 商业化]
+        Unique --> Smart[17. 智慧功能]
+        Smart --> Widget[18. 元服务 & 卡片]
+        Widget --> Perf[19. 性能调优]
+        Perf --> Pub[20. 分发 & 商业化]
     end
-    class Widget,Perf,Pub eco;
+    class Unique,Smart,Widget,Perf,Pub eco;
 
     Pub --> End((精通))
 ```
@@ -104,17 +104,9 @@ graph TD
     *   **内容**: 使用 Canvas 绘制任意图形。实现股票走势图或仪表盘。
     *   *关键点*: `Canvas`, `Path` 路径, 2D 绘图上下文, DisplayList.
 
-7.  **[独有交互体验 (Unique Interactions)](./Articles/UniqueInteractions.md)**
-    *   **内容**: 探索鸿蒙独有的闪控球、智感握姿与碰一碰。
-    *   *关键点*: `floatingBall`, `MultimodalAwareness`, `OneHop`.
-
-8.  **[智慧功能 (Smart Features)](./Articles/SmartFeatures.md)**
-    *   **内容**: 利用实况窗展示实时进度，使用原生 AI 实现视觉与语音功能。
-    *   *关键点*: `LiveViewKit`, `VisionKit`, `CoreSpeechKit`.
-
-9.  **[组件化与工程架构 (Components & Architecture)](./Articles/Components.md)**
+7.  **[组件化与工程架构 (Components & Architecture)](./Articles/Components.md)**
     *   **内容**: 封装复用组件，掌握官方推荐的**三层架构 (Product-Feature-Common)**。使用 HSP/HAR 打造模块化应用。
-    *   *关键点*: `@Builder`, `AttributeModifier`, Layered Architecture, HSP/HAR.
+    *   **关键点**: `@Builder`, `AttributeModifier`, Layered Architecture, HSP/HAR.
 
 ### 第三阶段：数据与通信 (Data & Connectivity)
 > **目标**：处理复杂的数据流动与本地存储。
@@ -154,17 +146,25 @@ graph TD
     *   **内容**: 安全地访问位置、相机与相册。
     *   *关键点*: 权限申请 (Permission), 安全控件, 隐私合规.
 
-### 第五阶段：生态融合与工程化 (Ecosystem & Engineering)
-> **目标**：优化性能并完成应用上架。
+### 第五阶段：鸿蒙特色与工程化 (Unique Features & Engineering)
+> **目标**：掌握鸿蒙独有能力，优化性能并完成应用上架。
 
-16. **[元服务与卡片 (Atomic Services)](./Articles/ServiceWidgets.md)**
+16. **[独有交互体验 (Unique Interactions)](./Articles/UniqueInteractions.md)**
+    *   **内容**: 探索鸿蒙独有的闪控球、智感握姿与碰一碰。
+    *   **关键点**: `floatingBall`, `MultimodalAwareness`, `OneHop`.
+
+17. **[智慧功能 (Smart Features)](./Articles/SmartFeatures.md)**
+    *   **内容**: 利用实况窗展示实时进度，使用原生 AI 实现视觉与语音功能。
+    *   **关键点**: `LiveViewKit`, `VisionKit`, `CoreSpeechKit`.
+
+18. **[元服务与卡片 (Atomic Services)](./Articles/ServiceWidgets.md)**
     *   **内容**: 开发桌面万能卡片，实现服务直达。
-    *   *关键点*: FormKit, 卡片生命周期, 极简交互.
+    *   **关键点**: FormKit, 卡片生命周期, 极简交互.
 
-17. **[性能调优实战](./Articles/Performance.md)**
+19. **[性能调优实战](./Articles/Performance.md)**
     *   **内容**: 诊断卡顿与掉帧。掌握 ArkTS 高性能编程规范。
-    *   *关键点*: Profiler 工具, Smart Perf, 内存泄漏检测, 懒加载 (LazyForEach).
+    *   **关键点**: Profiler 工具, Smart Perf, 内存泄漏检测, 懒加载 (LazyForEach).
 
-18. **[分发与商业化](./Articles/Publishing.md)**
+20. **[分发与商业化](./Articles/Publishing.md)**
     *   **内容**: 签名、打包、上架 AppGallery 全流程。
-    *   *关键点*: 签名配置, AGC 后台, 隐私合规检查, 多渠道打包.
+    *   **关键点**: 签名配置, AGC 后台, 隐私合规检查, 多渠道打包.
