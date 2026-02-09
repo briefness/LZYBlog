@@ -1,6 +1,6 @@
 # Vue 3 深度精通 (六) —— Pinia：重塑状态管理
 
-Pinia 不是 Vuex 5，它是 Vue 3 时代的最佳状态管理方案。如果 Vuex 让你感到繁重，Pinia 会让你重新爱上全局状态。
+Pinia 不是 Vuex 5，它是 Vue 3 时代的最佳状态管理方案。相较于 Vuex，Pinia 提供了更轻量、更直观的全局状态管理体验。
 
 ## 为什么选择 Pinia？
 
@@ -12,7 +12,7 @@ Pinia 的真正优势在于：
 
 ## Setup Store 模式：Composition API 的完美复刻
 
-虽然 Pinia 支持 Options API 写法（类似 Vuex），但我强烈推荐使用 **Setup Store**。
+Pinia 支持 Options API 写法（类似 Vuex），但推荐使用 **Setup Store**。
 
 ```typescript
 import { defineStore } from 'pinia'
@@ -39,14 +39,14 @@ export const useUserStore = defineStore('user', () => {
 })
 ```
 
-**为什么 Setup Store 更好？**
-它允许你在 Store 内部使用其他的 Composable！例如 `useLocalStorage`，或者其他的 Store。这是 Options API 无法做到的。
+**Setup Store 优势**
+允许在 Store 内部使用其他的 Composable（如 `useLocalStorage`）或其他 Store。这是 Options API 无法做到的。
 
 ## Store 的重置与插件机制
 
 ### 重置状态：`$reset` 的替代
 
-setup store 默认不支持 `$reset()`。我们需要通过插件或者手动实现。
+setup store 默认不支持 `$reset()`。需通过插件或者手动实现。
 
 最简单的手动重置：
 
@@ -58,6 +58,25 @@ store.$patch({ name: 'Eduardo', isAdmin: true }) // 批量修改
 ```
 
 或者使用插件：
+
+```mermaid
+graph TD
+    User([组件]) -->|Action| Store
+    Store -->|State 变更| DevTools[Vue Devtools]
+    Store -->|Patch/Reset| Plugin[Pinia 插件]
+    Plugin -- 拦截 --> LocalStorage[持久化存储]
+    
+    subgraph Store 内部系统
+    State[State (状态)]
+    Getters[Getters (计算属性)]
+    Actions[Actions (动作)]
+    end
+    
+    style Store fill:#f9fbe7,stroke:#c0ca33
+    style Plugin fill:#e1bee7,stroke:#8e24aa
+```
+
+### 数据持久化：`pinia-plugin-persistedstate`
 
 ```typescript
 // main.ts
@@ -100,7 +119,7 @@ defineStore('user', () => {
 
 ## 测试 Store
 
-Pinia 的测试非常简单，因为它就是普通的 JS 对象。但为了更严谨的单元测试，我们需要 setActivePinia。
+Pinia 的测试非常简单，因为它就是普通的 JS 对象。但为了更严谨的单元测试，需要使用了 `setActivePinia`。
 
 ```typescript
 import { setActivePinia, createPinia } from 'pinia'
@@ -122,4 +141,4 @@ describe('Counter Store', () => {
 
 ## 结语
 
-Pinia 将状态管理的复杂度降到了最低。有了它，我们几乎不再需要通过 props 层层传递数据。下一篇，我们将探讨 Vue 3 的工程化基石——**Vite 与 TypeScript 的高阶配置**。
+Pinia 将状态管理的复杂度降到了最低。利用它，几乎无需再通过 props 层层传递数据。下一篇将探讨 Vue 3 的工程化基石——**Vite 与 TypeScript 的高阶配置**。

@@ -1,12 +1,12 @@
 # Vue 3 深度精通 (八) —— 鲜为人知的顶级技巧 (Skill & Hacks)
 
-有些 API 虽然低调，但在特定场景下有着化腐朽为神奇的力量。这一章，我们将挖掘这些鲜为人知的宝藏。
+部分 API 虽然低调，但在特定场景下具备“化腐朽为神奇”的力量。本章将挖掘这些鲜为人知的宝藏。
 
 ## `script setup` 的语法糖魔法
 
 ### `defineModel` (Vue 3.4+)
 
-终于，我们可以像定义 props 一样简单地定义双向绑定的值了。
+现在可以像定义 props 一样简单地定义双向绑定的值。
 
 **以前：**
 ```javascript
@@ -25,7 +25,7 @@ model.value = 'New Value' // 自动 emit update:modelValue
 
 ### `defineOptions` (Vue 3.3+)
 
-在 `<script setup>` 中，如果你想声明组件名或禁用 Attributes 透传，以前可能需要再写一个 `<script>` 块。现在不需要了。
+在 `<script setup>` 中，若需声明组件名或禁用 Attributes 透传，以前可能需要再写一个 `<script>` 块。现在已无需如此。
 
 ```javascript
 /* MyComponent.vue */
@@ -106,7 +106,7 @@ export default {
 
 ## Render Function & JSX
 
-有些时候，模板语法真的不够灵活（特别是递归组件或动态生成大量相同结构的组件）。这时候，直接写渲染函数（或者 JSX）是更好的选择。
+某些场景下，模板语法不够灵活（特别是递归组件或动态生成大量相同结构的组件）。此时，直接编写渲染函数（或者 JSX）是更优选择。
 
 ```javascript
 import { h } from 'vue'
@@ -119,7 +119,7 @@ const MyComponent = (props, { slots }) => {
 }
 ```
 
-在 Vite 插件 `vite-plugin-vue-jsx` 的支持下，我们可以直接享用 React 式的开发体验，但保留 Vue 的响应式系统。
+在 Vite 插件 `vite-plugin-vue-jsx` 的支持下，可直接享用 React 式的开发体验，同时保留 Vue 的响应式系统。
 
 ## 结语
-这些技巧能让你的 Vue 代码更简洁、更强大。下一篇，我们将进入最重要的环节——**性能调优**，看看如何在海量数据面前保持应用丝滑流畅。
+这些技巧有助于编写更简洁、强大的 Vue 代码。下一篇将进入最重要的环节——**性能调优**，解析如何在海量数据面前保持应用丝滑流畅。

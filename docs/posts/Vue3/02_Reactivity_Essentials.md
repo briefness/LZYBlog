@@ -1,6 +1,6 @@
 # Vue 3 深度精通 (二) —— 响应式系统的进阶精通
 
-响应式系统是 Vue 3 的灵魂。我们知道 `ref` 是为了统一基本类型（primitive）和对象（reactive）在逻辑层的访问方式，但你是否知道 `shallowRef`、`markRaw` 等高阶 API 呢？
+响应式系统是 Vue 3 的灵魂。`ref` 统一了基本类型（primitive）和对象（reactive）在逻辑层的访问方式，而 `shallowRef`、`markRaw` 等高阶 API 则提供了更精细的控制能力。
 
 ## `reactive`：基于 Proxy 的魔法
 
@@ -8,8 +8,22 @@
 
 ### 为什么数组索引修改可以被监听到？
 
-在 Vue 2 中，由于 `Object.defineProperty` 的限制，无法监听数组索引和长度的变化，导致我们只能用 `$set`。
-Vue 3 的 `reactive` 是通过 Proxy 拦截数组的所有操作（包括 `.push`, `.splice` 等，因为这些方法是隐式访问了 `length` 和索引的）。
+在 Vue 2 中，由于 `Object.defineProperty` 的限制，无法监听数组索引和长度的变化，导致仅能使用 `$set`。
+Vue 3 的 `reactive` 通过 Proxy 拦截数组的所有操作（包括 `.push`, `.splice` 等，因为这些方法隐式访问了 `length` 和索引）。
+
+```mermaid
+graph LR
+    User[User Code] -->|Read/Write| Proxy
+    Proxy -->|Trap| Handler[Handler (get/set)]
+    Handler -->|Reflect| Target[Original Object]
+    
+    Handler -.->|Track| Dep[Dependency System]
+    Handler -.->|Trigger| Dep
+    
+    style Proxy fill:#e1bee7,stroke:#8e24aa
+    style Handler fill:#ffecb3,stroke:#ffb300
+    style Target fill:#b2dfdb,stroke:#00897b
+```
 
 ```javascript
 /* 内部实现概览 */
@@ -32,7 +46,7 @@ function createReactive(target) {
 
 ### `toRefs`：解构的救星
 
-当你从 `props` 或者 `reactive` 对象中解构数据时，响应性会丢失。
+当从 `props` 或者 `reactive` 对象中解构数据时，响应性会丢失。
 
 ```javascript
 const state = reactive({ count: 0 })
@@ -54,7 +68,7 @@ const { count } = stateRefs // count 是一个 ref(0)，修改它会同步修改
 
 ### `shallowRef` & `triggerRef`：性能优化利器
 
-如果你的状态非常庞大且不需要深度响应式（例如一个巨大的列表，你只会在列表整体替换时才更新），请使用 `shallowRef`。
+若状态非常庞大且不需要深度响应式（例如一个巨大的列表，仅在列表整体替换时才更新），建议使用 `shallowRef`。
 
 ```javascript
 import { shallowRef, triggerRef } from 'vue'
@@ -71,9 +85,9 @@ hugeList.value[0].name = 'Modified'
 triggerRef(hugeList)
 ```
 
-### `markRaw`：告诉 Vue 不要碰我
+### `markRaw`：标记为原始对象
 
-对于有些第三方库实例（如 ECharts 实例、Three.js 场景对象），它们本身非常复杂且不需要变成响应式。如果你把它们放在 `data` 或 `ref` 中，Vue 会尝试递归代理它们，造成巨大的性能开销甚至溢出。
+对于第三方库实例（如 ECharts 实例、Three.js 场景对象），它们本身非常复杂且不需要变成响应式。若将其放入 `data` 或 `ref` 中，Vue 会尝试递归代理它们，造成巨大的性能开销甚至溢出。
 
 ```javascript
 import { markRaw } from 'vue'
@@ -84,9 +98,9 @@ const chart = markRaw(echarts.init(document.getElementById('chart')))
 const chartRef = ref(chart)
 ```
 
-### `customRef`：实现防抖响应式
+### `customRef`：自定义响应式
 
-`customRef` 允许你显式控制依赖追踪（track）和触发（trigger）的时机。这是一个经典的防抖 Ref 实现：
+`customRef` 允许显式控制依赖追踪（track）和触发（trigger）的时机。这是一个经典的防抖 Ref 实现：
 
 ```javascript
 import { customRef } from 'vue'
@@ -117,7 +131,7 @@ const text = useDebouncedRef('hello', 500)
 
 ## 响应式调试
 
-Vue 3 提供了 `onRenderTracked` 和 `onRenderTriggered` 两个调试钩子，可以告诉你到底是哪个变量触发了组件更新。
+Vue 3 提供了 `onRenderTracked` 和 `onRenderTriggered` 两个调试钩子，用于定位触发组件更新的变量。
 
 ```javascript
 import { onRenderTriggered } from 'vue'
@@ -128,8 +142,8 @@ onRenderTriggered((e) => {
 })
 ```
 
-利用这些工具，我们可以精准定位多余的渲染。
+利用这些工具，可以精准定位多余的渲染。
 
 ## 下一章预告
 
-掌握了响应式的底层逻辑，接下来我们要进入 **组件核心**。我们将深入探讨透传 Attributes、递归组件、以及如何利用这些高阶特性构建复杂的 UI 库。
+掌握了响应式的底层逻辑，接下来将进入 **组件核心**。下一章将深入探讨透传 Attributes、递归组件、以及如何利用这些高阶特性构建复杂的 UI 库。
