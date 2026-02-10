@@ -6,7 +6,9 @@ export default withMermaid(
   defineConfig({
     title: "阿乐的博客",
     description: "技术探索",
+    head: [['link', { rel: 'icon', href: '/logo.png' }]],
     themeConfig: {
+      logo: '/logo.png',
       // https://vitepress.dev/reference/default-theme-config
       nav: [
         { text: '首页', link: '/' },
