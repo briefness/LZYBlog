@@ -87,11 +87,11 @@ final router = GoRouter(
 
 ### 1. 渲染层级的双刃剑：`RepaintBoundary`
 
-你可能听过“用 `RepaintBoundary` 隔离频繁变化的组件”，但你知道为什么吗？以及它的代价是什么？
+可能听过"用 `RepaintBoundary` 隔离频繁变化的组件"，但知道为什么吗？以及它的代价是什么？
 
 *   **原理**: `RepaintBoundary` 会强制其子树创建一个独立的 `Layer` (PictureLayer)。
 *   **收益**: 当子树重绘时，Pipeline 只需要更新这个 Layer 的绘制指令，而不需要重绘父级 Layer。复合 (Composite) 阶段会将这些 Layer 合成。
-*   **代价**: 每个 Layer 都需要 GPU 显存。如果你给每个 Item 都包一个 RepaintBoundary，显存会爆炸，反而导致 GPU 抖动。
+*   **代价**: 每个 Layer 都需要 GPU 显存。如果给每个 Item 都包一个 RepaintBoundary，显存会爆炸，反而导致 GPU 抖动。
 *   **最佳场景**: 只有当**频繁重绘的区域**（如进度条、秒表）与**静态背景**重叠时，才使用。
 
 ### 2. 隐形杀手：`saveLayer` 与 Offscreen Rendering
@@ -110,7 +110,7 @@ final router = GoRouter(
 ### 3. 图片内存优化
 
 Flutter 默认会解码图片的**原尺寸**。
-如果你展示一个 100x100 的头像，但网络图片是 4000x3000 的高清图，Flutter 会把整张 4000x3000 的图解码到内存中，占用几十 MB。
+如果展示一个 100x100 的头像，但网络图片是 4000x3000 的高清图，Flutter 会把整张 4000x3000 的图解码到内存中，占用几十 MB。
 
 *   **解法**: 使用 `cacheWidth` / `cacheHeight`。
 
@@ -157,7 +157,7 @@ Future<Either<Failure, User>> getUser() async {
 
 ## 大型项目架构：Monorepo
 
-当你的 App 变得巨大，或者需要拆分多个 Package / Plugin 时，**Monorepo** 是最佳选择。
+当 App 变得巨大，或者需要拆分多个 Package / Plugin 时，**Monorepo** 是最佳选择。
 推荐使用 **[Melos](https://melos.invertase.dev/)** 工具。
 *   统一管理多个包的依赖版本。
 *   一键运行所有包的测试。

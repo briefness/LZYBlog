@@ -1,16 +1,16 @@
 # Coze 零基础精通系列 17：DeepSeek 满血版 —— 深度思考模型的应用指南
 
 > **上一篇回顾**：已掌握 Python SDK 的硬核开发。
-> **本篇目标**：解锁 Coze 平台上的最强战力 —— **DeepSeek-R1 (满血版)**。我们将探讨如何利用其“深度思考”能力，构建更聪明的 Agent。
+> **本篇目标**：解锁 Coze 平台上的最强战力 —— **DeepSeek-R1 (满血版)**。探讨如何利用其“深度思考”能力，构建更聪明的 Agent。
 
 ---
 
 ## 1. 为什么它是游戏规则改变者？
 
-在 Coze 上，我们以往习惯了 GPT-4o 的全能与 Claude 3.5 的灵动。但 **DeepSeek-R1** 的加入，带来了一个全新的维度：**推理 (Reasoning)**。
+在 Coze 上，以往习惯了 GPT-4o 的全能与 Claude 的灵动。但 **DeepSeek-R1** 的加入，带来了一个全新的维度：**推理 (Reasoning)**。
 
-它不只是“回答”你的问题，而是先“思考”你的问题。
-你会发现它在输出答案前，会先产生一段 `Thinking Process`（思维链）。
+它不只是“回答”问题，而是先“思考”问题。
+它在输出答案前，会先产生一段 `Thinking Process`（思维链）。
 
 **核心优势**：
 1.  **逻辑推演**：处理数学、代码、复杂逻辑任务时，准确率显著提升。
@@ -34,7 +34,7 @@
 ### 2.2 配置方法
 1.  **Bot 全局配置**：在 Bot 编排页面的左侧“模型设置”中，直接选择 `DeepSeek-R1`。
 2.  **Workflow 节点配置**：
-    *   这是高阶玩法。你可以在工作流中混用模型。
+    *   这是高阶玩法。可以在工作流中混用模型。
     *   **决策节点 (LLM Node)**：选用 `DeepSeek-R1`，负责制定计划。
     *   **执行节点 (LLM Node)**：选用 `DeepSeek-V3` 或 `GPT-4o mini`，负责把计划通过邮件发出去（省钱且快）。
 
@@ -44,14 +44,14 @@
 
 **DeepSeek-R1 不需要复杂的 Prompt。**
 
-以前我们为了让 AI 变聪明，会写：
+以前为了让 AI 变聪明，会写：
 > “请一步步思考 (Let's think step by step)...”
 > “你是一个资深专家，你需要...”
 > “请按照以下 COT 格式输出...”
 > “如果不确定，请反思...”
 
 **现在，这些通通可以删掉！**
-R1 自带思维链。如果再强制它遵循你的 COT (Chain of Thought)，反而会干扰它的原生思考，导致效果下降。
+R1 自带思维链。如果再强制它遵循 COT (Chain of Thought)，反而会干扰它的原生思考，导致效果下降。
 
 **最佳实践**：
 *   **直接提问**：清晰描述任务即可。
@@ -62,7 +62,7 @@ R1 自带思维链。如果再强制它遵循你的 COT (Chain of Thought)，反
 
 ## 4. 实战案例：构建“深度代码审计” Agent
 
-我们来做一个专门找 Bug 的 Agent。
+来做一个专门找 Bug 的 Agent。
 
 ### 传统模式 (GPT-4o)
 Prompt: "帮我检查这段代码的 Bug。"
@@ -80,7 +80,7 @@ Prompt: "帮我检查这段代码的 Bug。"
     *   Prompt：`根据审计员的建议，重写可执行的代码。`
 
 **效果**：
-你会看到 R1 输出了长长的思考过程：
+R1 会输出长长的思考过程：
 > *Wait, user wants to check for bugs. Let me look at the locking mechanism. The `mutex` is acquired here but... wait, if `do_something()` throws an exception, the lock isn't released. This is a potential deadlock. I need to suggest using `try-finally` or `std::lock_guard`.*
 
 这种“自言自语”的纠错能力，是传统模型不具备的。
@@ -107,6 +107,6 @@ DeepSeek-R1 的出现，让 Coze 的上限被再次拔高。
 *   以前的 Bot 像是一个**熟练工**。
 *   接入 R1 的 Bot 像是一个**工程师**。
 
-善用 **R1 (思考)** + **V3 (执行)** 的组合拳，你的 Agent 将无往不利。
+善用 **R1 (思考)** + **V3 (执行)** 的组合拳，Agent 的能力会明显提升。
 
-> **下集预告**：系列完结？不，AI 进化太快。后续我们将不定期更新 **DeepSeek 进阶实战** 和 **Coze 3.0** 的最新情报！
+> **下集预告**：系列完结？不，AI 进化太快。后续将不定期更新 **DeepSeek 进阶实战** 和 **Coze 3.0** 的最新情报！

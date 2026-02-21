@@ -166,7 +166,7 @@ graph LR
 
 1.  **LocalKey (局部键)**: `ValueKey`, `ObjectKey`, `UniqueKey`。
     *   *作用*: 在平级组件列表（如 Column 的 children）中，**唯一标识**某个 Widget。
-    *   *场景*: 当你对一个列表进行拖拽排序时，如果没有 Key，Flutter 可能只是互换了数据（Text 内容），而没有互换 State（CheckBox 的选中状态），导致 bug。
+    *   *场景*: 对一个列表进行拖拽排序时，如果没有 Key，Flutter 可能只是互换了数据（Text 内容），而没有互换 State（CheckBox 的选中状态），导致 bug。
 2.  **GlobalKey (全局键)**:
     *   *作用*: 在**整个 App** 中唯一标识 Element。
     *   *能力*: 允许跨 Widget 访问 State (即 `globalKey.currentState`)。

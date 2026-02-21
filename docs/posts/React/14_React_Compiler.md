@@ -71,9 +71,9 @@ function Heading({ title }) {
 只需在配置文件中开启 `reactCompiler: true` (具体配置视框架而定)。
 
 ### 2. 必须安装 ESLint 插件
-编译器不是万能的，它需要你的代码遵守 React 的规则。如果不遵守，编译器会自动跳过优化（de-opt）。
+编译器不是万能的，它需要代码遵守 React 的规则。如果不遵守，编译器会自动跳过优化（de-opt）。
 
-安装 `eslint-plugin-react-compiler`，它会在你写出**难以优化**的代码时发出警告：
+安装 `eslint-plugin-react-compiler`，它会在写出**难以优化**的代码时发出警告：
 
 *   ❌ 在渲染过程中修改了 ref。
 *   ❌ 在 useEffect 外部读取了 ref。
@@ -82,14 +82,14 @@ function Heading({ title }) {
 ### 3. 不要急着删除 useMemo
 虽然编译器能自动优化，但在过渡期，**不要** 批量删除现有的 `useMemo` / `useCallback`。编译器可以和手动优化共存。
 
-慢慢地，在新代码中，你会发现你越来越少需要手动写这些 Hooks 了。
+慢慢地，在新代码中，会发现越来越少需要手动写这些 Hooks 了。
 
 ## 金科玉律：Valid JS is Valid React
 
 虽然编译器很强，但在以前，React 对很多“不规范”的代码是睁一只眼闭一只眼的（比如在 render 中稍微修改一点变量）。
 
 **React Compiler 对代码纯度的要求极其严格。**
-如果你的代码原本就有副作用问题，编译器可能会放大这个 Bug。
+如果代码原本就有副作用问题，编译器可能会放大这个 Bug。
 
 只要遵守规则，**React Compiler 就像给应用免费升级引擎**。不需要改写代码，只需要开启编译器，应用就会变得更快。
 
@@ -97,4 +97,4 @@ function Heading({ title }) {
 
 1.  **React Compiler 是自动优化器**。它在编译时自动为组件添加记忆化逻辑，实现 Fine-grained Reactivity。
 2.  **手动挡变自动挡**。开发者不再需要手动管理 `useMemo` 和依赖数组，解决了“闭包陷阱”。
-3.  **代码质量检测器**。配合 ESLint 插件，它能强迫你写出这类更加规范、更符合“纯函数”定义的代码。
+3.  **代码质量检测器**。配合 ESLint 插件，它能强制写出更加规范、更符合"纯函数"定义的代码。

@@ -99,7 +99,7 @@ Future<void> fetchUser() async {
 
 由于单线程特性，若在 Dart 里写了一个死循环或者超大规模计算（比如解析几十 MB 的 JSON），UI 线程将被阻塞，应用直接**卡顿 (Jank)**。
 
-这时候你需要 **Isolate**。
+这时候需要 **Isolate**。
 Isolate 是真正的“多线程”。但它和 Java 的 Thread 不同，Isolate 之间**不共享内存**。
 它们就像两个独立的进程，通过 Port (端口) 互相发消息通信。
 
@@ -112,7 +112,7 @@ graph LR
 
 ### 现代并发：Isolate.run (Dart 2.19+)
 
-在旧版本中，我们常使用 Flutter 提供的 `compute` 函数。
+在旧版本中，常使用 Flutter 提供的 `compute` 函数。
 但在 Dart 2.19 以后，官方直接内置了更轻量、符合直觉的 API：`Isolate.run`。
 
 它允许你直接把一个闭包扔到新线程去执行，且自动处理数据的跨线程传递。
@@ -131,7 +131,7 @@ void main() async {
 }
 ```
 
-> **注意**: `Isolate.run` 适合“一次性计算”。如果你需要频繁的双向通信（比如维持一个后台 Socket 长连接），则需使用 `Isolate.spawn` 配合 `SendPort` 手动搭建双向管道。
+> **注意**: `Isolate.run` 适合“一次性计算”。如果需要频繁的双向通信（比如维持一个后台 Socket 长连接），则需使用 `Isolate.spawn` 配合 `SendPort` 手动搭建双向管道。
 
 ## 总结
 
@@ -144,7 +144,7 @@ void main() async {
 
 ### 1. Zone：代码执行的“结界”
 
-在 Dart 中，有一个概念叫 **Zone**。你可以把它理解为代码执行的“沙盒”或“上下文环境”。
+在 Dart 中，有一个概念叫 **Zone**。可以把它理解为代码执行的“沙盒”或“上下文环境”。
 
 `runZonedGuarded(() => runApp(), ...)` 捕获全局异常的原理？
 因为 Dart 所有的异步操作（Future, Timer, Stream）在微观执行时，都会检查当前 Zone 环境。
@@ -155,4 +155,4 @@ void main() async {
 这不仅用于捕获错误，很多全链路追踪 (APM) 工具也是利用 Zone 的 `values` 属性在异步调用链中传递 Trace ID。
 
 
-下一篇，我们将探讨最后一块拼图：**工程实践与原生集成**。
+下一篇探讨最后一块拼图：**工程实践与原生集成**。

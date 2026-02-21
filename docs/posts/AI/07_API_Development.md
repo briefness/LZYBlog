@@ -11,7 +11,7 @@
 ## 1. Token 计数算法与 Context Window
 
 ### Context Window (上下文窗口)
-每个模型都有窗口限制（如 GPT-4-128k）。这限制了 `Input + Output`的总长度。
+每个模型都有窗口限制（如 128k、200k 等）。这限制了 `Input + Output`的总长度。
 普遍误区认为超限会报错，但更危险的是 **Truncation (截断)**：模型默默地丢掉了最早的 Prompt，导致它忘了人设。
 
 ### Tiktoken 原理

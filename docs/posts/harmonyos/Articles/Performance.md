@@ -251,7 +251,7 @@ async function runTask() {
 *   **Frame Timeline**：这是最直观的视角。它会把每一帧标记为：
     *   **Expected Timeline** (预期时间)：16.6ms。
     *   **Actual Timeline** (实际时间)：如果条状图变红且超长，说明这一帧“迟到”了。
-*   **Binder Transaction**：如果发现主线程有一大段 `IPC_Binder` 耗时，说明你在主线程通过 IPC 疯狂调用其他服务（如频繁请求位置、蓝牙），必须移入后台线程。
+*   **Binder Transaction**：如果发现主线程有一大段 `IPC_Binder` 耗时，说明主线程通过 IPC 疯狂调用其他服务（如频繁请求位置、蓝牙），必须移入后台线程。
 
 ---
 

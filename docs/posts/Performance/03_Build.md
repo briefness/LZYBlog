@@ -58,7 +58,7 @@ graph TD
 ```
 Tree Shaking 依赖于 ES Modules 的**静态结构**。Bundler 会构建一个 Module Graph，标记哪些 export 被引用了，没被引用的就是 "Dead Code"。
 
-#### 💀 为什么你的 Tree Shaking 没生效？(Case Study)
+#### 💀 为什么 Tree Shaking 没生效？(Case Study)
 *   **Bug 现象**：即使只用了 `lodash` 的一个函数 `import { merge } from 'lodash'`, 打包体积依然巨大。
 *   **原因分析**：
     1.  **模块规范**：老版本的 `lodash` 导出的是 CommonJS。Webpack 无法静态分析 CommonJS 的依赖关系，只能全量打包。
@@ -127,7 +127,7 @@ graph TD
     *   **效果**：首屏 JS 体积减少 200KB。
     *   *Tip*: 目标是让首屏 JS 块尽量控制在 **14KB** (Initial Window 10) 的倍数内，以获得最佳的网络响应。
 
-### 3. 自动化利器：可视化你的包体积
+### 3. 自动化利器：可视化包体积
 “If you can't measure it, you can't improve it.”
 *   **工具推荐**：`rollup-plugin-visualizer` (Vite) 或 `webpack-bundle-analyzer`。
 *   **实战价值**：构建后生成一张 Treemap，直观展示包体积占比，发现潜在的冗余依赖。可能会发现看似人畜无害的工具库里竟然藏着完整的 `lodash`。
@@ -136,7 +136,7 @@ graph TD
 这是最容易被忽视的“隐形杀手”。很多时候 `vendor.js` 一半的体积都是为了兼容 IE11。
 *   **按需 Polyfill (`useBuiltIns: 'usage'`)**：
     *   **Bad**: 全量引入 `@babel/polyfill` (几百 KB)。
-    *   **Good**: 配置 babel 让它根据源代码**实际上**用到的特性（如 `Promise`, `Map`）去按需引入对应的垫片。如果你的代码只有 `Promise`，垫片就只引入 `core-js/modules/es.promise.js`。
+    *   **Good**: 配置 babel 让它根据源代码**实际上**用到的特性（如 `Promise`, `Map`）去按需引入对应的垫片。如果代码只有 `Promise`，垫片就只引入 `core-js/modules/es.promise.js`。
 *   **Modern Mode (现代模式)**：
     *   **原理**：既然现代浏览器（Chrome > 61）原生支持 ES Modules 和 async/await，为什么还要喂给它转译后的 ES5 代码？
     *   **动作**：生成两套包。
@@ -194,4 +194,4 @@ graph TD
 
 ---
 
-**(下一章预告)**：代码已发送至浏览器。接下来进入渲染流水线环节。及解析为何修改 `width` 导致高昂开销，而 `transform` 则不然？我们将解读浏览器的“图层合成”机制。
+**(下一章预告)**：代码已发送至浏览器。接下来进入渲染流水线环节。及解析为何修改 `width` 导致高昂开销，而 `transform` 则不然。下一章解读浏览器的"图层合成"机制。

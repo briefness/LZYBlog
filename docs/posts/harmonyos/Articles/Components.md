@@ -75,7 +75,7 @@ graph TD
 ## 四、实战与监控
 
 ### 4.1 hiTraceMeter
-如何证明你的优化有效？使用 `hiTraceMeter` 打点。
+如何证明优化有效？使用 `hiTraceMeter` 打点。
 
 ```typescript
 import { hiTraceMeter } from '@kit.PerformanceAnalysisKit';

@@ -36,7 +36,7 @@ DiT 如何理解“画一只猫”的指令？
 *   如果是“晴天”，参数会调整以增强亮度通道；如果是“雨天”，则抑制。
 *   **本质**: Prompt 在动态重构神经网络的权重分布。
 
-## 3. 2025 新标杆：Flux 与 Flow Matching
+## 3. 新标杆：Flux 与 Flow Matching
 
 Stable Diffusion 3 和 **Flux.1** (目前最強开源模型) 抛弃了传统的 DDPM，转向了 **Flow Matching**。
 

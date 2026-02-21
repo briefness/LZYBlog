@@ -1,17 +1,17 @@
 # 20. 外部存储：React 之外的数据
 
-我们在前面几章讨论了 React 内部的状态管理：`useState`、`useReducer` 和 `useContext`。
+前面几章讨论了 React 内部的状态管理：`useState`、`useReducer` 和 `useContext`。
 
 但在大型应用里，常常需要**把状态移出 React组件树**。比如：
 *   复杂的全局状态（Redux, Zustand, MobX）。
 *   浏览器 API（ResizeObserver, window.innerWidth）。
 *   WebSocket 连接或者数据库订阅。
 
-如果你直接在 `useEffect` 里手动订阅，在 React 18 的并发模式下，可能会遇到一个很诡异的 Bug：**撕裂 (Tearing)**。
+如果直接在 `useEffect` 里手动订阅，在 React 18 的并发模式下，可能会遇到一个很诡异的 Bug：**撕裂 (Tearing)**。
 
 ## 什么是撕裂 (Tearing)？
 
-想象你的屏幕被切成了两半。
+想象屏幕被切成了两半。
 *   左半边渲染了组件 A，显示 `count: 1`。
 *   这时，外部 store 的 `count` 突然变成了 `2`。
 *   React 继续渲染右半边组件 B，读取到 `count: 2`。
@@ -59,7 +59,7 @@ function useWindowWidth() {
 
 ### 例子：极简版 Zustand
 
-我们可以用它手写一个极简的状态管理库：
+可以用它手写一个极简的状态管理库：
 
 ```javascript
 function createStore(initialState) {
@@ -89,12 +89,12 @@ function useStore() {
 
 ## 为什么普通用户需要关心这个？
 
-确实，大多数时候你不需要直接写 `useSyncExternalStore`。你应该使用成熟的库（Redux, Zustand, Recoil）提供的 hook。
+确实，大多数时候不需要直接写 `useSyncExternalStore`。应该使用成熟的库（Redux, Zustand, Recoil）提供的 hook。
 
-但是理解它可以帮你：
-1.  **调试诡异的 UI 问题**：如果你的自定义 hook 依赖 `window` 或 `localStorage` 且出现闪烁，可能是因为没用 `useSyncExternalStore`。
+但理解它有助于：
+1.  **调试诡异的 UI 问题**：如果自定义 hook 依赖 `window` 或 `localStorage` 且出现闪烁，可能是因为没用 `useSyncExternalStore`。
 2.  **选库**：任何声称支持 React 18 并发的库，底层都必须使用这个 hook。如果没有，它可能是不安全的。
-3.  **写工具库**：如果你在写一个需要暴露状态给 React 的库，这是必修课。
+3.  **写工具库**：如果在写一个需要暴露状态给 React 的库，这是必修课。
 
 ## 总结
 

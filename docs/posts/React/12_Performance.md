@@ -106,7 +106,7 @@ function Parent() {
     *   **黄色/红色**：渲染极慢 (Need Optimization)。
 3.  **Why did this render?**：
     *   勾选设置里的 "Record why each component rendered while profiling"。
-    *   Hover 到组件上，DevTools 会告诉你原因："Props changed: (style)" -> 说明你可能传入了内联样式对象。
+    *   Hover 到组件上，DevTools 会显示原因："Props changed: (style)" -> 说明可能传入了内联样式对象。
 
 ## 7. 避坑指南 (Anti-Patterns)
 
@@ -135,13 +135,13 @@ function Parent() {
 
 ## 9. 现代性能工具：useTransition & useDeferredValue
 
-在 React 18+，除了“缓存”（减少渲染次数），我们有了新的武器：“并发”（降低渲染优先级）。
+在 React 18+，除了“缓存”（减少渲染次数），还有新的武器：“并发”（降低渲染优先级）。
 
-有时候，渲染是不可避免的（比如用户搜了一万条数据，确实需要展示）。这时候 `memo` 救不了你，但 **Concurrent React** 可以。
+有时候，渲染是不可避免的（比如用户搜了一万条数据，确实需要展示）。这时候 `memo` 无法解决问题，但 **Concurrent React** 可以。
 
 ### 1. useTransition：非阻塞更新
 
-想象你在输入框打字，同时过滤一个巨大的列表。
+想象在输入框打字，同时过滤一个巨大的列表。
 如果列表渲染太慢，打字就会卡顿（因为主线程被卡住了）。
 
 `useTransition` 可以把更新分为两类：
@@ -170,7 +170,7 @@ function handleChange(e) {
 
 ### 2. useDeferredValue：数据滞后
 
-如果你无法控制 `setState`（比如数据是从 Props 传下来的），可以使用 `useDeferredValue`。它就像是一个“自动防抖”的影子变量。
+如果无法控制 `setState`（比如数据是从 Props 传下来的），可以使用 `useDeferredValue`。它就像是一个“自动防抖”的影子变量。
 
 ```javascript
 // 得到一个低优先级的副本

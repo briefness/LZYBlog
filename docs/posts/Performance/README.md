@@ -1,0 +1,65 @@
+# 前端性能优化：从入门到了解 (High-Performance Web Apps)
+
+> 🚀 **这不仅仅是一份清单，而是一套对抗“熵增”的系统化方法论。**
+> 从底层的 TCP/IP 握手，到框架层的 Fiber 调度，再到组织层面的 CI/CD 卡点，本系列文章深入解构现代 Web 性能优化。
+
+## 📚 系列目录 (Table of Contents)
+
+### [第一部分：认知篇 —— 为什么 1.2s 是生死线？](./01_Cognition.md)
+*   **核心理念**：性能不是为了跑分，而是为了**转化率**和**用户留存**。
+*   **关键指标**：LCP (视觉), **INP** (交互, 取代 FID), CLS (稳定性)。
+*   **深度话题**：
+    *   平均数的谎言：关注 P75 和 P99 长尾用户的必要性。
+    *   RAIL 模型在 2024 年的演进。
+
+### [第二部分：网络传输优化 —— 物理距离的博弈](./02_Network.md)
+*   **核心理念**：越快越小越好。战胜 TCP 的物理延迟。
+*   **深度话题**：
+    *   📊 **可视化对比**：HTTP/1.1 队头阻塞 vs HTTP/2 多路复用 (Gantt Chart)。
+    *   **缓存策略**：Service Worker > Disk Cache > Memory Cache 优先级详解。
+    *   **103 Early Hints**：利用服务器思考时间提前加载资源。
+
+### [第三部分：资源构建优化 —— 现代工程化方案](./03_Build.md)
+*   **核心理念**：只加载当前所需的代码。
+*   **深度话题**：
+    *   **Tree Shaking**：ESM 静态分析原理与副作用 (Side Effects) 陷阱。
+    *   **Code Splitting**：Vite/Webpack 的分包策略与 Vendor 缓存。
+    *   **新一代格式**：AVIF 图片与 Variable Fonts (可变字体)。
+
+### [第四部分：渲染性能优化 —— 16.6ms 的生死时速](./04_Rendering.md)
+*   **核心理念**：理解浏览器流水线 (CRP)，避免“布局抖动”。
+*   **深度话题**：
+    *   🧱 **渲染流水线图**：DOM + CSSOM -> Render Tree -> Layout -> Paint -> Composite。
+    *   **Layer Explosion**：避免滥用 `will-change: transform`。
+    *   **FastDOM**：读写分离 (Batching) 解决强制同步布局。
+    *   **rAF**：相比 setTimeout 更适合做动画的原因 (VSync 对齐)。
+
+### [第五部分：框架特有优化 —— React vs Vue](./05_Frameworks.md)
+*   **核心理念**：理解框架的调度机制 (Scheduler) 与编译优化。
+*   **深度话题**：
+    *   ⚛️ **React**：Fiber 架构、Time Slicing (时间分片)、`useDeferredValue` 解决 INP 卡顿。
+    *   🟢 **Vue**：Static Hoisting (静态提升)、Patch Flags、Proxy 响应式原理。
+    *   ⚖️ **心智模型对比**：React 的“减法优化” vs Vue 的“脱钩优化”。
+
+### [第六部分：前沿技术与未来趋势 —— 突破浏览器极限](./06_Advanced.md)
+*   **核心理念**：常规手段用尽时，需进行架构级升级。
+*   **深度话题**：
+    *   🌊 **Streaming SSR**：流式水合如何解决 TTFB 短板？
+    *   **Wasm + WebCodecs**：Web 端视频剪辑的性能核心。
+    *   **Speculation Rules**：利用浏览器“空闲预测”实现 0ms 页面跳转。
+
+### [第七部分：体系建设篇 —— 没有监控就没有优化](./07_System.md)
+*   **核心理念**：性能优化是漏斗，也是闭环。
+*   **深度话题**：
+    *   📈 **RUM (真实用户监控)**：Lighthouse 只是起点，Field Data 才是终点。
+    *   **性能防腐化**：如何在 CI/CD 中通过 Lighthouse CI 拦截性能劣化 PR。
+    *   **性能漏斗**：网络 -> 构建 -> 渲染 -> 框架 -> 制度的全景总结。
+
+---
+
+## 🛠 推荐工具箱
+*   **测量**：Chrome DevTools (Performance 标签页), WebPageTest, Lighthouse
+*   **构建分析**：rollup-plugin-visualizer, webpack-bundle-analyzer
+*   **监控**：web-vitals (Google), Sentry, Grafana
+
+> *"Performance is not a checklist, it's a continuous mindset."*

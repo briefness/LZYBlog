@@ -8,8 +8,7 @@
 
 ### 1. 上报什么？
 Lab 数据（Lighthouse）仅代表开发环境表现。RUM 数据代表真实用户（不同手机、不同弱网环境）的体验。
-*   **关键指标**：LCP, FID (INP), CLS, FCP, TTFB, Resource Timing.
-*   **关键指标**：LCP, FID (INP), CLS, FCP, TTFB, Resource Timing.
+*   **关键指标**：LCP, INP, CLS, FCP, TTFB, Resource Timing.
 *   **维度**：Device Type (Mobile/Desktop), Network (4G/Wifi/3G), Region (Geo).
 *   **因果关联 (Context)**：务必带上 **Page URL** 和 **Release Version**。否则 LCP 暴涨时难以定位问题页面或版本。
 
@@ -62,7 +61,7 @@ new PerformanceObserver((entryList) => {
 ```
 
 ### 3. 实战：错误关联分析
-单纯知道 FCP 变慢了 2s 没用，你得知道**为什么**。
+单纯知道 FCP 变慢了 2s 没用，得知道**为什么**。
 *   **技巧**：在 RUM 上报时，不仅上报数值，还要带上当前会话是否发生了 Error。
 *   **关联点**：
     *   **JS 报错**：`window.onerror` 是否捕获到了异常？如果是，大概率是因为某个组件渲染崩了，导致后续逻辑阻塞。
@@ -83,13 +82,43 @@ new PerformanceObserver((entryList) => {
       }
     ]
     ```
+
+*   **Bundle 可视化分析**：
+    ```javascript
+    // vite.config.ts
+    import { visualizer } from 'rollup-plugin-visualizer'
+    
+    export default defineConfig({
+      plugins: [
+        visualizer({
+          open: true,
+          gzipSize: true,
+          brotliSize: true,
+          filename: 'stats.html'
+        })
+      ]
+    })
     ```
+    构建后会生成一个交互式 treemap，清晰展示每个模块占了多少体积。如果发现某个库占了 30% 的包体积但只用了一个函数，就是重点优化目标。
 
 #### 进阶预算：不仅仅是体积
 *   **任务时长预算 (Time Budget)**：在 CI 中运行冒烟测试，检测 **Total Blocking Time (TBT)**。若 PR 引入的代码让主线程阻塞超过 300ms，视为性能劣化。
 *   **缓存命中率 (Cache Hit Ratio)**：在生产环境监控 Service Worker 或 HTTP 缓存的命中率。如果过低，说明版本 hash 策略有问题，导致用户每次都在下载“新”资源。
     *   *自测技巧*：在控制台输入 `performance.getEntriesByType('resource')`，检查重要资源的 `transferSize`。如果为 `0` 且 `duration > 0`，通常意味着命中了浏览器缓存。
-### 2. Lighthouse CI
+
+### 2. Grafana 看板搭建指引
+
+一个实用的性能看板至少包含以下面板：
+
+| 面板 | 数据源 | 说明 |
+|------|--------|------|
+| Core Web Vitals 趋势 | `web-vitals` 上报 | LCP / INP / CLS 的 P75 折线图，按天/小时粒度 |
+| 性能分布直方图 | PerformanceObserver | LCP 在 0-1s, 1-2.5s, 2.5-4s, 4s+ 的用户占比 |
+| 慢接口 Top 10 | Resource Timing | `duration > 3s` 的 API 请求排行 |
+| 长任务告警 | PerformanceObserver | `longtask` 类型的事件，主线程阻塞 > 100ms |
+| 版本对比 | 自定义维度 | 新版本上线前后的 LCP 对比，判断是否劣化 |
+
+### 3. Lighthouse CI
 在 GitLab CI / GitHub Actions 里跑无头浏览器。
 *   **Assert**：如果 `performance-score < 90`，不允许 Merge。
 *   **Diff**：不仅仅看绝对值，还要对比。比如这次 PR 导致 LCP 增加了 10%，机器人自动评论警告。

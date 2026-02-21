@@ -31,7 +31,7 @@ graph LR
 
 ### 1.2 为什么需要 RenderNode?
 Canvas 是一块“画布”，但它仍然挂在 ArkUI 的组件树上。
-如果你要做**粒子爆炸效**、**游戏引擎适配**，或者需要**单帧控制上千个节点**，ArkUI 的组件 Diff 机制（即使是 Canvas）依然太重。
+如果要做**粒子爆炸效**、**游戏引擎适配**，或者需要**单帧控制上千个节点**，ArkUI 的组件 Diff 机制（即使是 Canvas）依然太重。
 
 这是 **RenderNode** 登场的时刻。它直接在 C++ 层的 Render Tree 上挂载节点，绕过了 ArkUI 的 Diff 流程，性能极高。
 

@@ -23,7 +23,7 @@ fvm flutter create my_app # 创建项目
 
 ## 2. Hello World 结构解析
 
-打开 `lib/main.dart`，你会看到：
+打开 `lib/main.dart`，会看到：
 
 ```dart
 void main() {

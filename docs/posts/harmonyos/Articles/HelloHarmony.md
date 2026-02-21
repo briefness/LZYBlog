@@ -56,7 +56,7 @@ Ark Compiler 分为两部分：
 
 ### 3.1 HAP 包结构解析
 
-项目创建完成后，你会看到很多文件。最终打包出来的产物叫 **HAP (Harmony Ability Package)**。
+项目创建完成后，会看到很多文件。最终打包出来的产物叫 **HAP (Harmony Ability Package)**。
 可以把它理解为 Android 的 APK，但结构更原生：
 
 *   **ets/**: 存放代码逻辑。
@@ -84,7 +84,7 @@ graph TD
 除了 `module.json5`，还有一个极易被忽略的文件：`main_pages.json`。
 *   **位置**: `src/main/resources/base/profile/main_pages.json`
 *   **作用**: 注册所有的页面路由。
-*   **注意**: 即使你在 `ets` 文件夹下创建了 `.ets` 文件，如果没有在这里注册，`router.push` 是无法跳转的（这也是初学者最常遇到的 404 错误）。
+*   **注意**: 即使在 `ets` 文件夹下创建了 `.ets` 文件，如果没有在这里注册，`router.push` 是无法跳转的（这也是初学者最常遇到的 404 错误）。
 
 ## 四、编写代码：Hello HarmonyOS
 

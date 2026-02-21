@@ -35,7 +35,7 @@ useFetch(() => `https://api.com/user/${props.id}`) // Getter Function
 ### 1.2 副作用管理：`onScopeDispose`
 
 如果在 Composable 中创建了全局监听器（如 `addEventListener`），必须确保在组件卸载时清理。
-虽然 `onUnmounted` 可以用，但如果你的 Composable 是在 `effectScope` 中独立运行的（而非绑定组件），`onUnmounted` 就不会触发。
+虽然 `onUnmounted` 可以用，但如果 Composable 是在 `effectScope` 中独立运行的（而非绑定组件），`onUnmounted` 就不会触发。
 
 **最佳实践**：始终使用 `onScopeDispose`。
 
@@ -200,7 +200,7 @@ const { state, isReady, isLoading, error, execute } = useAsyncState(
 
 ## 全系列结语 (Conclusion)
 
-### 我们走过的路
+### 回顾路径
 
 从第一篇的**核心架构**，到**响应式系统**的底层原理；从**组件化**的高阶技巧，到 **Composition API** 的实战范式；再到**工程化**、**性能优化**、**源码解析**以及本篇的**高级模式**。
 
@@ -214,6 +214,6 @@ const { state, isReady, isLoading, error, execute } = useAsyncState(
 2.  **知其所以然**：理解框架背后的权衡（Trade-offs）与设计哲学，在遇到 bug 或性能瓶颈时能一眼看穿本质。
 3.  **无招胜有招**：不拘泥于固定模式，根据场景灵活运用 `Provide/Inject`、`Composables`、`Pinia` 甚至直接操作 DOM（配合 Vapor Mode）。
 
-前端技术日新月异，Vue 也在不断进化（如 Vapor Mode、Rust 工具链）。保持对底层原理的敬畏，保持对新技术的敏锐，你将在 Vue 的世界里游刃有余。
+前端技术日新月异，Vue 也在不断进化（如 Vapor Mode、Rust 工具链）。保持对底层原理的敬畏，保持对新技术的敏锐，方能在 Vue 的世界里游刃有余。
 
-愿你的代码既有**架构师的宏大**，又有**工匠的细腻**。Coding Happy!
+愿代码既有**架构师的宏大**，又有**工匠的细腻**。Coding Happy!

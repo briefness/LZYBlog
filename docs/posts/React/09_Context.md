@@ -71,7 +71,7 @@ function MyButton() {
 
 ## Context + Reducer：轻量级状态管理
 
-只要将 `useReducer` 的 `dispatch` 函数也放进 Context，我们就能构建一个无需第三方库的全局状态管理方案。
+只要将 `useReducer` 的 `dispatch` 函数也放进 Context，就能构建一个无需第三方库的全局状态管理方案。
 
 **架构模式**：
 1.  **State Context**：存储数据。
@@ -89,7 +89,7 @@ const [state, dispatch] = useReducer(reducer, initialState);
 ```
 
 **为什么分开？**
-为了性能。如果只读取 `dispatch` 的组件（比如按钮）也订阅了 `state`，那么当 `state` 变化时，按钮也会不必要地重新渲染。通过拆分 Context，我们可以将读取数据和触发更新分离。
+为了性能。如果只读取 `dispatch` 的组件（比如按钮）也订阅了 `state`，那么当 `state` 变化时，按钮也会不必要地重新渲染。通过拆分 Context，可以将读取数据和触发更新分离。
 
 ## ⚠️ 性能陷阱：Context 不是银弹
 
@@ -101,12 +101,12 @@ const [state, dispatch] = useReducer(reducer, initialState);
 
 **优化策略**：
 1.  **拆分 Context**：不要把所有全局状态塞进一个巨大的 Context 对象。将不相关的数据拆分到不同的 Context 中（如 `UserContext` 和 `ThemeContext` 分离）。
-2.  **Memoize Value**：传递给 Provider 的 `value` 对象必须是用 `useMemo` 缓存过的。如果直接写 ``<Provider value={ { a: 1, b: 2 } }>``，每次父组件渲染都会生成新对象，导致所有子组件强制重绘。
+2.  **Memoize Value**：传递给 Provider 的 `value` 对象必须是用 `useMemo` 缓存过的。如果直接写 `<Provider value={ { a: 1, b: 2 } }>`，每次父组件渲染都会生成新对象，导致所有子组件强制重绘。
 
 ## 最佳实践与反模式
 
 1.  **Context 破坏了组件复用性**。
-    如果你在 `Button` 组件里直接 `useContext(ThemeContext)`，这个按钮就没法在没有 ThemeProvider 的地方使用了。它产生了隐式依赖。
+    如果在 `Button` 组件里直接 `useContext(ThemeContext)`，这个按钮就没法在没有 ThemeProvider 的地方使用了。它产生了隐式依赖。
     *   **建议**：对于通用 UI 组件，优先使用 Props。对于业务容器组件，使用 Context。
 
 2.  **不要为了避嫌 Prop Drilling 就滥用 Context**。
