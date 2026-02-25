@@ -276,7 +276,33 @@ app.post('/chat/stream', async (request, reply) => {
 });
 ```
 
-## 7. TCP 编程：底层网络能力
+## 7. 隐藏的网络黑洞：端口耗尽与 Keep-Alive
+
+在微服务架构下，Node.js 经常需要作为客户端向其他服务发起大量 HTTP 请求。许多新手直接写个循环狂发 `fetch`，结果压测时很快收到 `EADDRINUSE` 或 `ECONNRESET` 报错。
+
+**底层原因：**
+每次 HTTP 请求如果不复用 TCP 连接（短连接），完成请求后内核会经历“四次挥手”。主动关闭连接的一方（Node.js），其端口会进入 `TIME_WAIT` 状态，并且必须维持这种状态 **2MSL**（通常是 60 秒）才会被释放。
+服务器的可用临时端口范围大概只有 2~3 万个。如果 QPS 极高，临时端口会瞬间被榨干，新的网络请求根本发不出去。
+
+**解决方案：长连接复用（Keep-Alive）**
+
+在旧版本的 Node.js 中，你需要手动配置 `http.Agent`：
+```javascript
+import http from 'node:http';
+
+const keepAliveAgent = new http.Agent({ 
+  keepAlive: true, 
+  maxSockets: 100 // 最大并发套接字数
+});
+
+http.get('http://api.internal/data', { agent: keepAliveAgent }, (res) => { ... });
+```
+
+**现代最佳实践：使用 Node 18+ 内置的 fetch (基于 Undici)**
+好消息是，Node.js 内置的 `fetch`（依赖底层 `undici` 引擎）**默认已经开启了长连接复用，并管理了更高效的连接池**。
+只要你正确使用了原生的 `fetch`（或者使用 Fastify 的 `@fastify/undici` 插件），你就不需要再手动管理 TCP 连接池了。这也是为什么 2026 年我们不再推荐使用如 `axios` + 旧 `http.Agent` 组合的原因。
+
+## 8. TCP 编程：底层网络能力
 
 ```javascript
 import { createServer } from 'node:net';

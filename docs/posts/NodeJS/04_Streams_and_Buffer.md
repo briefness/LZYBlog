@@ -94,17 +94,24 @@ stream.on('readable', () => {
 });
 ```
 
-### 核心概念：背压（Backpressure）
+### 核心概念：背压（Backpressure）与 highWaterMark
 
-背压是 Stream 中最重要也最容易忽视的概念。当**写入速度 < 读取速度**时，数据会积压在内存缓冲区。
+背压是 Stream 中最重要也最容易忽视的概念。当**写入速度 < 读取速度**时，数据会发生积压。为了防止内存被无限撑爆，Node.js 引入了 **`highWaterMark`（高水位线）** 机制。
+
+每一个可读或可写流，内部都有一个内存缓冲池：
+- 对于非对象模式的 Stream（如文件、网络），默认的高水位线通常是 **16KB 或 64KB**。
+- 这个水位线并不是死亡底线，而是**泄洪警告线**。
+
+当你调用 `writeStream.write(chunk)` 时，如果池子里的数据还没来得及排走，且累积量**超过了 `highWaterMark`**，`write()` 就会立刻返回 `false`。这意味着：“**警告：我快吃不下了，请上游暂停发货！**”。
+当底层的消费者终于把积压的数据处理完，池子被清空，Stream 就会发射 `drain` 事件，告诉上游：“**好了，我可以继续接收了。**”
 
 ```javascript
-// ❌ 错误：没有处理背压，内存可能爆炸
+// ❌ 错误：没有处理背压（无视了 write 返回的 false），内存会爆炸
 const readStream = createReadStream('./huge-file.mp4');
 const writeStream = createWriteStream('./output.mp4');
 
 readStream.on('data', (chunk) => {
-  // 如果 write 返回 false，说明缓冲区满了，但仍在继续读！
+  // 如果 write 返回 false，说明池子满了，但如果不在这里暂停，依然会继续把数据疯狂塞进内存！
   writeStream.write(chunk);
 });
 ```
