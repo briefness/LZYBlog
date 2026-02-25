@@ -8,7 +8,7 @@ hero:
     light: /hero-logo.png
     dark: /hero-logo-dark.png
     alt: Blog Logo
-  tagline: 专注 AI 认知、Coze实践、鸿蒙开发、前端性能优化
+  tagline: 专注 AI 认知、Coze实践、鸿蒙开发、前端性能优化、Node.js 实践
   actions:
     - theme: brand
       text: 开始探索
@@ -41,5 +41,8 @@ features:
   - title: 🚀 前端性能
     details: 从网络传输到渲染机制，全方位掌握前端性能优化体系与最佳实践。
     link: /posts/Performance/index
+  - title: 🟩 NodeJS
+    details: 基于 Node.js 24 LTS，从运行时原理到生产部署，涵盖事件循环、Stream、Fastify、安全、消息队列等 19 篇深度实战。
+    link: /posts/NodeJS/index
 ---
 

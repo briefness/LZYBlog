@@ -352,7 +352,7 @@ sequenceDiagram
 
 完成本章后，应能做到：
 
-- [x] 安装 Node.js 22 LTS 并验证版本
+- [x] 安装 Node.js 24 LTS 并验证版本
 - [x] 理解同步和异步的根本区别
 - [x] 区分 `require` 和 `import`
 - [x] 用内置 `http` 模块创建服务器
