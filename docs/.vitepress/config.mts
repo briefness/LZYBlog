@@ -82,7 +82,8 @@ export default withMermaid(
         { text: 'BaseCut', link: '/posts/BaseCut/index' },
         { text: 'Vue3', link: '/posts/Vue3/index' },
         { text: 'React', link: '/posts/React/index' },
-        { text: '前端性能', link: '/posts/Performance/index' }
+        { text: '前端性能', link: '/posts/Performance/index' },
+        { text: 'NodeJS', link: '/posts/NodeJS/index' }
       ],
 
       sidebar: {
@@ -93,7 +94,8 @@ export default withMermaid(
         '/posts/BaseCut/': getSidebarItems('BaseCut', 'BaseCut'),
         '/posts/Vue3/': getSidebarItems('Vue3', 'Vue3'),
         '/posts/React/': getSidebarItems('React', 'React'),
-        '/posts/Performance/': getSidebarItems('Performance', '前端性能')
+        '/posts/Performance/': getSidebarItems('Performance', '前端性能'),
+        '/posts/NodeJS/': getSidebarItems('NodeJS', 'NodeJS')
       }
     },
     // Mermaid 配置
