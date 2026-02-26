@@ -1,159 +1,102 @@
-# Vue 3 深度精通 (四) —— Composition API 生产级实战指南
+# Vue 3 核心原理（四）—— 组合式 API：Composable 炼金术与全局状态幻觉
 
-如果说 Vue 2 的 Mixins 是“黑魔法”，那么 Vue 3 的 Composition API 则是“炼金术”。它允许显式地组织、抽离和复用逻辑，但编写高质量的 Composable 是一门艺术。
+> **环境：** Vue 3 Composition API 全量机制，替代 Mixins 的高维抽象范式
 
-```mermaid
-graph TD
-    subgraph Options API
-    Data[data]
-    Methods[methods]
-    Mounted[mounted]
-    LogicA_Opt[逻辑 A (分散)]
-    LogicB_Opt[逻辑 B (分散)]
-    
-    Data -.-> LogicA_Opt
-    Methods -.-> LogicA_Opt
-    Mounted -.-> LogicA_Opt
-    
-    Data -.-> LogicB_Opt
-    Methods -.-> LogicB_Opt
-    Mounted -.-> LogicB_Opt
-    end
+在 Vue 2 的老年代，所有人都经历过被 `Mixins` 支配的恐怖时刻：五个混入文件往组件里一怼，你的代码里突然冒出来上百个找不到来源的拼图变量 `$data.xxx` 互相倾轧覆盖碰撞，维护人员犹如在拆盲盒地雷。
 
-    subgraph Composition API
-    Setup[setup]
-    useLogicA[useLogicA (内聚)]
-    useLogicB[useLogicB (内聚)]
-    
-    Setup --> useLogicA
-    Setup --> useLogicB
-    
-    style useLogicA fill:#ffcc80,stroke:#ef6c00
-    style useLogicB fill:#81d4fa,stroke:#0277bd
-    end
-```
+Composition API（组合式 API）这套由 React Hooks 启发而来的破茧产物。不仅仅是让你把代码全挪到 `setup` 顶层而已。它的精锐尽出，在于能将带有副作用的**状态图谱和生命周期钩子，抽离打包成可以随意拔插组合的纯函数（Composables）套件**。
 
-## 什么是真正的 Composables？
+---
 
-一个标准的 Composable 应该是一个以 `use` 开头的函数，它接收响应式或非响应式的参数，并返回响应式的状态或方法。
+## 1. 炼金规约：如何打造顶级的 Composable？
 
-### 规则与模式
+市面上 90% 的初学者写的 `useXXX()` 函数，充其量只能叫工具类封装。
+一个血统纯正的 Composable 必须兼顾极其苛刻的响应式生命脉门衔接和全自动垃圾回收兜底机制。
 
-1.  **参数灵活性**：接受纯值或 Ref。
-    ```javascript
-    import { unref, isRef } from 'vue'
-
-    export function useTitle(title: MaybeRef<string>) {
-      // 内部通过 unref 或 toValue 统一解包
-      const titleRef = ref(title)
-      
-      watch(() => unref(title), (newTitle) => {
-        document.title = newTitle
-      }, { immediate: true })
-    }
-    ```
-
-    Vue 3.3+ 推荐直接使用 `toValue`：
-
-    ```javascript
-    import { toValue } from 'vue'
-
-    const val = toValue(maybeRefOrGetter)
-    ```
-
-2.  **副作用清理**：必须在 `onUnmounted` 或 `onScopeDispose` 中清理定时器、事件监听器。
-
-3.  **返回对象还是数组？**
-    VueUse 等库普遍倾向于返回对象，因为解构方便且无顺序限制。
-
-    ```javascript
-    const { x, y } = useMouse()
-    ```
-
-    如果只返回单一主要值，可以考虑直接返回 ref（如 `useTitle`）。
-
-## 状态共享模式
-
-Composables 不仅仅是针对组件内部的逻辑复用，它还是极简的状态管理方案。
-
-### 全局逻辑复用
-
-如果在文件作用域外创建响应式状态，所有引入该组件的实例将**共享**这个状态。这是极简版的 Store。
+### 1. 应对“量子态”的防御解包（`toValue`）
+因为你不知道调用者传进来的变量，到底是写死的固定数字字面量，还是一个活蹦乱跳带有观测引线的 `ref()`。作为一个高阶容器库接驳方，你必须全盘通吃。
 
 ```javascript
-/* useGlobalState.js */
-const state = reactive({ count: 0 }) // 在模块顶级初始化
+// <--- 核心：使用 Vue 3.3+ 极其强悍但常被忽视的防御性解包器
+import { toValue, watch } from 'vue'
 
-export function useGlobalState() {
-  const increment = () => state.count++
-  return { state, increment }
+export function useDynamicTitle(titleInput) {
+  // 不管传进门的是 ref 还是 字符串常量，甚至是个 Getter 函数。
+  // toValue 全部碾碎取出最新纯净值，并且不弄断原有牵引器！
+  watch(() => toValue(titleInput), (newTitle) => {
+    document.title = newTitle
+  }, { immediate: true })
 }
 ```
 
-任意组件引入后，`state.count` 均为同一个实例。这是 Pinia 的基础原理。
+### 2. 擦屁股艺术：生命周期自尽
+但凡在纯函数里使用了诸如 `addEventListener` 或者开启了 `setInterval` 这个滴答炸弹。
+必须在其本体里挂靠就近连结同频组件的销毁钩子：
 
-## 依赖注入：`provide` / `inject` 的高阶用法
+```javascript
+export function useAutoRefresh() {
+  const timer = setInterval(() => {}, 1000)
+  // 当谁调用了这个纯函数，这段销毁逻辑就会自动挂在谁的刑架上同生共死
+  onUnmounted(() => clearInterval(timer)) 
+}
+```
 
-当需要在非常深的组件树中共享状态，又不希望使用全局 Store 时，Composition API 的 `provide/inject` 是最佳选择。
+## 2. 状态倒灌：造就简易版全局 Store 幻像
 
-### Symbol Keys 与类型安全
+除了在内部圈定组件的自身小领地。
+利用 Composition API 不再依赖 `this` 和组件实体生命宿主的超脱属性。如果在 `.js` 文件的极点顶部，把一个包含有内部状态的 `reactive` 或 `ref` 晾在导出函数的主体外部空间？
 
-为避免命名冲突和获得良好的类型提示，建议使用 `InjectionKey`。
+**这就直接涌现出了一个微缩霸道的全应用单例存续空间：**
+
+```javascript
+/* useSharedCount.js */
+import { ref } from 'vue'
+
+// <--- 危险而迷人：脱离组件生命周期存活在外层模块全局空间里的孤立源
+const globalCounter = ref(0) 
+
+export function useSharedCount() {
+  const increment = () => globalCounter.value++
+  return { counter: globalCounter, increment }
+}
+```
+
+任何引用并调用这个 `useSharedCount()` 的所有几十个毫不相干的边缘小组件，它们拿到手里并且修改的，将是完全指向同样物理内存的绝对唯一 `globalCounter`。这就等同于你随手就写出了一个去中心化免除重型 Pinia 安装架设的跨页面级传导通道！
+
+## 3. 暗度陈仓：Provide / Inject 的隔山打牛
+
+有些时候全局的跨组件传送并不能满足安全需求（比如一个多开的商品详情页卡，他们想内部跨 10 层组件共用当前鞋子的颜色选框信息，但又不想干扰并排开着的另一双袜子的详情页）。
+我们需要这套**存在血缘关系覆盖范围**的 `Provide / Inject` 隐身虫洞。
+
+**显式权衡（Trade-offs）**：
+这种注入机制彻底干掉了中间 10 层组件毫无意义的 `Props` 层层串联包裹搬运体力活。
+但**代价是极其隐晦的依赖耦合关联**：最底层的子组件仿佛变成了一个不接受明面参数传导只知道从虚空中吞信息的黑盒。如果哪天被人粗心拷贝移出这个有 Provide 庇护的老爹树林子，它会当场崩溃暴毙连错在哪都因为没有 `Props` 显式约束而无迹可查。
 
 ```typescript
-import { InjectionKey, Ref } from 'vue'
-
-export interface UserContext {
-  name: Ref<string>
-  updateName: (name: string) => void
-}
-
-export const UserKey: InjectionKey<UserContext> = Symbol('User')
+// 利用 Symbol 加挂泛型斩断字符串重名覆盖和类型 Any 的诅咒
+import type { InjectionKey, Ref } from 'vue'
+export const ShoeColorKey: InjectionKey<Ref<string>> = Symbol('shoeColor')
 ```
 
-在父组件：
+## 4. 常见坑点
 
-```javascript
-provide(UserKey, { name, updateName })
-```
+**在纯异步 `setTimeout` 或者网络回调归来后再去调用 `inject` 导致天塌陷**
+很多开发者会在发请求回来后，再去 `inject` 提取全局信息准备组装发送二次日志。然后直接抛出了刺眼的 `Injection "Symbol(xxx)" not found`。
+**原理解释**：`inject` 和 `provide` 寻找树干上文家族族谱的依赖。是强行借靠紧巴巴连着当前组件正在同步执行 `setup()` 跑线初始化时 Vue 内部切置挂载好的**临时当前实例全局游标**！一旦让出主线程跑去了异步。等几秒后回调再次苏醒试图 `inject` 时，这个游标早就跑去伺候别的兄弟组件甚至清空归零为空档了，寻根链路当场崩断失联致死无计可施。
+**解法约束**：一切带有这种树状层级探寻特性的 API 调用（包括 `inject`, `onMounted` 等生命周期挂靠），必须死死卡在 `setup()` 同步执行的主线队列最开头处提前执行取值抓取保留。
 
-在子组件：
+## 5. 延伸思考
 
-```javascript
-const user = inject(UserKey) 
-// user 的类型会自动推断为 UserContext | undefined
-```
+如果 VueUse 这样汇聚了全世界奇思妙想庞大的几百个 Composable 函数库，几乎涵盖了你对于浏览器所有原生的包裹观测包装。
+你在享受这种像乐高积木一样随便 `import` 调用即拥有魔力的时候。你觉得相较于曾经直接操控裸奔的 DOM 侦听和对象，这种到处在后台静默建立几百个 `Ref` 牵涉点和侦听回调池的高维度抽象，真的不会把业务运行变成不堪重负的大象踩积木拖慢速度吗？
 
-**小贴士**：如果不提供默认值，inject 可能返回 undefined。为了更好的体验，可以封装一个 hooks：
+## 6. 总结
 
-```javascript
-function useUser() {
-  const context = inject(UserKey)
-  if (!context) {
-    throw new Error('useUser must be used within a UserProvider')
-  }
-  return context
-}
-```
+- 利用 `toValue` 和 `onUnmounted` 闭环编织的函数套件才是带有极强自适应性和免死金牌免疫生命泄露的高阶纯模块。
+- 模块极顶外围隔离引出的孤儿 `Ref` 会演变进化为波及全局的简易黑帮单例派发中心。
+- 借由 `Provide/Inject` 虫洞体系免除了深度下穿时那令人作呕恶心想吐逐层拔毛转接流水帐。
 
-## `defineMock` 与 Composable 测试
+## 7. 参考
 
-Composition API 的一大优势是极其容易测试。仅需调用函数，无需挂载组件。
-
-```javascript
-// useCounter.spec.js
-import { useCounter } from './useCounter'
-
-test('should increment', () => {
-  const { count, inc } = useCounter()
-  expect(count.value).toBe(0)
-  inc()
-  expect(count.value).toBe(1)
-})
-```
-
-如果涉及生命周期（如 `onMounted`），可以使用 `withSetup` 辅助函数（Vue Test Utils 提供的测试模式）或直接手动 mock 相关的生命周期钩子。
-
-## 结语
-
-Composition API 是 Vue 3 的精髓。掌握它意味着具备以函数式编程思想构建 UI 的能力。下一篇将进入大型应用的必备技能——**Vue Router 4 的深度路由管理**。
+- [Vue 官方 Composables 编写指南](https://cn.vuejs.org/guide/reusability/composables.html)
+- [VueUse: Collection of Essential Vue Composition Utilities](https://vueuse.org/)
