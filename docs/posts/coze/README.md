@@ -47,6 +47,8 @@
     *   **硬核**：Python SDK 实战，代码构建微服务与复杂逻辑。
 *   **[17_DeepSeek_Model_Guide.md](./17_DeepSeek_Model_Guide.md)**
     *   **深度**：万字详解 DeepSeek-R1 (Preview) 满血版最强应用指南。
+*   **[18_OpenClaw_Deployment.md](./18_OpenClaw_Deployment.md)**
+    *   **实战**：一键部署 OpenClaw 自主 AI 助理，Skill 扩展与 ClawJacked 安全分析。
 
 ---
 
