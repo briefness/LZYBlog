@@ -42,5 +42,5 @@
 
 ## 相关系列
 
-- **[AI 认知与实战](/AI/)** —— AI 通用原理（Transformer、Agent FSM、MCP 协议）
-- **[Coze 零基础精通](/Coze/)** —— Coze 平台操作（部署、配置、Skill 安装）
+- **[AI 认知与实战](/posts/AI/index)** —— AI 通用原理（Transformer、Agent FSM、MCP 协议）
+- **[Coze 零基础精通](/posts/coze/index)** —— Coze 平台操作（部署、配置、Skill 安装）
