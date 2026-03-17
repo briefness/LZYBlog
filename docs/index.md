@@ -23,6 +23,9 @@ features:
   - title: 🧩 Coze
     details: 探索 Coze AI 平台的强大功能与最佳实践，打造智能体。
     link: /posts/coze/index
+  - title: 🦞 OpenClaw
+    details: 从零拆解 OpenClaw 架构原理——Agent 循环、四层架构、Tool Calling、记忆机制、Skill 生态与安全模型。
+    link: /posts/OpenClaw/index
   - title: 📱 HarmonyOS
     details: 深入学习鸿蒙系统开发，从入门到进阶，掌握未来生态。
     link: /posts/harmonyos/index

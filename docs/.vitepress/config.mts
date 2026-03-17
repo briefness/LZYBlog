@@ -77,6 +77,7 @@ export default withMermaid(
         { text: '首页', link: '/' },
         { text: 'AI 认知', link: '/posts/AI/index' },
         { text: 'Coze', link: '/posts/coze/index' },
+        { text: 'OpenClaw', link: '/posts/OpenClaw/index' },
         { text: 'HarmonyOS', link: '/posts/harmonyos/index' },
         { text: 'Flutter', link: '/posts/Flutter/index' },
         { text: 'BaseCut', link: '/posts/BaseCut/index' },
@@ -89,6 +90,7 @@ export default withMermaid(
       sidebar: {
         '/posts/AI/': getSidebarItems('AI', 'AI 认知'),
         '/posts/coze/': getSidebarItems('coze', 'Coze'),
+        '/posts/OpenClaw/': getSidebarItems('OpenClaw', 'OpenClaw 原理拆解'),
         '/posts/harmonyos/': getSidebarItems('harmonyos', 'HarmonyOS'),
         '/posts/Flutter/': getSidebarItems('Flutter', 'Flutter'),
         '/posts/BaseCut/': getSidebarItems('BaseCut', 'BaseCut'),
