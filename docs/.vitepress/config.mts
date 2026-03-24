@@ -75,16 +75,31 @@ export default withMermaid(
       // https://vitepress.dev/reference/default-theme-config
       nav: [
         { text: '首页', link: '/' },
-        { text: 'AI 认知', link: '/posts/AI/index' },
-        { text: 'Coze', link: '/posts/coze/index' },
-        { text: 'OpenClaw', link: '/posts/OpenClaw/index' },
-        { text: 'HarmonyOS', link: '/posts/harmonyos/index' },
-        { text: 'Flutter', link: '/posts/Flutter/index' },
-        { text: 'BaseCut', link: '/posts/BaseCut/index' },
-        { text: 'Vue3', link: '/posts/Vue3/index' },
-        { text: 'React', link: '/posts/React/index' },
-        { text: '前端性能', link: '/posts/Performance/index' },
-        { text: 'NodeJS', link: '/posts/NodeJS/index' }
+        {
+          text: 'AI & 智能体',
+          items: [
+            { text: 'AI 认知', link: '/posts/AI/index' },
+            { text: 'Coze', link: '/posts/coze/index' },
+            { text: 'OpenClaw', link: '/posts/OpenClaw/index' }
+          ]
+        },
+        {
+          text: '移动 & 跨端',
+          items: [
+            { text: 'HarmonyOS', link: '/posts/harmonyos/index' },
+            { text: 'Flutter', link: '/posts/Flutter/index' },
+            { text: 'BaseCut', link: '/posts/BaseCut/index' }
+          ]
+        },
+        {
+          text: '前端技术',
+          items: [
+            { text: 'Vue3', link: '/posts/Vue3/index' },
+            { text: 'React', link: '/posts/React/index' },
+            { text: '前端性能', link: '/posts/Performance/index' },
+            { text: 'NodeJS', link: '/posts/NodeJS/index' }
+          ]
+        }
       ],
 
       sidebar: {
