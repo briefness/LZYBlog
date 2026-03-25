@@ -54,7 +54,7 @@ features:
     details: 基于 Node.js 24 LTS，从运行时原理到生产部署，涵盖事件循环、Stream、Fastify、安全、消息队列等 19 篇深度实战。
     link: /posts/NodeJS/index
   - title: 🎮 编程游戏
-    details: 码界觉醒 —— 一款 RPG 编程闯关游戏，通过编写 Python 代码控制角色，沿着前端转 AI 学习路径逐步通关。
+    details: 把枯燥的编程学习变成冒险闯关，用游戏化的方式掌握 Python、AI 等真正的技术能力。
     link: /playground/
 ---
 
