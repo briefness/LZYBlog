@@ -106,7 +106,8 @@ export default withMermaid(
             { text: '前端性能', link: '/posts/Performance/index' },
             { text: 'NodeJS', link: '/posts/NodeJS/index' }
           ]
-        }
+        },
+        { text: '🎮 编程游戏', link: '/playground/' }
       ],
 
       sidebar: {

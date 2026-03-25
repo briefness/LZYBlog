@@ -114,13 +114,13 @@
   - 内存分析工具：`tracemalloc`、`objgraph`
   - 性能优化策略与基准测试（`timeit`、`cProfile`）
 
-- **[20. Python 3.14 新特性与生态全景](./20_Python_3_14_and_Ecosystem.md)**
+- **[20. Python 3.14 新特性与生态全景](./20_Python314_and_Ecosystem.md)**
   - 延迟求值注解（PEP 649）、模板字符串 t-string（PEP 750）
   - Free-threaded 模式深入（PEP 779）与多解释器（PEP 734）
   - 零开销调试接口（PEP 768）、Zstandard 压缩（PEP 784）
   - 元编程入门与 Python 生态导览
 
-- **[21. 综合实战：API 聚合服务](./21_Capstone_API_Aggregator.md)** 🏗️
+- **[21. 综合实战：API 聚合服务](./21_Capstone_Project.md)** 🏗️
   - 从零构建一个聚合多个第三方 API 的生产级服务
   - 技术栈串联：FastAPI + SQLAlchemy + httpx + Typer + pytest
   - 缓存策略、定时刷新、CLI 管理工具
