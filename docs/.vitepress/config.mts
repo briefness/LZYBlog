@@ -108,7 +108,6 @@ export default withMermaid(
           ]
         },
         { text: '🎮 编程游戏', items: [
-            { text: '游戏大厅', link: '/playground/' },
             { text: '码界觉醒', link: '/playground/code-quest' }
           ]
         }
