@@ -79,6 +79,7 @@ export default withMermaid(
           text: 'AI & 智能体',
           items: [
             { text: 'AI 认知', link: '/posts/AI/index' },
+            { text: 'Agent 实战', link: '/posts/Agent/index' },
             { text: 'Coze', link: '/posts/coze/index' },
             { text: 'OpenClaw', link: '/posts/OpenClaw/index' }
           ]
@@ -89,6 +90,12 @@ export default withMermaid(
             { text: 'HarmonyOS', link: '/posts/harmonyos/index' },
             { text: 'Flutter', link: '/posts/Flutter/index' },
             { text: 'BaseCut', link: '/posts/BaseCut/index' }
+          ]
+        },
+        {
+          text: '后端技术',
+          items: [
+            { text: 'Python 全栈', link: '/posts/Python/index' }
           ]
         },
         {
@@ -104,8 +111,10 @@ export default withMermaid(
 
       sidebar: {
         '/posts/AI/': getSidebarItems('AI', 'AI 认知'),
+        '/posts/Agent/': getSidebarItems('Agent', 'Agent 实战'),
         '/posts/coze/': getSidebarItems('coze', 'Coze'),
         '/posts/OpenClaw/': getSidebarItems('OpenClaw', 'OpenClaw 原理拆解'),
+        '/posts/Python/': getSidebarItems('Python', 'Python 全栈'),
         '/posts/harmonyos/': getSidebarItems('harmonyos', 'HarmonyOS'),
         '/posts/Flutter/': getSidebarItems('Flutter', 'Flutter'),
         '/posts/BaseCut/': getSidebarItems('BaseCut', 'BaseCut'),

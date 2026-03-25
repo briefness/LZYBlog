@@ -20,12 +20,18 @@ features:
   - title: 🤖 AI 认知
     details: 从神经网络原理到 Agent 开发，系统构建 AI 知识体系。
     link: /posts/AI/index
+  - title: 🤖 Agent 实战
+    details: 以 PydanticAI + LangGraph + MCP 为核心，17 篇文章从原理到三大生产级项目，完整掌握 AI Agent 开发。
+    link: /posts/Agent/index
   - title: 🧩 Coze
     details: 探索 Coze AI 平台的强大功能与最佳实践，打造智能体。
     link: /posts/coze/index
   - title: 🦞 OpenClaw
     details: 从零拆解 OpenClaw 架构原理——Agent 循环、四层架构、Tool Calling、记忆机制、Skill 生态与安全模型。
     link: /posts/OpenClaw/index
+  - title: 🐍 Python 全栈
+    details: 基于 Python 3.14 + uv 现代工具链，21 篇从语法迁移到 FastAPI 生产部署的完整实战路径。
+    link: /posts/Python/index
   - title: 📱 HarmonyOS
     details: 深入学习鸿蒙系统开发，从入门到进阶，掌握未来生态。
     link: /posts/harmonyos/index
