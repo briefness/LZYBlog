@@ -125,10 +125,14 @@ export default withMermaid(
         '/posts/Vue3/': getSidebarItems('Vue3', 'Vue3'),
         '/posts/React/': getSidebarItems('React', 'React'),
         '/posts/Performance/': getSidebarItems('Performance', '前端性能'),
-        '/posts/NodeJS/': getSidebarItems('NodeJS', 'NodeJS')
+        '/posts/NodeJS/': getSidebarItems('NodeJS', 'NodeJS'),
+        '/posts/miniprogram/': getSidebarItems('miniprogram', '微信小程序')
       }
     },
-    // Mermaid 配置
+    ignoreDeadLinks: [
+      // Manim 动画是 .py 文件，VitePress 无法解析，忽略检查
+      /\/animations\/.+\.py$/,
+    ],
     mermaid: {
       // 可选配置
     }
