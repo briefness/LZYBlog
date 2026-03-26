@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+  <rect width="48" height="48" rx="12" fill="#339933" opacity="0.1"/>
+  <path d="M24 8l13 7.5v15L24 38l-13-7.5v-15z" stroke="#339933" stroke-width="2" fill="none" stroke-linejoin="round"/>
+  <path d="M24 8v15l13-7.5" stroke="#339933" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+  <path d="M24 23L11 15.5" stroke="#339933" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+  <path d="M24 23v15" stroke="#339933" stroke-width="1.5" fill="none"/>
+  <text x="24" y="28" text-anchor="middle" font-size="7" font-weight="bold" fill="#339933" font-family="sans-serif">JS</text>
+</svg>
