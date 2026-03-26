@@ -9,6 +9,14 @@
 
 ## 1. 拆解 `v-model` 的语法糖遮羞布
 
+```mermaid
+flowchart LR
+    VM["v-model:start='date'"] -->|"编译拆解"| P["Props: start"]
+    VM -->|"编译拆解"| E["Emit: update:start"]
+    P -->|"⬇️ 向下传值"| Child["子组件"]
+    Child -->|"⬆️ 向上通知"| E
+```
+
 在 Vue 中，`v-model` 简直是被滥用得最为彻底的黑盒。很多开发者以为它只配插在 `<input>` 标签里用来收集用户的键盘输入。
 
 实际上，当你在自定义组件上写下 `<MyDateRange v-model="time" />` 时。

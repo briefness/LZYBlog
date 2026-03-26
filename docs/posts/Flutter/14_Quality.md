@@ -5,6 +5,15 @@
 
 ## 1. Accessibility (无障碍 / A11y)
 
+```mermaid
+flowchart TB
+    Quality["🏆 生产级应用"]
+    Quality --> A11y["♿ Accessibility<br/>无障碍"]
+    Quality --> I18n["🌍 Internationalization<br/>国际化"]
+    Quality --> Perf["⚡ Performance<br/>DevTools 性能分析"]
+    Quality --> Flavor["🔧 Flavors<br/>多环境构建"]
+```
+
 Google 高度重视无障碍体验。若 App 无法被读屏器（TalkBack/VoiceOver）正常朗读，将流失全球 15% 的视障用户。
 
 ### Semantics Widget (语义化)

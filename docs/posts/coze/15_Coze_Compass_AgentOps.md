@@ -5,7 +5,16 @@
 
 ---
 
-## 1. 为什么需要“罗盘”？
+## 1. 为什么需要"罗盘"？
+
+```mermaid
+flowchart TB
+    Agent["🤖 Agent"] --> Compass["🧭 Compass 罗盘"]
+    Compass --> Eval["📊 批量评测<br/>测试集 → 自动打分"]
+    Compass --> Monitor["📈 全链路监控<br/>调用量 / 延迟 / 异常"]
+    Eval --> Score["评分报告<br/>准确率 / 一致性"]
+    Monitor --> Alert["告警预警"]
+```
 
 在前面的教程中，常见的测试 Bot 方式通常是：
 > 在预览窗口提问几个问题（如“你好吗？”、“明天天气怎样？”），若回答看似无误，便进行发布。

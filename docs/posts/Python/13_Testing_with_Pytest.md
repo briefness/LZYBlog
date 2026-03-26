@@ -8,6 +8,16 @@
 
 ## 1. 快速上手
 
+```mermaid
+flowchart TB
+    pytest["🧪 pytest"]
+    pytest --> Unit["单元测试<br/>函数 / 类"]
+    pytest --> Fixture["Fixture<br/>依赖注入"]
+    pytest --> Param["参数化<br/>@parametrize"]
+    pytest --> Mock["Mock<br/>monkeypatch"]
+    pytest --> Cov["覆盖率<br/>pytest-cov"]
+```
+
 ```bash
 uv add --dev pytest
 ```

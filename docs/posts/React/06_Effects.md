@@ -21,6 +21,15 @@
 
 ## 效果的生命周期
 
+```mermaid
+flowchart LR
+    M["🔌 Mount<br/>开始同步"] -->|"依赖变化"| CL["🔧 Cleanup<br/>断开旧连接"]
+    CL --> RS["🔁 Re-Setup<br/>建立新连接"]
+    RS -->|"依赖再次变化"| CL
+    RS -->|"组件卸载"| UM["🔌 Unmount<br/>最终清理"]
+    M -->|"组件卸载"| UM
+```
+
 Effect 的思考方式与组件不同。它不是“渲染时发生什么”，而是“如何同步”。
 
 ### 1. 挂载 (Mount) - 开始同步

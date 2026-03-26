@@ -13,6 +13,21 @@
 
 ## 如何使用
 
+```mermaid
+flowchart TB
+    App["🏗️ App"]
+    App --> EB1["🔌 ErrorBoundary"]
+    App --> EB2["🔌 ErrorBoundary"]
+    EB1 --> Sidebar["Sidebar 💥 崩溃"]
+    EB2 --> Feed["Feed ✅ 正常"]
+    Sidebar --> Fallback["⚠️ Fallback UI"]
+    Feed --> Content["📄 正常内容"]
+
+    style Sidebar fill:#FFCDD2
+    style Fallback fill:#FFF3E0
+    style Feed fill:#E8F5E9
+```
+
 React 目前（2026年）**仍然**只支持通过 Class Component 来编写错误边界（这可能是现在唯一需要写 Class 的理由）。
 
 ```javascript

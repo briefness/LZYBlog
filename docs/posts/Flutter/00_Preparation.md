@@ -5,6 +5,19 @@
 
 ## 1. 环境搭建 (最佳实践)
 
+```mermaid
+flowchart TB
+    SDK["Flutter SDK"] --> Dart["Dart 语言"]
+    SDK --> Tools["开发工具"]
+    Tools --> IDE["VS Code / Android Studio"]
+    Tools --> CLI["flutter doctor"]
+    SDK --> Platforms["目标平台"]
+    Platforms --> iOS["📱 iOS"]
+    Platforms --> Android["🤖 Android"]
+    Platforms --> Web["🌐 Web"]
+    Platforms --> Desktop["🖥️ Desktop"]
+```
+
 建议避免直接安装 Flutter SDK！易遭遇版本冲突问题。
 **推荐使用 FVM (Flutter Version Management)**。
 

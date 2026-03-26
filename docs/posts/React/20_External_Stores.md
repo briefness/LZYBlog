@@ -23,6 +23,21 @@
 
 ## 救星：useSyncExternalStore
 
+```mermaid
+sequenceDiagram
+    participant Store as 📦 外部 Store
+    participant Hook as useSyncExternalStore
+    participant React as ⚛️ React
+
+    Store->>Hook: subscribe(callback)
+    Hook->>React: getSnapshot() → 值 A
+    Note over React: 开始并发渲染...
+    Store->>Hook: 数据变化！callback()
+    Hook->>React: getSnapshot() → 值 B
+    React->>React: 检测到不一致 → 强制同步渲染
+    Note over React: 保证 UI 一致性 ✅
+```
+
 React 18 提供了一个专门的 Hook 来解决这个问题。
 
 它的名字有点长，但其实很好理解：**它是 React 组件订阅外部数据源的标准接口**。

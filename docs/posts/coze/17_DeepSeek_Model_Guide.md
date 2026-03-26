@@ -7,6 +7,15 @@
 
 ## 1. 为什么它是游戏规则改变者？
 
+```mermaid
+flowchart TB
+    Task{"任务类型？"}
+    Task -->|"简单对话/检索"| V3["DeepSeek-V3<br/>快速 + 低成本"]
+    Task -->|"复杂推理/数学/代码"| R1["DeepSeek-R1<br/>深度思考 CoT"]
+    R1 --> Think["🔄 思维链展开<br/>逐步推理"]
+    Think --> Answer["📝 高质量答案"]
+```
+
 在 Coze 上，以往习惯了 GPT-4o 的全能与 Claude 的灵动。但 **DeepSeek-R1** 的加入，带来了一个全新的维度：**推理 (Reasoning)**。
 
 它不只是“回答”问题，而是先“思考”问题。

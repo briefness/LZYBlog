@@ -7,6 +7,22 @@
 2.  **并发 (Concurrency)**：CPU 维度的调度。
 3.  **状态下放 (State Colocation)**：架构维度的重构。
 
+```mermaid
+flowchart LR
+    subgraph Network["🌐 网络维度"]
+        CS["Code Splitting<br/>lazy + Suspense"]
+    end
+    subgraph CPU["⚡ CPU 维度"]
+        CT["useTransition<br/>优先级调度"]
+    end
+    subgraph Arch["🏗️ 架构维度"]
+        SC["State Colocation<br/>状态下放"]
+    end
+    CS --> Fast["🚀 更快的应用"]
+    CT --> Fast
+    SC --> Fast
+```
+
 ## 1. 懒加载：按需配送 (Code Splitting)
 
 如果应用是一个巨大的超市，用户只想买一个苹果，却非要开着 18 轮大卡车把整个超市的货都拉到他家门口，这显然很慢。

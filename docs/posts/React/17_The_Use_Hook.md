@@ -12,6 +12,16 @@ React 引入了一个特殊的 Hook，名字就叫 **`use`**。
 
 ## 心理模型：拆包器 (The Unwrapper)
 
+```mermaid
+flowchart TB
+    use["🔓 use()"]
+    ctx["Context 对象"] -->|"直接拿值"| use
+    prom["Promise 对象"] -->|"等待 resolve"| use
+    use --> val["📦 解包后的值"]
+    prom -.->|"pending"| suspense["⏳ Suspense fallback"]
+    suspense -->|"resolve"| val
+```
+
 不论给 `use` 什么东西（是一个 Promise，还是一个 Context），其任务就是**“把里面的值拿出来”**。
 
 如果里面还没准备好（Promise pending），它就会让 React **暂停渲染 (Suspend)**，直到值准备好为止。

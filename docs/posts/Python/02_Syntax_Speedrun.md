@@ -8,6 +8,16 @@
 
 ## 1. 缩进即作用域
 
+```mermaid
+flowchart TB
+    Syntax["🐍 Python 语法核心"]
+    Syntax --> Indent["缩进 = 作用域<br/>无花括号"]
+    Syntax --> Types["动态类型<br/>鸭子类型"]
+    Syntax --> Str["f-string 格式化"]
+    Syntax --> Ctrl["控制流<br/>match/case 3.10+"]
+    Syntax --> Comp["推导式<br/>list/dict/set"]
+```
+
 Python 没有花括号 `{}`。代码块靠缩进（4 个空格）界定，缩进错一格就是语法错误。
 
 ```python

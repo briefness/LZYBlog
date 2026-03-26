@@ -17,6 +17,22 @@
 
 React 的组件必须像那台机械售货机一样：**给定相同的输入，永远返回相同的 UI，并且不改变任何外部状态。**
 
+```mermaid
+flowchart LR
+    subgraph Pure["✅ 纯组件"]
+        P1["Props: name='Jack'"] --> P2["组件函数 f()"]
+        P2 --> P3["UI: Hello Jack"]
+        P4["Props: name='Jack'"] --> P5["组件函数 f()"]
+        P5 --> P6["UI: Hello Jack"]
+    end
+    subgraph Impure["❌ 不纯组件"]
+        I1["Props: name='Jack'"] --> I2["组件函数 f()"]
+        I2 -->|"修改外部变量"| I3["UI: Guest #1"]
+        I4["Props: name='Jack'"] --> I5["组件函数 f()"]
+        I5 -->|"外部变量已污染"| I6["UI: Guest #4 ⚠️"]
+    end
+```
+
 ## 什么是副作用 (Side Effects)？
 
 在编程中，“副作用”是指函数在返回结果之外，还做了其他事情，比如：

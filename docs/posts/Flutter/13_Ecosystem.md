@@ -5,6 +5,15 @@
 
 ## 1. 广告变现 (Google Mobile Ads)
 
+```mermaid
+flowchart LR
+    App["📱 Flutter App"]
+    App --> Ads["💰 Google Ads<br/>Banner / 插屏 / 激励"]
+    App --> IAP["🛒 In-App Purchase<br/>订阅 / 一次性"]
+    App --> Firebase["🔥 Firebase<br/>Analytics / Crashlytics"]
+    App --> DeepLink["🔗 Deep Linking<br/>应用跳转"]
+```
+
 接入 **AdMob** 是最直接的变现方式。Flutter 官方插件 `google_mobile_ads` 支持多种格式：
 
 ### 广告类型

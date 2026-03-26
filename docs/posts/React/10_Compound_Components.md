@@ -39,6 +39,19 @@
 
 ## 原理：隐式状态共享
 
+```mermaid
+flowchart TB
+    Select["🧩 Select<br/>Context Provider<br/>管理 selectedValue"]
+    Select --> Trigger["Select.Trigger<br/>显示当前选中"]
+    Select --> List["Select.List"]
+    List --> OptA["Select.Option A<br/>useContext → 获取状态"]
+    List --> OptB["Select.Option B<br/>useContext → 获取状态"]
+
+    style Select fill:#E3F2FD
+    style OptA fill:#E8F5E9
+    style OptB fill:#E8F5E9
+```
+
 可能会问：`Select.Option` 怎么知道当前被选中的是哪个？`Select` 并没有把 `selectedValue` 显式传给 `Select.Option` 啊？
 
 答案是：**Context**。

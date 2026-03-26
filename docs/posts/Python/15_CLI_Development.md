@@ -8,6 +8,15 @@
 
 ## 1. 为什么用 Typer
 
+```mermaid
+flowchart LR
+    User["👤 用户"] -->|"命令行输入"| CLI["🖥️ CLI 工具"]
+    CLI --> Typer["Typer 框架<br/>类型注解 → 参数"]
+    Typer --> Cmd["子命令路由"]
+    Typer --> Args["参数 / 选项解析"]
+    Typer --> Rich["Rich 美化输出<br/>进度条 / 表格"]
+```
+
 Python 标准库的 `argparse` 能写 CLI，但代码又臭又长。`click` 改善了体验，但仍需手写装饰器参数。Typer 直接利用 Type Hints 推断参数类型——函数签名就是 CLI 接口。
 
 ```bash

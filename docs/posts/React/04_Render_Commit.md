@@ -6,6 +6,20 @@
 
 ## 心理模型：餐厅运作流程
 
+```mermaid
+flowchart LR
+    T["🔔 Trigger<br/>触发渲染"] --> R["👨‍🍳 Render<br/>调用组件函数<br/>生成虚拟 DOM"]
+    R --> D{"Diff<br/>有变化？"}
+    D -->|"是"| C["🍽️ Commit<br/>操作真实 DOM"]
+    D -->|"否"| S["⏭️ 跳过<br/>DOM 不变"]
+    C --> U["👀 用户看到更新"]
+
+    style T fill:#FFF3E0
+    style R fill:#E3F2FD
+    style C fill:#E8F5E9
+    style S fill:#F5F5F5
+```
+
 想象在一家繁忙的餐厅。
 
 *   **Trigger (触发)**：客人（User/Code）点单。

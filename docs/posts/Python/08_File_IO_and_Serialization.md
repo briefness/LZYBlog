@@ -8,6 +8,17 @@
 
 ## 1. pathlib：现代路径操作
 
+```mermaid
+flowchart LR
+    Data["📦 Python 对象"]
+    Data -->|"序列化"| JSON["JSON<br/>跨语言通用"]
+    Data -->|"序列化"| TOML["TOML<br/>配置文件"]
+    Data -->|"序列化"| CSV["CSV<br/>表格数据"]
+    JSON -->|"反序列化"| Data
+    File["📁 文件系统"] --> Path["pathlib.Path<br/>面向对象路径"]
+    Path --> Read["读取 / 写入"]
+```
+
 `os.path` 返回的是字符串，路径拼接靠 `os.path.join()`，不直观也不安全。`pathlib.Path` 是面向对象的路径 API，Python 3.4 引入，3.14 已经是标准做法。
 
 ```python

@@ -7,6 +7,15 @@
 
 ## 1. 为什么需要 API 开发？
 
+```mermaid
+flowchart LR
+    App["🖥️ 自有应用"] --> SDK["Python SDK<br/>coze-py"]
+    App --> API["REST API<br/>HTTP 调用"]
+    SDK --> Coze["☁️ Coze 平台<br/>Agent / Workflow"]
+    API --> Coze
+    Coze --> Result["📦 返回结果"]
+```
+
 虽然 Coze 的 Web 界面很方便，但真正的商业落地往往需要：
 1.  **自定义 UI**：可能拥有自己的 React/Vue 网站，想把 Bot 作为一个聊天窗口嵌入其中。
 2.  **数据隐私**：不想让用户直接访问 Coze，而是通过自己的服务器中转。

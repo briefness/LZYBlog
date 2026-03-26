@@ -16,6 +16,20 @@ React 团队问了一个问题：**“如果能像调用本地函数一样调用
 
 ## 心理模型：RPC (远程过程调用)
 
+```mermaid
+sequenceDiagram
+    participant C as 🖥️ 客户端
+    participant R as ⚛️ React
+    participant S as 🖧 服务器
+
+    C->>R: 用户提交表单
+    R->>S: 自动 POST 请求<br/>调用 Server Action
+    S->>S: 执行数据库操作
+    S->>R: 返回结果 + revalidate
+    R->>C: 自动重新渲染页面
+    Note over C,S: 无需手写 fetch / API 路由
+```
+
 可以把 Server Action 想象成一个**“虫洞”函数**。虽然是在客户端组件里点击了按钮，但这个函数体 **100% 在服务器上运行**。
 
 不需要手动写 `fetch`，React 编译器会自动把这个函数转换成一个 POST 请求。

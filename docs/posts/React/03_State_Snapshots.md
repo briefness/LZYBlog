@@ -14,6 +14,23 @@ console.log(state.count); // 5
 
 ## 心理模型：快照 (Snapshot)
 
+```mermaid
+sequenceDiagram
+    participant U as 用户
+    participant R as React
+    participant S as State快照
+
+    U->>R: 点击按钮
+    R->>S: 拍照：number = 0
+    Note right of S: 快照冻结 number = 0
+    R->>R: setNumber(0 + 1)
+    R->>R: setNumber(0 + 1)
+    R->>R: setNumber(0 + 1)
+    Note right of R: 三次都读到 0
+    R->>S: 新快照：number = 1
+    R->>U: 渲染：显示 1
+```
+
 当 React 调用组件函数时，它会提供一张当前时刻的 **State 快照**。这组 Props 和 State 是不可变的，它们就像一张照片定格了那一瞬间。
 
 请看这个经典的“陷阱”题：

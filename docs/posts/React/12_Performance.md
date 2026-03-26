@@ -78,6 +78,22 @@ function Parent() {
 
 ## 总结图谱
 
+```mermaid
+flowchart TB
+    Parent["父组件重新渲染"]
+    Parent -->|"传递 props"| Guard{"React.memo<br/>卫兵检查"}
+    Guard -->|"Props 未变"| Skip["⏭️ 跳过渲染"]
+    Guard -->|"Props 变了"| Render["🔄 重新渲染"]
+
+    subgraph 保持引用稳定
+        CB["useCallback<br/>冻结函数引用"]
+        Memo["useMemo<br/>缓存对象/数组"]
+    end
+
+    CB -->|"稳定的 onClick"| Guard
+    Memo -->|"稳定的 data"| Guard
+```
+
 性能优化不是魔法，它是**三个环节的配合**：
 
 1.  **React.memo**：给子组件穿上防弹衣（只有 Props 变了才渲染）。

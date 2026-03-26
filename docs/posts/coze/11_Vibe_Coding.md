@@ -15,6 +15,16 @@
 
 ## 2. 核心原理：Spec-to-Bot
 
+```mermaid
+flowchart LR
+    Idea["💡 一句话描述"] --> AI["🤖 AI 解析意图"]
+    AI --> Gen["⚡ 自动生成<br/>Prompt + 工作流 + 插件"]
+    Gen --> Preview["👀 预览测试"]
+    Preview -->|"不满意"| Refine["✏️ 自然语言修改"]
+    Refine --> AI
+    Preview -->|"满意"| Publish["🚀 一键发布"]
+```
+
 当输入一段 Prompt 时，背后的 **Meta-Agent (元智能体)** 正在疯狂工作：
 1.  **需求分析**：识别是要做一个“新闻机器人”还是“游戏助手”。
 2.  **组件检索**：在 Skill Store 里寻找最合适的插件（比如 Google Search, DALL-E 3）。

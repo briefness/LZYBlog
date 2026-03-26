@@ -8,7 +8,7 @@ hero:
     light: /hero-logo.png
     dark: /hero-logo-dark.png
     alt: Blog Logo
-  tagline: 专注 AI 认知、Coze实践、鸿蒙开发、前端性能优化、Node.js 实践
+  tagline: 专注 AI 与 Agent、Python 全栈、前端框架、跨端开发与性能优化
   actions:
     - theme: brand
       text: 开始探索

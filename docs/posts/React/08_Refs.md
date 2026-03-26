@@ -14,6 +14,18 @@
 
 ## useRef 的本质
 
+```mermaid
+flowchart LR
+    subgraph State["useState 📸"]
+        S1["setValue()"] --> S2["触发重新渲染"]
+        S2 --> S3["UI 更新"]
+    end
+    subgraph Ref["useRef 👜"]
+        R1["ref.current = x"] --> R2["静默修改"]
+        R2 --> R3["UI 不变"]
+    end
+```
+
 `useRef` 返回的是一个普通的 JavaScript 对象，它只有一个属性：`current`。
 
 ```javascript

@@ -8,6 +8,17 @@
 
 ## 心理模型：水流与电线
 
+```mermaid
+flowchart TB
+    subgraph 单向数据流
+        Parent["🏔️ 父组件<br/>State: items[]"]
+        Parent -->|"Props ⬇️"| ListComp["📋 List 组件"]
+        Parent -->|"Props ⬇️"| CountComp["🔢 Count 组件"]
+        ListComp -->|"Events ⬆️"| Parent
+        CountComp -->|"Events ⬆️"| Parent
+    end
+```
+
 React 的数据流向非常严格：**单向数据流**。
 
 *   **Props 就像瀑布的水流**：只能从上往下流（父组件 -> 子组件）。水流可以分叉，但永远不会倒流。
