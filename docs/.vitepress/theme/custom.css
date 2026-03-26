@@ -43,8 +43,9 @@
   grid-column: 1 / -1;
 }
 
-/* 统一所有 icon 图片大小 */
-.VPFeature .icon img {
+/* 统一所有 icon 图片大小，覆盖 VitePress 默认 margin-bottom: 20px */
+.VPFeature .icon img,
+.VPFeature .box > .VPImage {
   display: block !important;
   width: 28px !important;
   height: 28px !important;
@@ -52,5 +53,6 @@
   max-height: 28px !important;
   object-fit: contain;
   margin: 0 !important;
+  margin-bottom: 0 !important;
   padding: 0 !important;
 }
