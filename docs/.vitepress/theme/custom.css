@@ -1,50 +1,39 @@
 /* Feature 卡片：icon 和 title 同行显示 */
-.VPFeature .box {
-  display: flex;
-  flex-direction: column;
-}
-
-.VPFeature .box .icon {
-  display: inline-flex;
-  margin-bottom: 0;
-}
-
-/* 让 icon + title 在同一行 */
-.VPFeature .box {
-  position: relative;
-}
-
-.VPFeature .box .icon + .title {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
-
-/* 重写布局：icon 和 title wrapper */
 .VPFeature article.box {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
+  display: grid !important;
+  grid-template-columns: 48px 1fr;
+  grid-template-rows: auto 1fr;
+  column-gap: 12px;
+  row-gap: 8px;
 }
 
-/* 用 flexbox 把 icon 和 title 放在同一行 */
-.VPFeature article.box .icon {
-  float: left;
-  margin-right: 10px;
-  margin-bottom: 4px;
-}
-
-.VPFeature article.box .title {
+.VPFeature article.box > .icon {
+  grid-column: 1;
+  grid-row: 1;
   display: flex;
   align-items: center;
-  min-height: 48px;
+  justify-content: center;
+  margin: 0;
 }
 
-.VPFeature article.box .icon + .title {
-  margin-left: 0;
+.VPFeature article.box > h2.title {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  margin: 0;
+  line-height: 48px;
 }
 
-/* icon 容器样式微调 */
+.VPFeature article.box > p.details {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.VPFeature article.box > .link-text {
+  grid-column: 1 / -1;
+}
+
+/* icon 图片尺寸 */
 .VPFeature .icon img {
   width: 40px;
   height: 40px;

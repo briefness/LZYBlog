@@ -1,33 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#EF4444"/>
-      <stop offset="100%" stop-color="#F97316"/>
+    <linearGradient id="lobster-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF6B6B"/>
+      <stop offset="100%" stop-color="#FF8E53"/>
     </linearGradient>
   </defs>
-  <rect width="48" height="48" rx="12" fill="url(#lg)" opacity="0.1"/>
-  <!-- 龙虾身体 -->
-  <ellipse cx="24" cy="26" rx="5" ry="7" fill="url(#lg)"/>
-  <!-- 头部 -->
-  <ellipse cx="24" cy="18" rx="6" ry="5" fill="url(#lg)"/>
-  <!-- 眼睛 -->
-  <circle cx="21.5" cy="16.5" r="1.5" fill="white"/>
-  <circle cx="26.5" cy="16.5" r="1.5" fill="white"/>
-  <circle cx="21.5" cy="16.5" r="0.7" fill="#333"/>
-  <circle cx="26.5" cy="16.5" r="0.7" fill="#333"/>
-  <!-- 触角 -->
-  <path d="M21 14c-2-3-5-5-8-4" stroke="url(#lg)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-  <path d="M27 14c2-3 5-5 8-4" stroke="url(#lg)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-  <!-- 钳子(左) -->
-  <path d="M18 20c-3-1-6 0-7 2" stroke="url(#lg)" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <path d="M11 22c-1-2 0-3 1-3" stroke="url(#lg)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-  <path d="M11 22c0 2 1 3 2 2" stroke="url(#lg)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-  <!-- 钳子(右) -->
-  <path d="M30 20c3-1 6 0 7 2" stroke="url(#lg)" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <path d="M37 22c1-2 0-3-1-3" stroke="url(#lg)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-  <path d="M37 22c0 2-1 3-2 2" stroke="url(#lg)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-  <!-- 尾巴 -->
-  <path d="M22 33c0 2-1 4 0 5M24 33c0 2 0 4 0 5M26 33c0 2 1 4 0 5" stroke="url(#lg)" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-  <!-- 身体纹路 -->
-  <path d="M20 24h8M20 27h8M21 30h6" stroke="white" stroke-width="0.8" opacity="0.4" stroke-linecap="round"/>
+  <!-- Lobster Claw Silhouette -->
+  <path d="M60 10 C30 10 15 35 15 55 C15 75 30 95 45 100 L45 110 L55 110 L55 100 C55 100 60 102 65 100 L65 110 L75 110 L75 100 C90 95 105 75 105 55 C105 35 90 10 60 10Z" fill="url(#lobster-gradient)"/>
+  <!-- Left Claw -->
+  <path d="M20 45 C5 40 0 50 5 60 C10 70 20 65 25 55 C28 48 25 45 20 45Z" fill="url(#lobster-gradient)"/>
+  <!-- Right Claw -->
+  <path d="M100 45 C115 40 120 50 115 60 C110 70 100 65 95 55 C92 48 95 45 100 45Z" fill="url(#lobster-gradient)"/>
+  <!-- Antenna -->
+  <path d="M45 15 Q35 5 30 8" stroke="#FF6B6B" stroke-width="2" stroke-linecap="round"/>
+  <path d="M75 15 Q85 5 90 8" stroke="#FF6B6B" stroke-width="2" stroke-linecap="round"/>
+  <!-- Eyes -->
+  <circle cx="45" cy="35" r="6" fill="#050810"/>
+  <circle cx="75" cy="35" r="6" fill="#050810"/>
+  <circle cx="46" cy="34" r="2" fill="#00e5cc"/>
+  <circle cx="76" cy="34" r="2" fill="#00e5cc"/>
 </svg>
