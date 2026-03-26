@@ -1,15 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
   <defs>
-    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#A855F7"/>
       <stop offset="100%" stop-color="#EC4899"/>
     </linearGradient>
   </defs>
-  <rect width="48" height="48" rx="12" fill="url(#g1)" opacity="0.12"/>
-  <path d="M10 24c0-4.418 3.582-8 8-8h12c4.418 0 8 3.582 8 8v2c0 4.418-3 8-6 8l-3-4h-10l-3 4c-3 0-6-3.582-6-8v-2z" stroke="url(#g1)" stroke-width="2" fill="none" stroke-linejoin="round"/>
-  <line x1="17" y1="21" x2="17" y2="27" stroke="url(#g1)" stroke-width="2" stroke-linecap="round"/>
-  <line x1="14" y1="24" x2="20" y2="24" stroke="url(#g1)" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="28" cy="22" r="1.5" fill="url(#g1)"/>
-  <circle cx="32" cy="24" r="1.5" fill="url(#g1)"/>
-  <circle cx="28" cy="26" r="1.5" fill="url(#g1)"/>
+  <path d="M8 20c0-5.523 4.477-10 10-10h12c5.523 0 10 4.477 10 10v4c0 5.523-4.477 10-10 10h-2l-4 6-4-6h-2c-5.523 0-10-4.477-10-10v-4z" fill="url(#g)"/>
+  <line x1="17" y1="19" x2="17" y2="25" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="14" y1="22" x2="20" y2="22" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="27" cy="19.5" r="1.8" fill="white"/>
+  <circle cx="31" cy="22" r="1.8" fill="white"/>
+  <circle cx="27" cy="24.5" r="1.8" fill="white"/>
 </svg>

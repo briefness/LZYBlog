@@ -1,15 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
   <defs>
-    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#0070F0"/>
       <stop offset="100%" stop-color="#00C4FF"/>
     </linearGradient>
   </defs>
-  <rect width="48" height="48" rx="12" fill="url(#g1)" opacity="0.12"/>
-  <rect x="14" y="10" width="20" height="28" rx="4" stroke="url(#g1)" stroke-width="2" fill="none"/>
-  <line x1="14" y1="14" x2="34" y2="14" stroke="url(#g1)" stroke-width="1.5"/>
-  <line x1="14" y1="34" x2="34" y2="34" stroke="url(#g1)" stroke-width="1.5"/>
-  <circle cx="24" cy="36.5" r="1.2" fill="url(#g1)"/>
-  <rect x="18" y="18" width="12" height="4" rx="1" fill="url(#g1)" opacity="0.3"/>
-  <rect x="18" y="24" width="8" height="4" rx="1" fill="url(#g1)" opacity="0.3"/>
+  <rect x="14" y="6" width="20" height="36" rx="4" fill="url(#g)"/>
+  <rect x="16" y="10" width="16" height="22" rx="1" fill="white"/>
+  <circle cx="24" cy="38" r="2" fill="white"/>
 </svg>

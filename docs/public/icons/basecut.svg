@@ -1,15 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
   <defs>
-    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#F59E0B"/>
       <stop offset="100%" stop-color="#EF4444"/>
     </linearGradient>
   </defs>
-  <rect width="48" height="48" rx="12" fill="url(#g1)" opacity="0.12"/>
-  <rect x="10" y="14" width="28" height="20" rx="3" stroke="url(#g1)" stroke-width="2" fill="none"/>
-  <path d="M10 30h28" stroke="url(#g1)" stroke-width="1.5"/>
-  <rect x="14" y="32" width="4" height="2" rx="0.5" fill="url(#g1)" opacity="0.5"/>
-  <rect x="20" y="32" width="6" height="2" rx="0.5" fill="url(#g1)" opacity="0.5"/>
-  <rect x="28" y="32" width="8" height="2" rx="0.5" fill="url(#g1)" opacity="0.5"/>
-  <polygon points="20,19 20,27 28,23" fill="url(#g1)"/>
+  <rect x="6" y="12" width="36" height="24" rx="4" fill="url(#g)"/>
+  <polygon points="20,18 20,30 31,24" fill="white"/>
+  <rect x="10" y="34" width="5" height="2" rx="1" fill="white" opacity="0.6"/>
+  <rect x="17" y="34" width="7" height="2" rx="1" fill="white" opacity="0.6"/>
+  <rect x="26" y="34" width="12" height="2" rx="1" fill="white" opacity="0.6"/>
 </svg>

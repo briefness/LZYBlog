@@ -1,40 +1,56 @@
 /* Feature 卡片：icon 和 title 同行显示 */
 .VPFeature article.box {
   display: grid !important;
-  grid-template-columns: 48px 1fr;
+  grid-template-columns: 28px 1fr;
   grid-template-rows: auto 1fr;
-  column-gap: 12px;
-  row-gap: 8px;
+  column-gap: 10px;
+  row-gap: 12px;
 }
 
+/* icon 容器：去掉默认背景，纯图形显示 */
 .VPFeature article.box > .icon {
   grid-column: 1;
   grid-row: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 28px !important;
+  height: 28px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  align-self: center;
+  /* 去掉 VitePress 默认的背景和圆角 */
+  background: none !important;
+  border-radius: 0 !important;
 }
 
 .VPFeature article.box > h2.title {
   grid-column: 2;
   grid-row: 1;
   align-self: center;
-  margin: 0;
-  line-height: 48px;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 28px !important;
 }
 
 .VPFeature article.box > p.details {
   grid-column: 1 / -1;
   grid-row: 2;
+  margin: 0;
 }
 
 .VPFeature article.box > .link-text {
   grid-column: 1 / -1;
 }
 
-/* icon 图片尺寸 */
+/* 统一所有 icon 图片大小 */
 .VPFeature .icon img {
-  width: 40px;
-  height: 40px;
+  display: block !important;
+  width: 28px !important;
+  height: 28px !important;
+  max-width: 28px !important;
+  max-height: 28px !important;
+  object-fit: contain;
+  margin: 0 !important;
+  padding: 0 !important;
 }

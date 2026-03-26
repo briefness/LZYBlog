@@ -1,8 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
-  <rect width="48" height="48" rx="12" fill="#339933" opacity="0.1"/>
-  <path d="M24 8l13 7.5v15L24 38l-13-7.5v-15z" stroke="#339933" stroke-width="2" fill="none" stroke-linejoin="round"/>
-  <path d="M24 8v15l13-7.5" stroke="#339933" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
-  <path d="M24 23L11 15.5" stroke="#339933" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
-  <path d="M24 23v15" stroke="#339933" stroke-width="1.5" fill="none"/>
-  <text x="24" y="28" text-anchor="middle" font-size="7" font-weight="bold" fill="#339933" font-family="sans-serif">JS</text>
+  <path d="M24 4l16 9.24v18.48L24 40.96 8 31.72V13.24z" fill="#339933"/>
+  <path d="M24 4v18.48L40 13.24z" fill="#6CC24A" opacity="0.6"/>
+  <path d="M24 22.48L8 13.24v18.48z" fill="#339933" opacity="0.8"/>
+  <path d="M24 22.48v18.48l16-9.24z" fill="#6CC24A" opacity="0.4"/>
+  <text x="24" y="28" text-anchor="middle" font-size="10" font-weight="bold" fill="white" font-family="Arial,sans-serif">JS</text>
 </svg>
