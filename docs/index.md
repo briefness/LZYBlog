@@ -52,6 +52,11 @@ features:
       src: /icons/flutter.svg
     details: 跨平台应用开发实战，构建高性能移动应用。
     link: /posts/Flutter/index
+  - title: 微信小程序
+    icon:
+      src: /icons/miniprogram.svg
+    details: 17 篇 + 4 个 Manim 动画，从双线程原理到三大实战项目，附微信支付 Node.js 后端 Mock。
+    link: /posts/miniprogram/index
   - title: BaseCut
     icon:
       src: /icons/basecut.svg

@@ -1,0 +1,393 @@
+# 01. 微信小程序全景：从打开到渲染
+
+打开一个微信小程序，从点击到看到内容，只需要零点几秒——但这零点几秒背后，发生了极其精密的工程协作。小程序既不是网页，也不是原生 App，它是微信用自己的沙箱规则重新定义的一种"受限运行环境"。
+
+理解这套架构，是写出高质量小程序的前提。
+
+> **环境：** 微信开发者工具 latest，小程序基础库 3.x
+
+---
+
+## 1. 小程序 vs H5 vs 原生 App
+
+三个技术方向各有优劣，小程序处于中间地带：
+
+```mermaid
+flowchart TB
+    subgraph Web["网页 / H5"]
+        W1["HTML + CSS + JS"]
+        W2["浏览器引擎"]
+        W3["可访问任意 URL"]
+    end
+
+    subgraph Mini["小程序"]
+        M1["WXML + WXSS + JS"]
+        M2["双线程隔离"]
+        M3["微信 API 生态"]
+    end
+
+    subgraph App["原生 App"]
+        A1["Native Code"]
+        A2["直接操作系统"]
+        A3["完整权限"]
+    end
+
+    Web --> |"灵活但受限"| Mini
+    App --> |"高性能但重"| Mini
+    Mini --> |"轻量但受控"| Web
+    Mini --> |"受限但够用"| App
+
+    style Web fill:#e8f5e9,stroke:#2e7d32
+    style Mini fill:#e3f2fd,stroke:#1565c0
+    style App fill:#fce4ec,stroke:#c62828
+```
+
+| 维度 | H5 网页 | 小程序 | 原生 App |
+|------|---------|--------|---------|
+| 渲染性能 | 依赖浏览器 | 双线程隔离 | 直接 GPU 渲染 |
+| 系统权限 | 受限（需授权） | 微信授权体系 | 完全开放 |
+| 分发方式 | URL 链接 | 微信内搜索/扫码 | 应用商店 |
+| 包体积 | 无限制 | 单包 ≤ 2MB | 几十 MB |
+| 更新方式 | 实时更新 | 微信审核后更新 | 用户主动更新 |
+| 开发成本 | 低 | 中 | 高 |
+
+> **关键洞察**：小程序用"受限"换来了"安全"和"体验"。微信的审核机制虽然繁琐，但保证了整个生态的质量下限；双线程架构虽然牺牲了部分灵活性，但避免了恶意代码直接操作用户手机。
+
+---
+
+## 2. 双线程架构详解
+
+这是小程序最核心的设计，理解它就能理解小程序的绝大多数行为。
+
+### 2.1 为什么需要双线程？
+
+浏览器中，JS 和渲染共享同一个线程。如果 JS 执行一个耗时计算，页面会卡住（这就是为什么复杂网页会"假死"）。微信在设计小程序时，把这个风险彻底隔离了。
+
+```mermaid
+flowchart TB
+    Wechat["微信客户端\n(WeChat Client)"]
+
+    subgraph RenderLayer["渲染层 (WebView)"]
+        WXML["WXML 解析\n↓\nDOM 树"]
+        WXSS["WXSS 解析\n↓\n样式规则"]
+    end
+
+    subgraph LogicLayer["逻辑层 (JS Engine)"]
+        App["App Service\n(小程序逻辑)"]
+        API["微信 API"]
+    end
+
+    subgraph Native["Native 层"]
+        Device["设备能力\n(相机/支付/文件)"]
+    end
+
+    Wechat --> RenderLayer
+    Wechat --> LogicLayer
+
+    RenderLayer <-->|"NativeJS Bridge\n(setData 通信)"| LogicLayer
+    LogicLayer --> Device
+    Device --> LogicLayer
+
+    style RenderLayer fill:#e3f2fd,stroke:#1565c0
+    style LogicLayer fill:#e8f5e9,stroke:#2e7d32
+    style Native fill:#fff3e0,stroke:#e65100
+```
+
+**两条线程的职责分工**：
+
+- **渲染层（WebView）**：负责 WXML → DOM 树，WXSS → 样式计算，最终绘制像素到屏幕。渲染线程永远不执行业务 JS。
+- **逻辑层（JS Engine）**：执行 app.js、页面 JS、组件 JS，处理数据逻辑，调用微信 API。逻辑层永远不直接操作 DOM。
+
+**两者之间的通信**：通过微信客户端内置的 `NativeJS Bridge` 传递。逻辑层调用 `setData()` 时，数据被序列化后跨线程传递到渲染层，渲染层更新 DOM。
+
+### 2.2 setData 的本质
+
+`setData` 不是 React/Vue 中的响应式系统，它的本质是一次**跨线程的消息传递**：
+
+```javascript
+// pages/index/index.js
+Page({
+  data: {
+    title: "原始标题",
+    list: [1, 2, 3],
+  },
+
+  updateTitle() {
+    // 这不是直接修改 DOM，而是：
+    // 1. 将 { title: "新标题" } 序列化
+    // 2. 跨线程发送给渲染层
+    // 3. 渲染层合并数据，重新渲染
+    this.setData({ title: "新标题" });
+  },
+
+  updateList() {
+    // 常见坑：每次 setData 都是一次完整的数据快照传递
+    // list 很长时，频繁调用会性能下降
+    this.setData({
+      list: [...this.data.list, 4], // 浅拷贝引用不变，渲染层感知不到
+    });
+    // 正确做法：创建新引用
+    this.setData({
+      list: this.data.list.concat([4]), // concat 返回新数组
+    });
+  },
+});
+```
+
+> **setData 的关键约束**：数据必须通过 `setData` 驱动更新，直接修改 `this.data.xxx = value` 不会触发视图更新。
+
+---
+
+## 3. 小程序启动流程全图解
+
+```mermaid
+sequenceDiagram
+    participant U as 用户
+    participant WC as 微信客户端
+    participant RL as 渲染层<br/>(WebView)
+    participant LL as 逻辑层<br/>(JS Engine)
+    participant Native as Native API
+
+    U->>WC: 打开小程序
+    WC->>RL: 启动渲染层 WebView
+    WC->>LL: 启动 JS Engine
+    LL->>LL: 执行 app.js (App.onLaunch)
+    LL->>LL: 执行页面 JS (Page.onLoad)
+    RL->>RL: 解析 WXML + WXSS
+    LL-->>RL: 首次 setData (初始数据)
+    RL->>RL: 渲染页面
+    RL-->>U: 显示内容
+```
+
+启动分为两个阶段：
+
+**冷启动**：小程序进程不存在，需要全新初始化（耗时最长）
+**热启动**：小程序进程存在，只需从后台切换到前台（耗时短）
+
+---
+
+## 4. 文件配置体系
+
+### 4.1 全局配置 `app.json`
+
+```json
+{
+  "pages": [
+    "pages/index/index",
+    "pages/detail/detail",
+    "pages/mine/mine"
+  ],
+  "window": {
+    "navigationBarTitleText": "我的应用",
+    "enablePullDownRefresh": false,
+    "backgroundColor": "#f5f5f5"
+  },
+  "tabBar": {
+    "selectedColor": "#07C160",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页" },
+      { "pagePath": "pages/mine/mine", "text": "我的" }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于展示附近商家"
+    }
+  }
+}
+```
+
+### 4.2 页面配置 `page.json`
+
+页面目录下可以有自己的 `page.json`，覆盖全局 `window` 配置：
+
+```json
+{
+  "navigationBarTitleText": "商品详情",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "my-header": "/components/header/index"
+  }
+}
+```
+
+---
+
+## 5. 生命周期体系
+
+小程序有三套独立的生命周期：App 级别、Page 级别、Component 级别。
+
+### 5.1 App 生命周期
+
+```javascript
+// app.js
+App({
+  onLaunch() {
+    // 小程序首次初始化时触发（全局只执行一次）
+  },
+  onShow() {
+    // 小程序启动，或从后台切换到前台时触发
+  },
+  onHide() {
+    // 小程序进入后台时触发（如按 Home 键）
+  },
+  onError(err) {
+    // 小程序发生 JS 错误时触发
+    console.error("小程序报错：", err);
+  },
+  onPageNotFound(res) {
+    // 打开的页面不存在时触发
+    // 可用于做 404 重定向
+  },
+});
+```
+
+### 5.2 Page 生命周期
+
+```javascript
+// pages/index/index.js
+Page({
+  // 1. 页面加载（数据从逻辑层首次到达渲染层）
+  onLoad(query) {
+    // query 是页面启动时的参数（如从分享链接进入）
+    console.log("页面参数：", query);
+  },
+
+  // 2. 页面初次渲染完成（视图层 DOM 构建完毕）
+  onReady() {
+    // 可以开始操作 DOM 了（但小程序没有 DOM，只有 WXML）
+    // 适合：启动动画、请求首屏数据
+  },
+
+  // 3. 页面显示（每次进入页面都会触发）
+  onShow() {
+    // 适合：从其他页面返回时刷新数据
+  },
+
+  // 4. 页面隐藏（每次离开页面都会触发）
+  onHide() {
+    // 适合：暂停计时器、保存草稿
+  },
+
+  // 5. 页面卸载（销毁）
+  onUnload() {
+    // 适合：清理定时器、解绑事件
+  },
+
+  // 下拉刷新
+  onPullDownRefresh() {
+    // 需在 page.json 中开启 enablePullDownRefresh
+    this.fetchData();
+  },
+
+  // 上拉加载更多
+  onReachBottom() {
+    this.loadMore();
+  },
+
+  // 页面滚动
+  onPageScroll(obj) {
+    console.log("滚动位置：", obj.scrollTop);
+  },
+});
+```
+
+### 5.3 生命周期时序图
+
+```mermaid
+sequenceDiagram
+    participant User as 用户
+    participant Page as Page
+    participant App as App
+
+    User->>App: 打开小程序
+    App->>App: onLaunch
+    App->>App: onShow
+    App->>Page: 加载页面
+    Page->>Page: onLoad
+    Page->>Page: onReady
+    Page-->>User: 页面可见
+
+    User->>Page: 按 Home 键
+    Page->>Page: onHide
+    App->>App: onHide
+
+    User->>App: 切回小程序
+    App->>App: onShow
+    Page->>Page: onShow
+    Page-->>User: 页面可见
+
+    User->>Page: navigateBack
+    Page->>Page: onUnload
+```
+
+---
+
+## 6. Manim 动画：启动流程动态演示
+
+核心原理配 Manim 动画，直观理解双线程启动时序。
+
+**动画文件**：[animations/01_startup_animation.py](animations/01_startup_animation.py)
+
+```bash
+# 运行动画
+manim -pql animations/01_startup_animation.py StartupFlow
+```
+
+动画内容：
+1. 微信客户端节点亮起，启动信号发出
+2. 渲染层 WebView 和逻辑层 JS Engine 双线程初始化（并行）
+3. Native Bridge 桥接层建立连接
+4. 分步演示启动流程：WXML 解析 → app.js 执行 → setData → 页面渲染
+
+---
+
+## 7. 常见坑点
+
+**1. onLoad 和 onReady 的执行顺序误解**
+
+很多新手会在 `onLoad` 中尝试获取元素的尺寸信息——但 `onLoad` 执行时，渲染层的 DOM 树还没构建完成，元素尺寸获取不到。正确的做法是在 `onReady` 中操作，或者使用 `wx.createSelectorQuery()` 的回调。
+
+**2. 热启动不触发 onLoad**
+
+小程序从后台切回来是热启动，`onLoad` 不会再次执行。如果需要每次进入都刷新数据，应该放在 `onShow` 中。
+
+**3. 多 WebView 耗内存**
+
+小程序可以同时运行多个 WebView（页面栈管理）。在低端 Android 设备上，超过 5 个 WebView 可能会导致内存不足崩溃。养成及时清理页面栈的习惯（`wx.navigateBack`）。
+
+**4. App onLaunch 和页面 onLoad 的竞态**
+
+`app.js` 的 `onLaunch` 和第一个页面的 `onLoad` 是异步执行的（虽然绝大多数情况下 `onLaunch` 先完成）。如果页面需要用到全局数据，应该通过 `getApp().globalData` 在 `onLoad` 中等待数据就绪。
+
+---
+
+## 延伸思考
+
+小程序的双线程架构是一个**安全优先**的设计决策。如果渲染层可以直接执行 JS，恶意代码可以读取相册、监听键盘、伪造支付——微信无法管控。强制 JS 只在逻辑层执行，并通过受限的 Bridge 通信，等于给小程序装上了一个"牢笼"。
+
+但这个"牢笼"带来了一个工程上的副产品：**性能不对称**。每次 `setData` 都是一次序列化 + 跨线程通信，如果数据量过大或调用过于频繁，会出现明显的卡顿。所以小程序对 `setData` 的使用提出了严格要求：只传必要数据，避免大数组整体更新。
+
+这也是为什么理解架构如此重要——写出"能用"的小程序很简单，写出"流畅"的小程序需要对每一层设计都有敬畏。
+
+---
+
+## 总结
+
+- 小程序 = 双线程隔离（渲染层 WebView + 逻辑层 JS Engine）+ Native API + 微信生态
+- `setData` 的本质是跨线程消息传递，不是响应式绑定
+- App / Page / Component 三套生命周期独立运行
+- `onLoad` 执行时渲染层尚未完成，`onReady` 才是 DOM 就绪的信号
+- 热启动不触发 `onLoad`，`onShow` 才是每次进入页面都会执行的钩子
+
+---
+
+## 参考
+
+- [微信小程序框架设计官方解读](https://developers.weixin.qq.com/miniprogram/dev/framework/runtime/js-runtime.html)
+- [小程序性能优化指南](https://developers.weixin.qq.com/miniprogram/dev/framework/performance/tips/start_up.html)
+- [小程序的架构与生态](https://github.com/zqHex/mini-program-deep-dive)
+
+---
+
+**下一篇**进入 **WXML 速成：微信的 HTML 长什么样**——模板语法、事件绑定、组件系统。
