@@ -1,0 +1,51 @@
+/* Feature 卡片：icon 和 title 同行显示 */
+.VPFeature .box {
+  display: flex;
+  flex-direction: column;
+}
+
+.VPFeature .box .icon {
+  display: inline-flex;
+  margin-bottom: 0;
+}
+
+/* 让 icon + title 在同一行 */
+.VPFeature .box {
+  position: relative;
+}
+
+.VPFeature .box .icon + .title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 重写布局：icon 和 title wrapper */
+.VPFeature article.box {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+/* 用 flexbox 把 icon 和 title 放在同一行 */
+.VPFeature article.box .icon {
+  float: left;
+  margin-right: 10px;
+  margin-bottom: 4px;
+}
+
+.VPFeature article.box .title {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+}
+
+.VPFeature article.box .icon + .title {
+  margin-left: 0;
+}
+
+/* icon 容器样式微调 */
+.VPFeature .icon img {
+  width: 40px;
+  height: 40px;
+}
