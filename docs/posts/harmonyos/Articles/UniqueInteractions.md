@@ -7,6 +7,20 @@ HarmonyOS 与 Android/iOS 最大的区别在于其独特的多设备交互和智
 
 ## 一、闪控球 (Flash Control Ball)
 
+```mermaid
+flowchart LR
+    subgraph 空间交互
+        FB["🔮 闪控球<br/>悬浮小窗"]
+        Air["✋ 隔空手势<br/>免接触操作"]
+    end
+    subgraph 设备交互
+        NFC["📲 碰一碰<br/>NFC 直达服务"]
+    end
+    subgraph 感知交互
+        Grip["🤚 智感握姿<br/>左右手适配"]
+    end
+```
+
 闪控球是一种系统级的悬浮交互形态，允许应用以小窗形式悬浮在屏幕边缘，随时呼出。常用于抢单、比价、即时笔记等场景。
 
 ### 1.1 核心 API

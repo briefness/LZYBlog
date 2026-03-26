@@ -86,6 +86,18 @@ return (
 
 ## Suspense：声明式加载
 
+```mermaid
+flowchart LR
+    subgraph 无Suspense["❌ 传统方式"]
+        L1["if loading"] --> Spinner1["显示 Loading..."]
+        L1 --> Content1["显示内容"]
+    end
+    subgraph 有Suspense["✅ Suspense 方式"]
+        S["Suspense boundary"] --> FB["fallback: 骨架屏"]
+        S --> Child["子组件 resolve 后<br/>自动替换显示"]
+    end
+```
+
 并发特性的另一个体现是 `Suspense`。它允许组件在**等待数据**时“暂停”渲染，并由 React 自动展示 fallback。
 
 以前，必须手动处理 `isLoading`：

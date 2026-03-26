@@ -77,6 +77,15 @@ function ChatRoom({ roomId }) {
 
 ## 什么时候并不需要 Effect？
 
+```mermaid
+flowchart TB
+    Q{"这个逻辑的<br/>触发原因？"}
+    Q -->|"用户点击/交互"| EH["✅ Event Handler<br/>写在 onClick 等里"]
+    Q -->|"状态变了需要<br/>同步外部系统"| Effect["✅ useEffect"]
+    Q -->|"可以从 Props/State<br/>直接计算"| Calc["✅ 渲染期直接计算<br/>const x = a + b"]
+    Q -->|"组件首次挂载<br/>需要获取数据"| Fetch["⚠️ 考虑用 use() 或<br/>框架内置数据加载"]
+```
+
 新手最大的误区是滥用 `useEffect`。
 
 **误区 1：用于计算数据**

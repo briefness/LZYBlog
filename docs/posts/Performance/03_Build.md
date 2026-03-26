@@ -194,4 +194,13 @@ graph TD
 
 ---
 
+## 小结
+
+- Tree Shaking 依赖 ESM 的静态结构分析，`sideEffects: false` 配置是必要条件
+- Code Splitting 策略：路由级拆分 + 组件级懒加载，用 `import()` 实现
+- 图片优化三板斧：格式选择（AVIF > WebP > JPEG）、响应式 `srcset`、懒加载 `loading="lazy"`
+- 字体优化：子集化（`unicode-range`）+ `font-display: swap` 是性价比最高的方案
+
+---
+
 **(下一章预告)**：代码已发送至浏览器。接下来进入渲染流水线环节。及解析为何修改 `width` 导致高昂开销，而 `transform` 则不然。下一章解读浏览器的"图层合成"机制。

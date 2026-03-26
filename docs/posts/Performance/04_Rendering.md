@@ -162,4 +162,14 @@ sequenceDiagram
 
 ---
 
+## 小结
+
+- 关键渲染路径五步流水线：DOM → CSSOM → Layout → Paint → Composite
+- `transform`/`opacity` 动画走 Compositor 层，跳过 Layout + Paint，性能远优于 `width`/`top`
+- 强制同步布局（读写交替）是性能杀手——**先批量读，再批量写**
+- 长任务 > 50ms 阻塞主线程，用 `scheduler.yield()` 或 Web Worker 拆解
+- `requestAnimationFrame` 用于动画帧同步，`requestIdleCallback` 用于低优先级任务
+
+---
+
 **(下一章预告)**：React 和 Vue 屏蔽了 DOM 操作细节，但也引入了自身的瓶颈。为何 React 需要 Fiber？为何 Vue 3 采用 Proxy？下一部分深入框架内部机制。

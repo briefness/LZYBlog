@@ -93,9 +93,46 @@ function Page() {
 
 这让组件代码变得极其干净，更像是同步代码，而不是挂满了 `then()` 和回调的异步面条代码。
 
+## 实战模式：条件读取 Context
+
+传统 Hook 规则要求 `useContext` 不能写在 `if` 里面。但 `use` 突破了这个限制：
+
+```javascript
+function StatusBar({ showTheme }) {
+  // ✅ 只有需要时才读取 Context
+  if (showTheme) {
+    const theme = use(ThemeContext);
+    return <div style={{ color: theme.color }}>Themed</div>;
+  }
+  return <div>Default</div>;
+}
+```
+
+这在有大量可选 Context 的组件中尤其有用——避免了不必要的订阅和重渲染。
+
+## ⚠️ 注意事项
+
+**Promise 缓存陷阱**：传给 `use` 的 Promise **必须来自组件外部**（如 Server Component 传递的 prop），不能在渲染函数内部创建。
+
+```javascript
+// ❌ 每次渲染都创建新 Promise，导致无限 Suspend
+function Bad() {
+  const data = use(fetch('/api/data').then(r => r.json()));
+}
+
+// ✅ Promise 来自外部（父组件或路由加载器）
+function Good({ dataPromise }) {
+  const data = use(dataPromise);
+  return <div>{data.name}</div>;
+}
+```
+
+**与 useEffect 的对比**：`use` 不会引起额外的渲染周期。传统的 `useEffect` + `setState` 至少需要两次渲染（空 → 有数据），而 `use` 配合 Suspense 只有一次（Suspense fallback → 最终 UI）。
+
 ## 总结
 
 1.  **use 是通用的拆包器**。它可以解包 Context 和 Promise。
 2.  **打破规则**。它是唯一可以在 `if` 和循环中调用的 Hook。
 3.  **拥抱 Suspense**。当 `use` 解包一个 Promise 时，它依赖外层的 `<Suspense>` 来展示 Loading 状态。
-4.  **简化心智**。不再区分“同步数据”和“异步数据”，在 React 组件眼中，它们都是可以用 `use` 读取的资源。
+4.  **简化心智**。不再区分"同步数据"和"异步数据"，在 React 组件眼中，它们都是可以用 `use` 读取的资源。
+5.  **Promise 必须来自外部**。不能在渲染期间创建新的 Promise 传给 `use`，否则会触发无限循环。

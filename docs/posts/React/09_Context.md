@@ -85,6 +85,15 @@ function MyButton() {
 
 ## Context + Reducer：轻量级状态管理
 
+```mermaid
+flowchart TB
+    User["👤 用户交互"] -->|"dispatch(action)"| Reducer["useReducer<br/>状态计算"]
+    Reducer -->|"新 state"| Provider["Context.Provider<br/>广播状态"]
+    Provider --> CompA["组件 A<br/>useContext"]
+    Provider --> CompB["组件 B<br/>useContext"]
+    Provider --> CompC["组件 C<br/>useContext"]
+```
+
 只要将 `useReducer` 的 `dispatch` 函数也放进 Context，就能构建一个无需第三方库的全局状态管理方案。
 
 **架构模式**：

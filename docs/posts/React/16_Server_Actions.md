@@ -79,8 +79,55 @@ React 还提供了专门配合 Action 的 Hook：
 *   `useFormStatus`：允许在不想把 State 传得到处都是的情况下，直接在子组件里读取当前 Form 是否正在提交（Pending 状态）。
 *   `useOptimistic`：允许在服务器还没返回结果之前，先在界面上“假装”成功了（乐观更新），让体验极其丝滑。
 
+## 实战：乐观更新 + 错误回滚
+
+```javascript
+'use client';
+import { useOptimistic, useTransition } from 'react';
+import { toggleLike } from './actions';
+
+function LikeButton({ liked, postId }) {
+  const [optimisticLiked, setOptimisticLiked] = useOptimistic(liked);
+  const [isPending, startTransition] = useTransition();
+
+  return (
+    <button
+      disabled={isPending}
+      onClick={() => {
+        startTransition(async () => {
+          // 1. 先乐观更新 UI（瞬间响应）
+          setOptimisticLiked(!optimisticLiked);
+          // 2. 再发请求到服务器
+          // 如果失败，React 会自动回滚 optimistic 状态
+          await toggleLike(postId);
+        });
+      }}
+    >
+      {optimisticLiked ? '❤️' : '🤍'}
+    </button>
+  );
+}
+```
+
+## ⚠️ 常见陷阱
+
+**Server Action 只能在 Server Component 或 `'use server'` 文件中定义**。不能在 `'use client'` 文件里写 `'use server'` 函数。但可以通过 import 在客户端组件中调用。
+
+**别忘了 revalidate**：修改数据后必须调用 `revalidatePath` 或 `revalidateTag`，否则页面缓存不会更新。
+
+```javascript
+'use server';
+import { revalidatePath } from 'next/cache';
+
+export async function deletePost(id) {
+  await db.delete('posts', id);
+  revalidatePath('/blog');  // ← 如果漏了这行，页面不会刷新
+}
+```
+
 ## 总结
 
 1.  **Server Actions 让全栈开发变得像写单体应用一样简单**。没有 API 路由，没有 fetch，只有函数调用。
 2.  **它是基于 Web 标准的扩展**。利用 `<form action>` 的原生能力，实现了无 JS 也能运行的鲁棒性。
 3.  **告别胶水代码**。大部分用于“同步服务器状态”的 `useEffect` 和 `useState` 都可以被删除了。
+4.  **乐观更新 + 自动回滚**。`useOptimistic` 让用户体验极致流畅，失败时自动恢复。

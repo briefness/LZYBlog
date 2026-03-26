@@ -108,8 +108,49 @@ function App() {
 
 不仅提供了备用 UI，还获得了一个“重试 (Try again)”按钮。这让应用具备了**自愈能力**——用户也许只是遇到了一个偶发的网络错误，点一下重试就好了，而不需要刷新整个页面。
 
+## ⚠️ 错误边界不能捕获的场景
+
+错误边界并非万能。以下场景不会被捕获：
+
+1.  **Event Handler 中的错误**：点击按钮时抛出的error需要自行 try-catch
+2.  **异步代码**：`setTimeout`、`fetch().then()` 中的错误
+3.  **服务端渲染 (SSR)**：只在客户端有效
+4.  **错误边界组件自身的错误**
+
+```javascript
+function MyButton() {
+  const handleClick = () => {
+    try {
+      riskyOperation(); // ← Error Boundary 捕获不到这里
+    } catch (err) {
+      // 必须自行处理
+      showToast(`操作失败: ${err.message}`);
+    }
+  };
+
+  return <button onClick={handleClick}>Click</button>;
+}
+```
+
+## 最佳实践：分层放置
+
+```
+App
+├─ ErrorBoundary（全局兜底 → 显示"刷新页面"）
+│  ├─ Layout
+│  │  ├─ ErrorBoundary（侧边栏 → 显示简单提示）
+│  │  │  └─ Sidebar
+│  │  └─ ErrorBoundary（主内容 → 显示"重试"按钮）
+│  │     └─ MainContent
+│  │        └─ ErrorBoundary（列表项 → 跳过坏数据）
+│  │           └─ PostItem
+```
+
+**越靠内层的边界，恢复代价越小**。PostItem 崩了只影响一条，而最外层崩了需要重载整个页面。
+
 ## 总结
 
 1.  **白屏是不可接受的**。永远不要让局部错误导致整个应用崩溃。
 2.  **错误边界是声明式的**。就像 `<Suspense>` 处理 loading 一样，`<ErrorBoundary>` 处理 error。
-3.  **粒度控制**。不要只在最顶层包一个。在关键的 UI 块（如侧边栏、列表项、主画布）周围分别包裹，实现“舱室隔离”。
+3.  **粒度控制**。不要只在最顶层包一个。在关键的 UI 块（如侧边栏、列表项、主画布）周围分别包裹，实现"舱室隔离"。
+4.  **Event Handler 需要自行 try-catch**。错误边界只能捕获渲染期、生命周期和构造函数中的错误。

@@ -51,6 +51,15 @@ flowchart TB
 
 ## 3. 编译器飞腾：Block 块与补丁标记（Patch Flags）
 
+```mermaid
+flowchart TB
+    Template["📝 模板 (.vue)"] --> Compiler["🤖 Vue 编译器"]
+    Compiler --> Static["🧊 静态节点<br/>直接跳过 Diff"]
+    Compiler --> Dynamic["🔥 dynamicChildren[]<br/>仅含动态绑定节点"]
+    Dynamic --> PF["PatchFlags 位标记<br/>TEXT / CLASS / STYLE"]
+    PF --> Update["⚡ 精确更新<br/>只改变标记的属性"]
+```
+
 在此前 Vue 2 系列生命周期里，不论页面布局外层嵌套了多少层完全纯静态不需要刷新的 `<div>`，每次只要有一丝组件内变量波动的风吹草动，全生命周期渲染函数依然需要对其整体树深度进行重新翻找。
 
 在 Vue 3 引入了在编译阶段的重大颠覆式变革：**带补丁标记的 Block 树动态扁平扫描**。

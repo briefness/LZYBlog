@@ -140,8 +140,12 @@ graph TD
 
 ---
 
-**总结**
-性能优化不是一次性的任务，而是一场与主线程争夺毫秒的持久战。从网络层的 HTTP/3，到构建层的 Tree Shaking，再到渲染架构的 Streaming SSR，每一步微小的优化叠加起来，就是用户眼中“快如闪电”的体验。
+## 小结
+
+- CSR → SSR → Streaming SSR → ISR：渲染架构从"一把抓"走向"渐进式"
+- WebAssembly 突破 JS 算力天花板，适用于图像处理、视频编码、物理运算等 CPU 密集场景
+- `fetchpriority` 和 Speculation Rules API 是浏览器原生的性能加速新武器
+- 性能优化不是一次性任务，而是一场与主线程争夺毫秒的持久战
 
 ---
 

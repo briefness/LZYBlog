@@ -80,6 +80,16 @@ export function useSharedCount() {
 
 ## 3. 跨层级通信：Provide / Inject
 
+```mermaid
+flowchart TB
+    subgraph Props钻取["❌ Props Drilling"]
+        G1["祖父"] -->|"color"| P1["父"] -->|"color"| C1["子"] -->|"color"| GC1["孙"]
+    end
+    subgraph PI["✅ Provide / Inject"]
+        G2["祖父<br/>provide('color','red')"] -.->|"跳过中间层"| GC2["孙<br/>inject('color')"]
+    end
+```
+
 有些场景下，全局状态不符合封装安全需求（例如在同一个页面渲染多个完全独立的商品展示区域，区域内的子孙组件需要共享该商品的颜色信息，但不同区域之间不能相互干扰）。
 此时可以使用具备**作用域层级限制**的 `Provide / Inject` 模式。
 

@@ -53,6 +53,14 @@ function updateStart(val) {
 
 ## 2. 潜规则：透传 (Fallthrough) 的属性寄生
 
+```mermaid
+flowchart TB
+    Parent["父组件<br/>class='danger' @click='boom'"]
+    Parent -->|"Props 未声明接收"| Auto{"inheritAttrs?"}
+    Auto -->|"true (默认)"| Root["自动挂到根元素 div"]
+    Auto -->|"false"| Manual["手动 v-bind='$attrs'<br/>精准绑定到 input"]
+```
+
 这是打造像 Element Plus 这种工业级重型无头组件（Headless UI）的最核心武器。
 
 当你用 `<MyButton class="danger" @click="boom" />` 的时候如果 `MyButton` 内部并没有用 `defineProps` 显式宣告接收这两个值。

@@ -172,4 +172,13 @@ graph TD
 
 ---
 
+## 小结
+
+- React 默认"全量重渲染"，需手动 `memo`/`useCallback`/`useMemo` 防御；Fiber 架构通过时间分片把渲染变成可中断的
+- Vue 基于 Proxy 的细粒度响应式默认精确更新，但处理大量非 UI 数据时需用 `shallowRef` 脱钩优化
+- 编译时优化（Vue 静态提升 / React Compiler）将成为框架性能的分水岭
+- Signals 模式（细粒度响应）和孤岛架构是未来渲染优化的两大趋势
+
+---
+
 **(下一章预告)**：前端不仅仅是切图和调 API。Server-Side Rendering (SSR) 能让首屏快如闪电，WebAssembly 能让浏览器跑视频剪辑。未来已来。
