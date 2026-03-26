@@ -104,7 +104,8 @@ export default withMermaid(
             { text: 'Vue3', link: '/posts/Vue3/index' },
             { text: 'React', link: '/posts/React/index' },
             { text: '前端性能', link: '/posts/Performance/index' },
-            { text: 'NodeJS', link: '/posts/NodeJS/index' }
+            { text: 'NodeJS', link: '/posts/NodeJS/index' },
+            { text: '微信小程序', link: '/posts/miniprogram/index' }
           ]
         },
         { text: '🎮 编程游戏', items: [
