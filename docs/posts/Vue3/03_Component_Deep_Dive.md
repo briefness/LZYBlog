@@ -87,7 +87,7 @@ const attrs = useAttrs()
 
 <template>
   <div class="wrapper">
-    <!-- 2. 手动把这堆乱七八糟的野属性，全部一把梭倾倒倾泻绑定到内部核心组件上 -->
+    <!-- 2. 将 $attrs 中的所有属性绑定到内部 input 元素 -->
     <input v-bind="$attrs" />
   </div>
 </template>

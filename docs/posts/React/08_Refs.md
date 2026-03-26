@@ -97,6 +97,113 @@ function Form() {
 3.  React 发现 `ref={inputRef}`，于是自动把这个 DOM 节点赋值给 `inputRef.current`。
 4.  `handleClick` 运行时，就能读到这个 DOM 了。
 
+## Trade-offs
+
+**useRef vs useState：动画场景下的性能差异**
+
+动画帧需要 60fps（每帧 ~16ms）。在 `requestAnimationFrame` 里调用 `setState`，会触发 React 协调（Reconciliation）计算。如果列表有 1000 个节点，这个计算可能占用 8-10ms，导致动画卡顿。
+
+用 `useRef` 修改值则完全绕过了这个过程。代价是：没有响应式更新，动画逻辑需要自己维护状态。
+
+```javascript
+// ❌ useState 在动画中：每次 set 都触发协调计算
+function BadAnimation() {
+  const [pos, setPos] = useState(0);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setPos(p => p + 1)); // 卡顿风险
+  }, []);
+}
+
+// ✅ useRef 在动画中：直接写值，零协调开销
+function GoodAnimation() {
+  const posRef = useRef(0);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      posRef.current += 1; // 直接修改
+      element.style.transform = `translateX(${posRef.current}px)`;
+    });
+  }, []);
+}
+```
+
+**ref callback vs ref object：灵活性与稳定性的取舍**
+
+React 提供了两种 ref 写法：
+- `useRef()` 返回一个稳定对象，`current` 是最新值
+- `ref={el => thisNode = el}` 是 callback ref，可以动态访问多个节点
+
+callback ref 灵活性更高，但 React 可能会多次调用它（卸载时调用一次，返回新节点时再调用一次）。如果忘记处理这种边界情况，会出现 ref 为 null 的 bug。
+
+**Escape Hatch vs Proper State：逃逸舱的代价**
+
+`useRef` 是 React 宣称的设计上的"逃生舱"。它的存在意味着 React 的声明式模型有边界——总有些事情它做不了。
+
+代价是：依赖 escape hatch 的代码更难测试、更难推理。因为 ref 变化不触发渲染，测试框架看不到这个"副作用"。
+
+正确的态度是：把 useRef 当成必要的妥协，而不是随手可用的工具。
+
+## 常见坑点
+
+### 1. ref 回调里的闭包陷阱
+
+如果这样写：
+
+```javascript
+<input ref={node => this.input = node} />
+```
+
+当组件卸载时，React 会调用一次 `ref={null}`。此时 `this.input` 变成 `null`，但如果代码里还在用这个引用，就会抛出错误。
+
+**解法**：在 ref callback 内部做 null 判断。
+
+```javascript
+<input ref={node => {
+  if (node) this.input = node; // 只在有值时赋值
+  else this.input = null;     // 卸载时显式置空
+}} />
+```
+
+### 2. 定时器用 ref 存了 ID，但忘了清理
+
+```javascript
+function Component() {
+  const timerId = useRef(null);
+
+  useEffect(() => {
+    timerId.current = setInterval(() => {
+      console.log(Date.now());
+    }, 1000);
+    // ❌ 忘了 return () => clearInterval(timerId.current);
+  }, []);
+
+  return <div>计时器 Demo</div>;
+}
+```
+
+**后果**：组件卸载后定时器还在跑，可能导致内存泄漏或状态混乱。
+
+**解法**：始终在 useEffect 里返回清理函数。
+
+### 3. 异步更新后读取 ref 的值是旧的
+
+```javascript
+function Demo() {
+  const countRef = useRef(0);
+
+  const handleClick = () => {
+    countRef.current += 1;
+    fetchData().then(() => {
+      console.log(countRef.current); // 此时可能已经变化
+    });
+  };
+  // ...
+}
+```
+
+在 Promise 回调里，`countRef.current` 可能已经变化了多次。ref 本身不保证"时序正确"。
+
+**解法**：如果需要"捕获"某个时刻的值，在异步操作开始前先存到一个 const 里。
+
 ## 什么时候不该用 Ref？
 
 切记：Ref 是**逃生舱**。

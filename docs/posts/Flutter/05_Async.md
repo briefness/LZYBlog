@@ -1,8 +1,8 @@
-# 05. 驯服单线程：异步机制与事件循环
+# 05. 单线程模型与异步机制
 
-“Flutter 不是单线程的吗？如果不允许多线程，网络请求为什么不会卡死 UI？”
+假设一个场景：用户点击"导出报表"按钮，后端返回一个 50MB 的 JSON 文件。代码里直接 `jsonDecode(response.body)`。
 
-此为常见困惑。本篇将揭开 Dart 单线程模型下“并发”的真相。
+结果：UI 冻住 3 秒，用户以为 App 挂了。这就是对 Dart 单线程模型的误解——IO 操作本身不阻塞，但 JSON 解析是纯 CPU 计算，会卡死 UI 线程。
 
 ## 核心前提：Dart 是单线程的
 
@@ -28,15 +28,15 @@ Dart 有两个队列，优先级从高到低：
 ```mermaid
 graph TD
     Start[Main Thread Starts] --> CheckMicro{Microtask Queue Empty?}
-    
+
     CheckMicro -- No --> RunMicro[Run Next Microtask]
     RunMicro --> CheckMicro
-    
+
     CheckMicro -- Yes --> CheckEvent{Event Queue Empty?}
-    
+
     CheckEvent -- No --> RunEvent[Run Next Event]
     RunEvent --> CheckMicro
-    
+
     CheckEvent -- Yes --> Wait[Idle / Wait]
     Wait --> CheckMicro
 ```
@@ -45,14 +45,14 @@ graph TD
 
 ```dart
 void main() {
-  print('1'); 
-  
+  print('1');
+
   Future(() => print('2')); // Event Queue
-  
+
   scheduleMicrotask(() => print('3')); // Microtask Queue
-  
+
   Future.microtask(() => print('4')); // Microtask Queue
-  
+
   print('5');
 }
 ```
@@ -61,9 +61,11 @@ void main() {
 **解析**:
 1.  `1`, `5`: 同步代码，立即执行。
 2.  `3`, `4`: 进入微任务队列，同步代码走完后立刻插队执行。
-3.  `## Future 其实不在“未来”
+3.  `2`: Event Queue 最后处理。
 
-`Future` 并非意味着“新开一个线程”，而是表示“将会在稍后执行”。
+## Future 其实不在"未来"
+
+`Future` 并非意味着"新开一个线程"，而是表示"将会在稍后执行"。
 
 当代码运行到 `await future` 时：
 1.  Dart 将 `await` 之后的代码打包成一个回调。
@@ -96,11 +98,10 @@ Future<void> fetchUser() async {
 
 ## 真的卡住了怎么办？Isolate
 
-
 由于单线程特性，若在 Dart 里写了一个死循环或者超大规模计算（比如解析几十 MB 的 JSON），UI 线程将被阻塞，应用直接**卡顿 (Jank)**。
 
 这时候需要 **Isolate**。
-Isolate 是真正的“多线程”。但它和 Java 的 Thread 不同，Isolate 之间**不共享内存**。
+Isolate 是真正的"多线程"。但它和 Java 的 Thread 不同，Isolate 之间**不共享内存**。
 它们就像两个独立的进程，通过 Port (端口) 互相发消息通信。
 
 ```mermaid
@@ -126,12 +127,70 @@ void main() async {
     var heavyList = List.generate(1000000, (i) => i);
     return heavyList.reduce((a, b) => a + b);
   });
-  
+
   print(result);
 }
 ```
 
-> **注意**: `Isolate.run` 适合“一次性计算”。如果需要频繁的双向通信（比如维持一个后台 Socket 长连接），则需使用 `Isolate.spawn` 配合 `SendPort` 手动搭建双向管道。
+> **注意**: `Isolate.run` 适合"一次性计算"。如果需要频繁的双向通信（比如维持一个后台 Socket 长连接），则需使用 `Isolate.spawn` 配合 `SendPort` 手动搭建双向管道。
+
+## Trade-offs
+
+### async/await vs Isolates
+
+`async/await` 基于 Event Loop，开销极低，适合 IO 密集型任务（网络请求、文件读写）。但无法绑过单线程限制，CPU 密集型操作会阻塞 UI。
+
+Isolates 真正利用多核，但代价是：
+- 数据传递需序列化（`SendPort` 通信有拷贝开销）
+- 进程启动有数百毫秒的冷启动成本
+- 调试困难，堆栈信息分布在两个 isolate
+
+### Future vs Stream
+
+`Future` 适合一次性结果。比如登录请求——发出去，等一个响应，结束。
+
+`Stream` 适合持续数据流。比如 WebSocket 消息、文件下载进度、传感器数据流。代价是管理复杂：需要取消订阅、处理背压（Backpressure）。
+
+---
+
+## 常见坑点
+
+### 1. 微任务队列阻塞
+
+如果微任务里又往微任务队列扔任务，可能导致 Event Queue 永远得不到执行，UI 假死。
+
+```dart
+// 危险：微任务里无限递归
+scheduleMicrotask(() {
+  doSomething();
+  scheduleMicrotask(() { ... }); // 这会导致 Event Queue 饿死
+});
+```
+
+**解法**：CPU 密集型任务不要用 `scheduleMicrotask`，直接上 Isolate。
+
+### 2. Isolate 传参的大小问题
+
+`SendPort.send()` 传递的数据会完整拷贝到目标 Isolate。传递大型 List（比如 10MB 数据），拷贝本身就很耗时，且占用双倍内存。
+
+**解法**：`Isolate.run` 自动处理返回值拷贝，但传大对象前先评估必要性。必要时用 `TransferableTypedData` 减少拷贝。
+
+### 3. async 方法里抛异常没捕获
+
+```dart
+Future<void> fetchData() async {
+  // 如果这里抛异常，且没人 await 这个 Future
+  // 异常会直接交给 Zone.root 的 uncaught error handler
+  throw Exception('网络错误');
+}
+
+// 调用方
+fetchData(); // 没 await，异常静默丢失
+```
+
+**解法**：要么 await，要么用 `catchError` 链式处理。
+
+---
 
 ## 总结
 
@@ -140,11 +199,13 @@ void main() async {
 -   **微任务优先**: Microtask 永远插队在 Event 之前。
 -   **Isolate**: 只有当进行大量 CPU 密集型计算时，才需要使用 Isolate，它是拥有独立内存堆的并发单元。
 
+---
+
 ## 进阶视角 (Advanced Insight)
 
-### 1. Zone：代码执行的“结界”
+### 1. Zone：代码执行的"结界"
 
-在 Dart 中，有一个概念叫 **Zone**。可以把它理解为代码执行的“沙盒”或“上下文环境”。
+在 Dart 中，有一个概念叫 **Zone**。可以把它理解为代码执行的"沙盒"或"上下文环境"。
 
 `runZonedGuarded(() => runApp(), ...)` 捕获全局异常的原理？
 因为 Dart 所有的异步操作（Future, Timer, Stream）在微观执行时，都会检查当前 Zone 环境。

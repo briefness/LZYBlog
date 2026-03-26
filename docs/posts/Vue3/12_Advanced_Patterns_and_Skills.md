@@ -1,95 +1,261 @@
-# Vue 3 核心原理（十二）—— 终极禁术：泛型组件与架构级 Composable 炼丹
+# Vue 3 核心原理（十二）—— 高级设计模式与实战技巧
 
-> **环境：** Vue 3.3+ 泛型强化系统，TS 深层次融合，Pinia 黑箱架构
+> **环境：** Vue 3.3+ 泛型系统，TypeScript 5.x，Pinia 2.x
 
-当你可以看着文档跌跌撞撞搓出一个能点能滚动的电商页面。你觉得自己懂 Vue 可以出师领头了。
-但如果让你去维护封装一个供三千前端团队调用的极其复杂的联动型带排序超巨型表格，或者是要求你在离开界面跳转在半空路由悬停拦截时去操控那些原本依附于组件生死的生命线变量钩子。如果你不具备操控 TypeScript 泛型深切组件、以及让函数从闭包地界逃离的手段。你的架构终极依然只配做成一坨到处标黑着 `any` 和满天飞面条调用的补丁浆糊屎山。
+当你能用 Vue 做出正常的功能页面，下一个门槛是：如何构建**团队级可复用**的组件和架构？
+
+本文聚焦三个高频痛点：
+- 泛型组件：如何让 `any` 消失
+- Pinia 私有状态：如何对外部隐藏内部数据
+- Store 在 Vue Router / Axios 拦截器中的正确调用方式
 
 ---
 
-## 1. 泛型下放：构建防核弹级的强类型通用插槽
+## 1. 泛型组件：`script setup` 里的 TypeScript 模板
 
-在过去封装类似于 Dropdown 或者表格列表这类的通用 UI 模板组件时，最让人极其头皮吐血的就在于 `Props` 数组中传递那个未知的列表 `list` 究竟是个怎样的形体。
+### 痛点
 
-没有泛型，你只能可悲地下挂弱鸡类型 `type: Array as PropType<any[]>` 苟且偷生装聋作哑，并在回调点击选中的方法里，默默忍受被当场丢失抹除掉所有变量名字典提醒字段提示服务的待遇。
+封装一个通用列表组件时，传入的 `items` 是用户自定义的数据结构。
 
-### `<script setup generic>`：宣告强磁暴防护场降临
+不用泛型：
 
-在 Vue 3.3 中，宏指令加入了一把能封锁未知领域的神剑：让整个 `.vue` 文件彻底化身成为一个带着缺口变量参数孔的 TypeScript 模板！
+```typescript
+// ❌ Item 被强压成 any，编辑器里悬停看不到任何属性提示
+defineProps<{
+  items: any[]
+}>()
+```
+
+用泛型后：
 
 ```vue
 <!-- GenericList.vue -->
-<!-- <--- 核心禁术：在此抛出铁桶般不可侵犯的神圣通配泛化限定词 -->
-<!-- 它不仅框死了 T 必须是一个包含 id 的实体，这股力量甚至能穿透蔓延全境模板里的 {{ item.xxx }} -->
-<script setup lang="ts" generic="T extends { id: number, name: string }">
+<script setup lang="ts" generic="T extends { id: number | string }">
+//                                            ↑ 声明类型参数
 defineProps<{
-  items: T[] // 我不指望知道里面具体的其他附带结构，但你得全交给我连着带状保护
-  selected: T 
+  items: T[]
+  selected: T
 }>()
 
 const emit = defineEmits<{
-  (e: 'select', item: T): void // 点击回抛，外面的父组件接手绝不含糊丢失一寸提示
+  (e: 'select', item: T): void
 }>()
 </script>
 
 <template>
-  <div v-for="item in items">
-    {{ item.name }} <!-- 在编辑器里悬停，绝不再是阴冷的 any！ -->
+  <div v-for="item in items" @click="emit('select', item)">
+    {{ item.name }} <!-- 悬停可看到完整类型提示 -->
   </div>
 </template>
 ```
 
-当父层级在导入调用时写入 `<GenericList :items="complexUserList">` 时，那个犹如变形金刚一样的 `T` 会顺着传进来的对象全盘吸收固化变身，直接撑满起一整块铜墙铁壁一样的智能语法约束护罩。
+父组件使用时：
 
-## 2. 闭包大墓地：Pinia 里的不可见私有内战
+```vue
+<!-- 父组件 -->
+<GenericList
+  :items="userList"
+  :selected="currentUser"
+  @select="handleSelect"
+/>
+```
 
-很多没弄明白 Setup Store 是脱胎于单文件闭包理念框架的新手。还保留着 Vuex 时代强迫症写出一长篇 `state`, `getters`, `actions` 三块大平层铺满在最外边的蠢相。
+父组件传入 `userList: User[]`，泛型参数 `T` 自动推导为 `User`，模板中 `item.name` 就有类型提示了。
 
-Setup Store 不仅仅是用来暴露给大家调用，它更能成为一个极度排外、深渊锁死的绝对防外接防毒内卷密室。
+**Trade-offs**：
+- 优势：IDE 自动完成、类型安全、refactor 时报错提示
+- 代价：`<script setup generic>` 仅支持 Vue 3.3+；团队成员需熟悉 TypeScript 泛型
 
-**不放入 `return` 的那面叹息之墙：私有特种武器库存放处！**
+### 多泛型参数
+
+```vue
+<script setup lang="ts" generic="T extends Item, U extends string">
+// 两个类型参数：T 是列表项类型，U 是排序字段
+defineProps<{
+  items: T[]
+  sortKey: U
+}>()
+```
+
+---
+
+## 2. Pinia 的私有状态：Setup Store 的隐藏变量
+
+Pinia 的 Setup Store 语法基于函数闭包。这带来一个关键特性：**未在 `return` 中暴露的变量，外部完全无法访问**。
 
 ```typescript
+// useAuthStore.ts
 export const useAuthStore = defineStore('auth', () => {
-  const userInfo = ref(null) // 交给界面的可怜暴露傀儡
-  
-  // <--- 核心黑墙：没有任何 return 能摸到这一段。
-  // 它作为一个带着极度隐私敏感性的毒药源，
-  // 只能存活并在整个系统运转时游荡在这个沙盒工厂函数幽魂深海闭包栈中。
-  let _jwtEncryptedToken = localStorage.getItem('__secretKey')
+  // 对外暴露：模板中可直接使用
+  const userInfo = ref<User | null>(null)
 
-  function attemptLogin(token) {
-    _jwtEncryptedToken = token // 在这里秘密交易
-    localStorage.setItem('__secretKey', token)
-    userInfo.value = decryptMask(token)
+  // 私有变量：外部无法访问、无法通过 DevTools 修改
+  let _encryptedToken = ''
+
+  function attemptLogin(token: string) {
+    _encryptedToken = encrypt(token)
+    userInfo.value = parseToken(token)
   }
 
-  // 想来读或者强制篡改覆盖令牌？不好意思，接口这并没有给大门留下钥匙孔！
-  return { userInfo, attemptLogin } 
+  function logout() {
+    _encryptedToken = ''
+    userInfo.value = null
+  }
+
+  // 只有 userInfo 和 logout 对外暴露
+  // _encryptedToken 永远无法被外部读取或篡改
+  return { userInfo, logout }
 })
 ```
 
-利用不导出给面子的残缺引配设计，你实现了极其牢靠并拒绝通过大魔道插件工具抓取查检渗透的局部不可见污染层强数据保驾防改护心镜结构！
+**Trade-offs**：
+- 优势：闭包天然防泄露，比 `Object.freeze()` 更可靠
+- 劣势：状态无法在 DevTools 中直接查看，调试时需要借助 `$state` 补丁
+
+### 在拦截器中使用 Store
+
+Pinia 的初始化时机决定了 Store 必须在正确的上下文调用。
+
+**错误做法**：在模块顶层直接调用 Store
+
+```typescript
+// ❌ 在 main.ts 执行前，Pinia 还未初始化，此处调用会抛出
+// Error: getActivePinia() was called with no active Pinia
+import { useAuthStore } from './stores/auth'
+
+// axios 拦截器在模块加载时就执行了，此时 Pinia 还不存在
+const store = useAuthStore() // 崩溃
+```
+
+**正确做法**：在回调函数内部调用
+
+```typescript
+// axios.ts
+import axios from 'axios'
+import { useAuthStore } from './stores/auth'
+
+const api = axios.create({ baseURL: '/api' })
+
+// ✅ 在请求拦截器中，Pinia 已经初始化完毕
+api.interceptors.request.use((config) => {
+  const authStore = useAuthStore() // 此时 Pinia 一定已挂载
+  if (authStore.userInfo) {
+    config.headers.Authorization = `Bearer ${authStore.userInfo.token}`
+  }
+  return config
+})
+
+// ✅ Router 导航守卫同理：Pinia 在 router 安装前就已初始化
+router.beforeEach((to) => {
+  const authStore = useAuthStore()
+  if (to.meta.requiresAuth && !authStore.userInfo) {
+    return { name: 'Login' }
+  }
+})
+```
+
+---
 
 ## 3. 常见坑点
 
-**在纯生命外场外使用无名 Store 引发的惨烈空指针崩盘**
-当你把一些通用的用户校验动作从页面上剥离开，单独挂靠丢去给 Vue Router 或者直接交接给 Axios 的全局拦截断口里。当你在文件顶端 `const store = useUserStore()` 顺手抛出初始化预备就绪。
-你马上在浏览框里领略到底层报错 `getActivePinia was called with no active Pinia` 的鲜红判决无死角糊脸大字死亡连击击打。
-**原理解释**：Store 系统必须仰仗挂接在初始化后、那株以 `app.use(pinia)` 组建大盘成型的实体上。如果你把这段请求塞在了其他游标 `.js` 文件的导入顶格执行域：当 JS 解析机顺藤摸瓜在这扫码运行抓捕创建的时候它像一个死胎弃儿根本还没轮得着在 `main.ts` 里发育成形挂进全息系统网络里去接壤报备入籍户口！此时在半空向源头伸手直接必定引来万丈深空无尽虚空失重抛接断空空指针大错误。
-**解法必循**：不能在外部模块直接粗鲁地用函数执行宣告拦截夺取，所有调集使用必须放置在 **拦截动作正真实发启动被激活的那个箭头函数作用闭环包裹体之中（例如 `router.beforeEach(() => { const store = xxx })`）**，在这个时期那棵名叫 Pinia 的生命树老爹肯定早就存活并繁茂招展静候传调指令下达执行差遣。
+**1. `script setup generic` 中不能用 `extends` 约束模板中的属性访问**
+
+```vue
+<!-- ❌ TypeScript 在模板中无法识别 item 的具体属性 -->
+<script setup lang="ts" generic="T">
+defineProps<{ items: T[] }>()
+</script>
+
+<template>
+  <div>{{ item.name }}</div> <!-- T.name 不存在，编译报错 -->
+</template>
+```
+
+**解法**：在 `extends` 中明确约束结构，或在模板中使用类型守卫：
+
+```vue
+<!-- ✅ 约束 T 至少包含 id 和 name -->
+<script setup lang="ts" generic="T extends { id: number, name: string }">
+defineProps<{ items: T[] }>()
+</script>
+```
+
+**2. Setup Store 的私有变量不可被序列化**
+
+```typescript
+// ❌ 私有变量 _token 不会出现在 Pinia DevTools 的 state 中
+// 如果页面刷新，_token 丢失
+export const useAuthStore = defineStore('auth', () => {
+  let _token = ''
+  const userInfo = ref<User | null>(null)
+  // ...
+})
+```
+
+**解法**：需要持久化的数据必须放在 `return` 里的 `state` 中，并配合 Pinia 插件（如 `pinia-plugin-persistedstate`）实现持久化：
+
+```typescript
+import { defineStore } from 'pinia'
+import { persist } from 'pinia-plugin-persistedstate'
+
+export const useAuthStore = defineStore('auth', () => {
+  const userInfo = ref<User | null>(null)
+
+  function attemptLogin(token: string) {
+    userInfo.value = parseToken(token)
+  }
+
+  return { userInfo, attemptLogin }
+}, {
+  persist: {
+    key: 'auth',
+    storage: localStorage
+  }
+})
+```
+
+**3. Pinia 在 SSR（Nuxt）环境中的多实例问题**
+
+在 Nuxt 3 中，每个请求都会创建独立的 Pinia 实例。Store 中的普通变量（非响应式 `ref`）在不同请求间会共享，导致数据串门。
+
+```typescript
+// ❌ 这是一个普通变量，所有请求共享
+export const useCounterStore = defineStore('counter', () => {
+  let count = 0 // 非响应式，且跨请求共享
+  return { count }
+})
+
+// ✅ 正确：所有状态必须是响应式的
+export const useCounterStore = defineStore('counter', () => {
+  const count = ref(0) // 每个请求独立的响应式状态
+  return { count }
+})
+```
+
+---
 
 ## 4. 延伸思考
 
-当所有逻辑都被抽出成为高度抽象可以脱离任何 HTML 和组件绑架牵制的纯状态勾连闭环大网 `useComposables` 和各种多端平行的 Pinia 树结构。代码虽然得到了近乎恐怖的灵活分段接驳打散拼接极效。但如果面对一个接手没有文档项目的人，看着组件里面从三十多条管道抽引拼接混杂出来的状态大杂烩集合网。他们还会像老式从上扒下条分块析一目了然顺着寻找定位来得更加清晰可预见追踪嘛？为了工程组件极限的液态分散力，我们在交替换代的可追溯可视度上做出了哪般等阶重量置换筹码付出考量抉择？这极度考验架构规范化引导之手。
+Vue 3 的 Composition API 让逻辑复用从 Mixin（被 Vuex 官方废弃）演进到了 Composable 函数。但这也带来了一个问题：
+
+当一个组件依赖十几个 Composable 时，数据来源变得难以追踪。相比 Vuex 的集中式状态树，Composables 的"分散即插拔"特性在带来灵活性的同时，也提高了代码可追溯性的门槛。
+
+实际项目中如何权衡？建议：
+- 全局共享状态（如用户信息、主题）→ Pinia
+- 组件内可复用逻辑（如分页、拖拽状态）→ Composable
+- 业务数据聚合（如表单验证规则）→ Composable + Pinia 混用
+
+---
 
 ## 5. 总结
 
-- 斩断 `Any` 触角的 `script generic` 为不可理喻千变莫幻极深套娃列表提供了绝不能失联的强雷达护甲罩底片。
-- 借助没有暴露漏洞破绽的不回吐暗坑隐藏闭包链引法，可死防外部探寻针直接打碎数据核心修改防范防线。
-- 对于所有在无组件包裹真真空裸露环境依赖，延迟其抓拿手探入时期使其落位确立存活是唯一的通融执行接道准则。
+- **`script setup generic`** 让组件类型安全化，IDE 悬停提示覆盖模板，提升大型团队 refactor 效率。
+- **Setup Store 闭包**是 Pinia 原生支持的私有变量机制，适合存放 Token、中间计算结果等敏感数据。
+- **在拦截器中使用 Store**：必须在 Pinia 初始化后的回调函数内调用，模块顶层直接调用会崩溃。
+- **SSR 环境**：所有状态必须用 `ref/reactive` 声明，否则跨请求串门。
 
 ## 6. 参考
 
-- [Vue 组件内建泛型声明运用大系官方定档文献](https://cn.vuejs.org/api/sfc-script-setup.html#generics)
-- [绕过局限：Pinia 组件外围环境呼出正确起跳姿势指南](https://pinia.vuejs.org/zh/core-concepts/outside-component-usage.html)
+- [Vue 3 `<script setup>` 泛型官方文档](https://cn.vuejs.org/api/sfc-script-setup.html#generics)
+- [Pinia 文档：Store 外部调用](https://pinia.vuejs.org/zh/core-concepts/outside-component-usage.html)
+- [Pinia 持久化插件 pinia-plugin-persistedstate](https://github.com/prazdevs/pinia-plugin-persistedstate)

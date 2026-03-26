@@ -20,7 +20,6 @@ Google 高度重视无障碍体验。若 App 无法被读屏器（TalkBack/Voice
 Flutter 不使用 Android 的 `contentDescription` 或 iOS 的 `accessibilityLabel` 属性，而是统一使用 `Semantics` 组件。
 
 ```dart
-```dart
 Semantics(
   label: '购物车',
   hint: '双击查看购物车详情',
@@ -39,7 +38,6 @@ Semantics(
 ### ARB (Application Resource Bundle)
 这是一种基于 JSON 的资源格式，支持复数（Plurals）和性别（Genders）。
 
-```json
 ```json
 // app_en.arb
 {

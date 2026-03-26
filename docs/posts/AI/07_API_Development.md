@@ -3,7 +3,7 @@
 > **环境：** OpenAI/Anthropic 官方 API 标准接口，Python 3.10+, Tiktoken SDK
 
 初学者觉得 AI 开发就是拿着 Key 调一个 `POST` 请求获取结果，极其简单。
-但当这套系统上到了生产环境，前端用户面对空转了十秒的白屏焦躁退出，中后台半夜忽然报出 `context_length_exceeded` 异常死机，调参师和 AI 架构师的工程化底蕴差距就在这些粗糙的调用细节中被无限放大。
+但当这套系统上到了生产环境：前端面对空转十秒的白屏，中后台半夜报 `context_length_exceeded` 异常崩溃。
 
 ---
 
