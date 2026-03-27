@@ -373,20 +373,270 @@ const optimizedUrl = getOptimizedUrl(
 
 ---
 
-## 5. Manim 动画：渲染链路优化对比
+### 可视化：渲染链路优化对比
 
-**动画文件**：[animations/14_perf_optimization_animation.py](animations/14_perf_optimization_animation.py)
+下面通过对比图展示优化前后的性能差异和关键优化技术。
 
-```bash
-# 运行动画
-manim -pql animations/14_perf_optimization_animation.py PerfOptimization
+#### 优化前后对比图
+
+```mermaid
+flowchart LR
+    subgraph "优化前 ❌" style red
+        P1["完整包加载"] --> W1["白屏等待\n(2-5秒)"]
+        W1 --> I1["加载全部图片\n(卡顿)"]
+        I1 --> N1["无骨架屏\n用户焦虑"]
+        style P1 fill:#ffcccc,stroke:#ff6b6b
+        style W1 fill:#ffcccc,stroke:#ff6b6b
+        style I1 fill:#ffcccc,stroke:#ff6b6b
+        style N1 fill:#ffcccc,stroke:#ff6b6b
+    end
+
+    subgraph "优化后 ✅" style green
+        P2["分包按需加载"] --> S["骨架屏显示\n(即时机动)"]
+        S --> L["图片懒加载\n(按需)"]
+        L --> C["CDN 加速\n+ WebP"]
+        style P2 fill:#ccffcc,stroke:#51cf66
+        style S fill:#ccffcc,stroke:#51cf66
+        style L fill:#ccffcc,stroke:#51cf66
+        style C fill:#ccffcc,stroke:#51cf66
+    end
+
+    W1 -.->|"首屏时间对比"| S
 ```
 
-动画内容：
-1. 左右对比：优化前（白屏 3-5s）vs 优化后（首屏 0.5s）
-2. 左侧链路：完整包 → 白屏等待 → 加载全部图片 → 无骨架屏
-3. 右侧链路：分包加载 → 骨架屏显示 → 图片懒加载 → CDN 加速
-4. 动态演示每种优化技术的效果
+#### 时间性能对比动画
+
+```html
+<div class="perf-demo">
+  <div class="demo-title">渲染链路优化对比</div>
+
+  <div class="compare-grid">
+    <!-- 优化前 -->
+    <div class="compare-col before">
+      <div class="col-label red">优化前 ❌</div>
+      <div class="perf-chain">
+        <div class="perf-node" id="p1-load">
+          <span class="perf-icon">📦</span>
+          <span class="perf-text">完整包加载</span>
+          <div class="time-bar"><div class="time-fill red" style="width:100%"></div></div>
+        </div>
+        <div class="perf-arrow">↓</div>
+        <div class="perf-node" id="p1-blank">
+          <span class="perf-icon">⬜</span>
+          <span class="perf-text">白屏等待</span>
+          <div class="time-bar"><div class="time-fill red" style="width:100%"></div></div>
+        </div>
+        <div class="perf-arrow">↓</div>
+        <div class="perf-node" id="p1-img">
+          <span class="perf-icon">🖼️</span>
+          <span class="perf-text">加载全部图片</span>
+          <div class="time-bar"><div class="time-fill red" style="width:100%"></div></div>
+        </div>
+        <div class="perf-arrow">↓</div>
+        <div class="perf-node" id="p1-skeleton">
+          <span class="perf-icon">❌</span>
+          <span class="perf-text">无骨架屏</span>
+          <div class="time-bar"><div class="time-fill red" style="width:100%"></div></div>
+        </div>
+      </div>
+      <div class="time-total red-bg">
+        <div class="total-label">首屏时间</div>
+        <div class="total-time">3-5 秒</div>
+      </div>
+    </div>
+
+    <!-- 优化后 -->
+    <div class="compare-col after">
+      <div class="col-label green">优化后 ✅</div>
+      <div class="perf-chain">
+        <div class="perf-node" id="p2-sub">
+          <span class="perf-icon">📦</span>
+          <span class="perf-text">分包按需加载</span>
+          <div class="time-bar"><div class="time-fill green" style="width:20%"></div></div>
+        </div>
+        <div class="perf-arrow">↓</div>
+        <div class="perf-node" id="p2-skeleton">
+          <span class="perf-icon">🎭</span>
+          <span class="perf-text">骨架屏显示</span>
+          <div class="time-bar"><div class="time-fill green" style="width:30%"></div></div>
+        </div>
+        <div class="perf-arrow">↓</div>
+        <div class="perf-node" id="p2-lazy">
+          <span class="perf-icon">🖼️</span>
+          <span class="perf-text">图片懒加载</span>
+          <div class="time-bar"><div class="time-fill green" style="width:40%"></div></div>
+        </div>
+        <div class="perf-arrow">↓</div>
+        <div class="perf-node" id="p2-cdn">
+          <span class="perf-icon">🌐</span>
+          <span class="perf-text">CDN + WebP</span>
+          <div class="time-bar"><div class="time-fill green" style="width:15%"></div></div>
+        </div>
+      </div>
+      <div class="time-total green-bg">
+        <div class="total-label">首屏时间</div>
+        <div class="total-time">0.5-1 秒</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="compare-arrow">
+    <span class="arrow-text">性能提升</span>
+    <span class="arrow-value">3-10×</span>
+  </div>
+
+  <div class="tech-grid">
+    <div class="tech-card">
+      <div class="tech-icon">📦</div>
+      <div class="tech-title">分包加载</div>
+      <div class="tech-desc">主包体积 < 2MB，页面按需加载</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">🎭</div>
+      <div class="tech-title">骨架屏</div>
+      <div class="tech-desc">Loading 占位，消除白屏焦虑</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">🖼️</div>
+      <div class="tech-title">图片懒加载</div>
+      <div class="tech-desc">只加载视口内图片，节省流量</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">🌐</div>
+      <div class="tech-title">CDN + WebP</div>
+      <div class="tech-desc">边缘节点加速，格式优化 30%</div>
+    </div>
+  </div>
+</div>
+
+<style>
+.perf-demo {
+  background: #1a1a2e;
+  border-radius: 12px;
+  padding: 24px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: #e0e0e0;
+  max-width: 720px;
+  margin: 0 auto;
+}
+.demo-title {
+  text-align: center;
+  font-size: 16px;
+  color: #ffd700;
+  margin-bottom: 20px;
+}
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+.compare-col {
+  background: #16213e;
+  border-radius: 10px;
+  padding: 16px;
+  border: 1px solid;
+}
+.compare-col.before {
+  border-color: #ff6b6b;
+}
+.compare-col.after {
+  border-color: #51cf66;
+}
+.col-label {
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+.col-label.red { color: #ff6b6b; }
+.col-label.green { color: #51cf66; }
+.perf-chain {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.perf-node {
+  width: 100%;
+  background: #0d1117;
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #30363d;
+  transition: all 0.3s;
+}
+.perf-icon { font-size: 18px; flex-shrink: 0; }
+.perf-text { font-size: 12px; color: #cdd6f4; flex: 1; }
+.perf-arrow {
+  font-size: 16px;
+  color: #ffd700;
+  margin: 2px 0;
+}
+.time-bar {
+  width: 50px;
+  height: 6px;
+  background: #30363d;
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.time-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1s ease;
+}
+.time-fill.red { background: #ff6b6b; }
+.time-fill.green { background: #51cf66; }
+.time-total {
+  text-align: center;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 8px;
+}
+.red-bg { background: rgba(255,107,107,0.15); border: 1px solid rgba(255,107,107,0.3); }
+.green-bg { background: rgba(81,207,102,0.15); border: 1px solid rgba(81,207,102,0.3); }
+.total-label { font-size: 11px; color: #6c7086; }
+.total-time { font-size: 18px; font-weight: bold; }
+.red-bg .total-time { color: #ff6b6b; }
+.green-bg .total-time { color: #51cf66; }
+.compare-arrow {
+  text-align: center;
+  margin-bottom: 16px;
+  padding: 8px;
+  background: rgba(255,215,0,0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255,215,0,0.3);
+}
+.arrow-text { font-size: 12px; color: #ffd700; }
+.arrow-value { font-size: 16px; font-weight: bold; color: #ffd700; margin-left: 8px; }
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.tech-card {
+  background: #16213e;
+  border: 1px solid #0f3460;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  transition: all 0.3s;
+}
+.tech-icon { font-size: 24px; margin-bottom: 6px; }
+.tech-title { font-size: 12px; font-weight: bold; color: #ffd700; margin-bottom: 4px; }
+.tech-desc { font-size: 11px; color: #6c7086; line-height: 1.4; }
+@media (max-width: 600px) {
+  .compare-grid { grid-template-columns: 1fr; }
+  .tech-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+```
+
+> **说明**：通过分包加载、骨架屏、图片懒加载、CDN + WebP 四项优化，可将首屏时间从 3-5 秒降低到 0.5-1 秒。
 
 ---
 

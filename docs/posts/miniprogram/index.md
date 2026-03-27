@@ -1,8 +1,8 @@
 # 微信小程序核心原理与实战系列
 
-本系列从零开始，用 17 篇文章 + 4 个 Manim 动画，把你从"小程序是什么"带到"能独立交付三个生产级小程序项目"。以微信原生开发为基础，Manim 动画讲解核心原理，配套 Mermaid 架构图和可运行代码。
+本系列从零开始，用 17 篇文章，把你从"小程序是什么"带到"能独立交付三个生产级小程序项目"。以微信原生开发为基础，配合 Mermaid 架构图、CSS 动画组件和可运行代码讲解核心原理。
 
-> **环境：** 微信开发者工具 latest，小程序基础库 3.x，Manim latest，Python 3.12+
+> **环境：** 微信开发者工具 latest，小程序基础库 3.x
 
 ## 目录
 
@@ -17,7 +17,7 @@
 
 - **[01. 微信小程序全景：从打开到渲染](./01_Architecture.md)**
   - 双线程架构、WebView + JS Engine、`setData` 跨线程通信、三套生命周期
-  - 🎬 Manim 动画：[01_startup_animation.py](./animations/01_startup_animation.py)
+  - 🎨 可视化演示：启动流程动态演示
 
 - **[02. WXML 速成：微信的 HTML 长什么样](./02_WXML.md)**
   - 数据绑定 `{{}}`、条件/列表渲染、`bindtap` vs `catchtap`、`import` vs `include`
@@ -36,7 +36,7 @@
 
 - **[05. 异步编程：wx.request 与网络请求封装](./05_Async_Network.md)**
   - Promise 封装、请求/响应拦截器、Token 注入、`wx.connectSocket` WebSocket
-  - 🎬 Manim 动画：[05_async_flow_animation.py](./animations/05_async_flow_animation.py)
+  - 🎨 可视化演示：异步网络请求完整时序
 
 - **[06. 数据流与状态管理：Page Data 的正确姿势](./06_State_Management.md)**
   - `setData` 深层机制、路径写法、跨页面通信、类 Vuex 全局 Store
@@ -70,13 +70,13 @@
 - **[13. 实战（三）：电商购物车](./13_Project_Ecommerce.md)**
   - CartStore + SKU 弹窗 + 价格精确计算（分单位）
   - **微信支付完整后端链路**：Node.js 统一下单 + 签名 + 回调验证 Mock
-  - 🎬 Manim 动画：[13_ecommerce_flow_animation.py](./animations/13_ecommerce_flow_animation.py)
+  - 🎨 可视化演示：电商购物流程状态机
 
 ### 第六阶段：生产化与架构
 
 - **[14. 性能优化与调试：从小程序到精品](./14_Performance.md)**
   - 分包加载、骨架屏、`setData` 艺术、IntersectionObserver 懒加载、CDN + WebP
-  - 🎬 Manim 动画：[14_perf_optimization_animation.py](./animations/14_perf_optimization_animation.py)
+  - 🎨 可视化演示：渲染链路优化对比
 
 - **[15. 工程化与发布：CI/CD + 灰度发布](./15_DevOps.md)**
   - 多环境配置、GitHub Actions CI/CD、微信 CLI、灰度发布白名单方案、审核避坑
@@ -95,7 +95,7 @@
 
 - **渐进式学习路径**：先理解原生原理，再掌握工程化，最后三个项目练手
 - **双线程架构为核心**：所有 API 和组件的选择，都从双线程的性能模型出发理解
-- **Manim 动画 + Mermaid 图解**：启动流程、异步时序、购物流程、优化对比全部可视化
+- **Mermaid 图解 + CSS 动画组件**：启动流程、异步时序、购物流程、优化对比全部可视化
 - **三大实战项目递进**：TodoList（状态管理）→ 新闻阅读器（列表优化）→ 电商购物车（复杂状态 + 支付）
 - **TypeScript 全面支持**：04 篇专讲 TS 类型定义，三大实战项目代码均有 TS 版本示例
 - **微信支付完整后端链路**：Node.js Mock 覆盖统一下单、签名、回调验证三个核心环节

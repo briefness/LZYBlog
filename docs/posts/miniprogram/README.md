@@ -1,8 +1,8 @@
 # 微信小程序核心原理与实战系列
 
-本系列从零开始，用 17 篇文章 + 4 个 Manim 动画，把你从"小程序是什么"带到"能独立交付三个生产级小程序项目"。以微信原生开发为基础，Manim 动画讲解核心原理，配套 Mermaid 架构图和可运行代码。
+本系列从零开始，用 17 篇文章覆盖小程序核心原理与实战，把你从"小程序是什么"带到"能独立交付三个生产级小程序项目"。以微信原生开发为基础，配合 Mermaid 架构图、CSS 动画组件和可运行代码讲解核心原理。
 
-> **环境：** 微信开发者工具 latest，小程序基础库 3.x，Manim latest，Python 3.12+
+> **环境：** 微信开发者工具 latest，小程序基础库 3.x
 
 ---
 
@@ -25,7 +25,7 @@
   - 双线程架构详解：渲染层 WebView + 逻辑层 JS Engine
   - `setData` 的跨线程通信本质
   - App / Page / Component 三套生命周期
-  - 🎬 Manim 动画：[01_startup_animation.py](./animations/01_startup_animation.py)
+  - 可视化演示：启动流程动态演示
 
 - **[02. WXML 速成：微信的 HTML 长什么样](./02_WXML.md)**
   - 数据绑定 `{{}}` 语法 vs HTML 的差异
@@ -57,7 +57,7 @@
   - 统一 Token 注入 + 错误处理
   - `wx.uploadFile` / `wx.downloadFile` 文件操作
   - `wx.connectSocket` WebSocket 实时通信
-  - 🎬 Manim 动画：[05_async_flow_animation.py](./animations/05_async_flow_animation.py)
+  - 可视化演示：异步网络请求完整时序
 
 - **[06. 数据流与状态管理：Page Data 的正确姿势](./06_State_Management.md)**
   - `setData` 深层机制：快照传递 vs 响应式追踪
@@ -127,7 +127,7 @@
   - SKU 弹窗：规格互斥 + 库存匹配 + 价格联动
   - 价格计算：全程以"分"为单位，精确到分的浮点运算陷阱
   - 微信支付：`统一下单` → `wx.requestPayment()` → 轮询回调
-  - 🎬 Manim 动画：[13_ecommerce_flow_animation.py](./animations/13_ecommerce_flow_animation.py)
+  - 可视化演示：电商购物流程状态机
 
 ### 第六阶段：生产化与架构
 
@@ -139,7 +139,7 @@
   - 图片懒加载：`IntersectionObserver` + CDN + WebP
   - 包体积控制：tree-shaking + iconfont + CDN
   - 微信 Trace 工具 + Performance API 性能监控
-  - 🎬 Manim 动画：[14_perf_optimization_animation.py](./animations/14_perf_optimization_animation.py)
+  - 可视化演示：渲染链路优化对比
 
 - **[15. 工程化与发布：CI/CD + 灰度发布](./15_DevOps.md)**
   - 多环境配置：`process.env` + `project.config.json`
@@ -172,8 +172,6 @@
 |------------|------|------|
 | 微信开发者工具 | latest | 开发与调试 |
 | 小程序基础库 | 3.x | 运行时 |
-| Manim | latest | 动画生成 |
-| Python | 3.12+ | Manim 运行环境 |
 | Node.js | 20+ | CLI / 构建工具 |
 | ESLint | 9.x | 代码检查 |
 | Prettier | 3.x | 代码格式化 |
@@ -184,35 +182,11 @@
 
 - **渐进式学习路径**：先理解原生原理，再掌握工程化，最后三个项目练手
 - **双线程架构为核心**：所有 API 和组件的选择，都从双线程的性能模型出发理解
-- **Manim 动画 + Mermaid 图解**：启动流程、异步时序、购物流程、优化对比全部可视化
+- **Mermaid 图解 + CSS 动画组件**：启动流程、异步时序、购物流程、优化对比全部可视化
 - **三大实战项目递进**：TodoList（状态管理）→ 新闻阅读器（列表优化）→ 电商购物车（复杂状态 + 支付）
 - **生产导向**：每篇文章都包含 Trade-offs 讨论和常见坑点，不只教怎么做，也教怎么避坑
 - **TypeScript 全面支持**：04 篇专讲 TS 类型定义（Page/Component 泛型、工具函数泛型），三大实战项目代码均有 TS 版本示例
 - **跨平台扩展**：uni-app（Vue）和 Taro（React）作为选读补充，扩展技术视野
-
----
-
-## 配套动画运行方式
-
-```bash
-# 安装 Manim
-pip install manim
-
-# 进入动画目录
-cd animations
-
-# 运行启动流程动画（01）
-manim -pql 01_startup_animation.py StartupFlow
-
-# 运行异步网络动画（05）
-manim -pql 05_async_flow_animation.py AsyncFlow
-
-# 运行电商流程动画（13）
-manim -pql 13_ecommerce_flow_animation.py EcommerceFlow
-
-# 运行性能优化动画（14）
-manim -pql 14_perf_optimization_animation.py PerfOptimization
-```
 
 ---
 
@@ -239,11 +213,6 @@ miniprogram/
 ├── 15_DevOps.md                    # 工程化发布
 ├── 16_Uniapp.md                    # uni-app 扩展
 ├── 17_Taro.md                      # Taro 扩展
-└── animations/
-    ├── 01_startup_animation.py
-    ├── 05_async_flow_animation.py
-    ├── 13_ecommerce_flow_animation.py
-    └── 14_perf_optimization_animation.py
 ```
 
 ---

@@ -384,70 +384,227 @@ flowchart TD
     style L fill:#d4edda,stroke:#28a745
 ```
 
-### Manim 动画：可视化哈希表插入
+### 可视化：哈希表插入过程
 
-以下 Manim 代码动态展示 dict 的哈希表插入过程。用 `manim render -pql hash_demo.py HashTableDemo` 渲染：
+下面通过图示展示 dict 插入的三个步骤：计算 key 的哈希值 → 对数组长度取模确定桶位置 → 直接写入数据。
 
-```python
-# hash_demo.py
-from manim import *
+#### 哈希表插入流程
 
+```mermaid
+flowchart TB
+    subgraph "输入"
+        K["key: 'name'\nvalue: '张三'"]
+    end
 
-class HashTableDemo(Scene):
-    def construct(self):
-        title = Text("dict 哈希表插入原理", font_size=32).to_edge(UP)
-        self.play(Write(title))
+    subgraph "Step 1: 计算哈希"
+        H["hash('name')\n= 4628293"]
+    end
 
-        # 创建哈希表桶（数组）
-        num_buckets = 8
-        bucket_width = 1.2
-        buckets = VGroup()
-        bucket_labels = VGroup()
+    subgraph "Step 2: 取模定位"
+        M["4628293 % 8\n= 5"]
+    end
 
-        for i in range(num_buckets):
-            rect = Rectangle(width=bucket_width, height=0.6, color=BLUE_C)
-            label = Text(str(i), font_size=18, color=GRAY)
-            rect.shift(LEFT * 3.5 + RIGHT * i * bucket_width)
-            label.next_to(rect, DOWN, buff=0.1)
-            buckets.add(rect)
-            bucket_labels.add(label)
+    subgraph "Step 3: 写入数据"
+        W["table[5] = '张三'\nO(1) 完成"]
+    end
 
-        self.play(FadeIn(buckets), FadeIn(bucket_labels))
+    K --> H --> M --> W
 
-        # 插入数据
-        entries = [("name", "张三", 5), ("age", "25", 2), ("city", "北京", 7)]
-
-        for key, value, bucket_idx in entries:
-            # 显示 key 和 hash 计算
-            key_text = Text(f'key="{key}"', font_size=22, color=YELLOW)
-            key_text.shift(UP * 2 + LEFT * 2)
-            hash_text = Text(
-                f'hash("{key}") % {num_buckets} = {bucket_idx}',
-                font_size=20, color=GREEN,
-            ).shift(UP * 2 + RIGHT * 2)
-            self.play(FadeIn(key_text), FadeIn(hash_text))
-
-            # 高亮目标桶
-            self.play(buckets[bucket_idx].animate.set_fill(GREEN, opacity=0.5))
-
-            # 写入数据
-            entry_text = Text(f"{key}:{value}", font_size=14, color=WHITE)
-            entry_text.move_to(buckets[bucket_idx])
-            self.play(Write(entry_text))
-            self.wait(0.5)
-
-            # 清理提示
-            self.play(
-                FadeOut(key_text), FadeOut(hash_text),
-                buckets[bucket_idx].animate.set_fill(BLUE_C, opacity=0),
-            )
-
-        result = Text("✅ O(1) 插入完成", font_size=24, color=GREEN).shift(DOWN * 2)
-        self.play(FadeIn(result))
-        self.wait(2)
+    style H fill:#fff3e0,stroke:#e65100
+    style M fill:#e3f2fd,stroke:#1565c0
+    style W fill:#e8f5e9,stroke:#2e7d32
 ```
 
-动画展示了 dict 插入的三个步骤：计算 key 的哈希值→对数组长度取模确定桶位置→直接写入数据。
+#### 哈希表内部结构可视化
+
+下方动画展示了插入三个 key 后的哈希表状态变化：
+
+```html
+<div class="hash-table-demo">
+  <div class="demo-title">哈希表插入动画</div>
+  <div class="controls">
+    <button class="btn" onclick="runHashAnimation()">▶ 播放动画</button>
+    <button class="btn" onclick="resetHashTable()">↺ 重置</button>
+  </div>
+  <div class="hash-table-array">
+    <div class="bucket" data-index="0"><span class="index">0</span><span class="value"></span></div>
+    <div class="bucket" data-index="1"><span class="index">1</span><span class="value"></span></div>
+    <div class="bucket" data-index="2"><span class="index">2</span><span class="value"></span></div>
+    <div class="bucket" data-index="3"><span class="index">3</span><span class="value"></span></div>
+    <div class="bucket" data-index="4"><span class="index">4</span><span class="value"></span></div>
+    <div class="bucket active" data-index="5"><span class="index">5</span><span class="value"></span></div>
+    <div class="bucket" data-index="6"><span class="index">6</span><span class="value"></span></div>
+    <div class="bucket" data-index="7"><span class="index">7</span><span class="value"></span></div>
+  </div>
+  <div class="log-panel">
+    <div class="log-title">执行日志</div>
+    <div class="log-content" id="hashLog"></div>
+  </div>
+</div>
+
+<style>
+.hash-table-demo {
+  background: #1a1a2e;
+  border-radius: 12px;
+  padding: 24px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: #e0e0e0;
+  max-width: 700px;
+  margin: 0 auto;
+}
+.demo-title {
+  text-align: center;
+  font-size: 16px;
+  color: #ffd700;
+  margin-bottom: 16px;
+}
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.btn {
+  background: #4a4a6a;
+  border: none;
+  color: #fff;
+  padding: 8px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+.btn:hover { background: #6a6a8a; }
+.hash-table-array {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.bucket {
+  width: 70px;
+  height: 70px;
+  background: #16213e;
+  border: 2px solid #0f3460;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  position: relative;
+}
+.bucket .index {
+  font-size: 11px;
+  color: #888;
+  position: absolute;
+  top: 4px;
+  left: 6px;
+}
+.bucket .value {
+  font-size: 12px;
+  color: #00d4ff;
+  font-weight: bold;
+  text-align: center;
+}
+.bucket.highlight {
+  border-color: #ffd700;
+  background: #2a2a4a;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+  transform: scale(1.08);
+}
+.bucket.filled {
+  border-color: #00ff88;
+  background: #0a3d2a;
+}
+.bucket.filled .value { color: #00ff88; }
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.3); }
+  50% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.7); }
+}
+.bucket.active {
+  animation: pulse 1.5s infinite;
+}
+.log-panel {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 12px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+.log-title {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 8px;
+}
+.log-content {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.log-entry {
+  opacity: 0;
+  animation: fadeIn 0.3s forwards;
+}
+.log-entry .step { color: #ffd700; }
+.log-entry .hash { color: #00d4ff; }
+.log-entry .result { color: #00ff88; }
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+</style>
+
+<script>
+const entries = [
+  { key: 'name', value: '张三', hash: 4628293, idx: 5 },
+  { key: 'age', value: '25', hash: 3827491, idx: 2 },
+  { key: 'city', value: '北京', hash: 2938471, idx: 7 },
+];
+let step = 0;
+
+function runHashAnimation() {
+  if (step >= entries.length) {
+    step = 0;
+    resetHashTable();
+    setTimeout(runHashAnimation, 500);
+    return;
+  }
+  const e = entries[step];
+  const bucket = document.querySelector(`.bucket[data-index="${e.idx}"]`);
+  const log = document.getElementById('hashLog');
+
+  // Highlight bucket
+  bucket.classList.add('highlight');
+  log.innerHTML += `<div class="log-entry"><span class="step">[Step ${step+1}]</span> hash("${e.key}") = ${e.hash} % 8 = <span class="hash">${e.idx}</span></div>`;
+
+  setTimeout(() => {
+    bucket.classList.remove('highlight');
+    bucket.classList.add('filled');
+    bucket.querySelector('.value').textContent = `${e.key}:${e.value}`;
+    log.innerHTML += `<div class="log-entry"><span class="step">[写入]</span> table[${e.idx}] = <span class="result">"${e.value}"</span> ✓ O(1)</div>`;
+    log.scrollTop = log.scrollHeight;
+    step++;
+    if (step < entries.length) {
+      setTimeout(runHashAnimation, 1200);
+    } else {
+      log.innerHTML += `<div class="log-entry" style="color:#ffd700;margin-top:8px;">✅ 哈希表插入完成 — 所有操作均为 O(1)</div>`;
+    }
+  }, 800);
+}
+
+function resetHashTable() {
+  document.querySelectorAll('.bucket').forEach(b => {
+    b.classList.remove('highlight', 'filled', 'active');
+    b.querySelector('.value').textContent = '';
+  });
+  document.getElementById('hashLog').innerHTML = '';
+  step = 0;
+}
+</script>
+```
+
+> **说明**：点击「播放动画」可逐步查看哈希表插入过程。颜色含义：黄色高亮 = 正在计算定位，绿色填充 = 数据已写入。
 
 ## 常见坑点
 

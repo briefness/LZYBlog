@@ -682,20 +682,355 @@ Page({
 
 ---
 
-## 5. Manim 动画：电商购物流程状态机
+### 可视化：电商购物流程状态机
 
-**动画文件**：[animations/13_ecommerce_flow_animation.py](animations/13_ecommerce_flow_animation.py)
+下面通过图示展示电商购物流程的完整状态流转，包括成功路径和失败重试路径。
 
-```bash
-# 运行动画
-manim -pql animations/13_ecommerce_flow_animation.py EcommerceFlow
+#### 购物流程状态图
+
+```mermaid
+stateDiagram-v2
+    [*] --> 浏览商品: 用户进入
+
+    浏览商品 --> 加入购物车: 添加商品
+    加入购物车 --> 确认订单: 去结算
+    确认订单 --> 发起支付: 提交订单
+    发起支付 --> 后端验证: 调用支付
+
+    后端验证 --> 支付成功: 验证通过
+    后端验证 --> 支付失败: 签名验证失败
+    支付失败 --> 确认订单: 重新结算
+    支付成功 --> [*]: 完成
+
+    note right of 浏览商品: 用户浏览商品列表<br/>点击商品查看详情
+    note right of 加入购物车: 选规格、数量<br/>添加到购物车
+    note right of 发起支付: 微信支付调起<br/>用户输入密码
+    note right of 后端验证: 签名验证<br/>订单状态更新
 ```
 
-动画内容：
-1. 展示完整购物流程：浏览 → 添加 → 购物车 → SKU选择 → 结算 → 支付 → 回调
-2. 动态高亮当前流程节点
-3. 强调失败路径（签名验证失败 → 返回重试）
-4. 状态机模型直观展示各状态之间的转换关系
+#### 购物流程时序图
+
+```mermaid
+sequenceDiagram
+    participant U as 用户
+    participant Cart as 购物车
+    participant Order as 确认订单
+    participant Pay as 微信支付
+    participant Backend as 后端服务
+    participant DB as 数据库
+
+    U->>Cart: 选择商品，加入购物车
+    Cart->>DB: 存储购物车数据
+
+    U->>Order: 去结算
+    Order->>Pay: 提交订单，生成预支付
+
+    U->>Pay: 确认支付（输入密码）
+    Pay->>Backend: 支付结果回调
+
+    alt 支付成功
+        Backend->>DB: 更新订单状态 = 已支付
+        DB-->>Backend: 保存成功
+        Backend-->>Pay: 返回确认
+        Pay-->>U: 支付成功提示
+    else 支付失败
+        Backend-->>Pay: 验证失败
+        Pay-->>U: 支付失败，可重试
+        U->>Order: 重新发起支付
+    end
+```
+
+#### 购物流程动画演示
+
+下方动画演示完整的购物流程：
+
+```html
+<div class="ecom-demo">
+  <div class="demo-title">电商购物流程状态机</div>
+
+  <div class="ecom-flow">
+    <div class="ecom-node success-path" id="en-browse">
+      <div class="node-num">①</div>
+      <div class="node-title">浏览商品</div>
+    </div>
+    <div class="ecom-arrow" id="ea1">↓</div>
+    <div class="ecom-node success-path" id="en-cart">
+      <div class="node-num">②</div>
+      <div class="node-title">加入购物车</div>
+    </div>
+    <div class="ecom-arrow" id="ea2">↓</div>
+    <div class="ecom-node success-path" id="en-confirm">
+      <div class="node-num">③</div>
+      <div class="node-title">确认订单</div>
+    </div>
+    <div class="ecom-arrow" id="ea3">↓</div>
+    <div class="ecom-node success-path" id="en-pay">
+      <div class="node-num">④</div>
+      <div class="node-title">发起支付</div>
+    </div>
+    <div class="ecom-arrow" id="ea4">↓</div>
+    <div class="ecom-node success-path" id="en-backend">
+      <div class="node-num">⑤</div>
+      <div class="node-title">后端验证</div>
+    </div>
+
+    <div class="ecom-branch">
+      <div class="ecom-node success-end" id="en-success">
+        <div class="node-num">✓</div>
+        <div class="node-title">支付成功</div>
+      </div>
+      <div class="ecom-node fail-path" id="en-fail">
+        <div class="node-num">✗</div>
+        <div class="node-title">验证失败</div>
+      </div>
+    </div>
+    <div class="ecom-arrow fail-arrow" id="ea5" style="display:none">↺</div>
+    <div class="ecom-arrow retry-arrow" id="ea6" style="display:none">返回重试</div>
+  </div>
+
+  <div class="log-panel">
+    <div class="log-title">流程日志</div>
+    <div class="log-content" id="ecomLog"></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" onclick="ecomStep()">▶ 下一步</button>
+    <button class="btn" onclick="ecomSuccess()">⏵ 成功路径</button>
+    <button class="btn fail" onclick="ecomFail()">⏵ 失败路径</button>
+    <button class="btn" onclick="ecomReset()">↺ 重置</button>
+  </div>
+</div>
+
+<style>
+.ecom-demo {
+  background: #1a1a2e;
+  border-radius: 12px;
+  padding: 24px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: #e0e0e0;
+  max-width: 500px;
+  margin: 0 auto;
+}
+.demo-title {
+  text-align: center;
+  font-size: 16px;
+  color: #ffd700;
+  margin-bottom: 20px;
+}
+.ecom-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+.ecom-node {
+  width: 160px;
+  background: #16213e;
+  border: 2px solid #0f3460;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  transition: all 0.4s ease;
+}
+.node-num {
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+.node-title {
+  font-size: 13px;
+  color: #cdd6f4;
+  font-weight: bold;
+}
+.ecom-arrow {
+  font-size: 18px;
+  color: #ffd700;
+  transition: all 0.3s;
+}
+.ecom-node.active {
+  border-color: #ffd700;
+  background: #2a2a4a;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  transform: scale(1.05);
+}
+.ecom-node.done {
+  border-color: #00ff88;
+  background: #0a3d2a;
+}
+.ecom-node.done .node-title { color: #00ff88; }
+.ecom-node.fail.active {
+  border-color: #ff6b6b;
+  background: #3d1a1a;
+  box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+}
+.ecom-branch {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+.ecom-node.fail-end {
+  border-color: #ff6b6b;
+  background: #3d1a1a;
+}
+.ecom-node.fail-end .node-title { color: #ff6b6b; }
+.fail-arrow {
+  color: #ff6b6b;
+  display: none;
+}
+.retry-arrow {
+  color: #ffa726;
+  font-size: 12px;
+  display: none;
+}
+.log-panel {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 12px;
+  max-height: 100px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+.log-title { font-size: 12px; color: #6c7086; margin-bottom: 8px; }
+.log-entry {
+  font-size: 12px;
+  line-height: 1.6;
+  opacity: 0;
+  animation: fadeIn 0.3s forwards;
+}
+.log-entry .step { color: #ffd700; font-weight: bold; }
+.log-entry .success { color: #00ff88; }
+.log-entry .fail { color: #ff6b6b; }
+@keyframes fadeIn { to { opacity: 1; } }
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.btn {
+  background: #4a4a6a;
+  border: none;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+.btn:hover { background: #6a6a8a; }
+.btn.fail { background: #6b3a3a; }
+.btn.fail:hover { background: #8b4a4a; }
+</style>
+
+<script>
+const successPath = [
+  { node: 'en-browse', log: '<span class="step">[①]</span> 用户浏览商品列表' },
+  { node: 'en-cart', log: '<span class="step">[②]</span> 点击「加入购物车」' },
+  { node: 'en-confirm', log: '<span class="step">[③]</span> 进入确认订单页，核对商品' },
+  { node: 'en-pay', log: '<span class="step">[④]</span> 提交订单，微信支付调起' },
+  { node: 'en-backend', log: '<span class="step">[⑤]</span> 后端接收支付结果，签名验证中...' },
+];
+const failStep = { node: 'en-fail', log: '<span class="fail">[✗]</span> 签名验证失败！返回重试' };
+let ecomIdx = 0;
+let ecomTimer = null;
+
+function ecomActivate(path, idx) {
+  if (idx < 0 || idx >= path.length) return;
+  const s = path[idx];
+  document.getElementById(s.node).classList.add('active');
+  const log = document.getElementById('ecomLog');
+  log.innerHTML += `<div class="log-entry">${s.log}</div>`;
+  log.scrollTop = log.scrollHeight;
+  setTimeout(() => {
+    document.getElementById(s.node).classList.remove('active');
+    document.getElementById(s.node).classList.add('done');
+  }, 600);
+}
+
+function ecomActivateFail() {
+  document.getElementById('en-fail').classList.add('active');
+  document.getElementById('ea5').style.display = 'block';
+  document.getElementById('ea6').style.display = 'block';
+  const log = document.getElementById('ecomLog');
+  log.innerHTML += `<div class="log-entry">${failStep.log}</div>`;
+  log.scrollTop = log.scrollHeight;
+}
+
+function ecomStep() {
+  if (ecomTimer) { clearTimeout(ecomTimer); ecomTimer = null; }
+  ecomActivate(successPath, ecomIdx);
+  ecomIdx++;
+  if (ecomIdx >= successPath.length) ecomIdx = 0;
+}
+
+function ecomSuccess() {
+  if (ecomTimer) { clearTimeout(ecomTimer); ecomTimer = null; }
+  ecomIdx = 0;
+  document.querySelectorAll('.ecom-node, .ecom-arrow').forEach(n => {
+    n.classList.remove('active', 'done');
+    if (n.id === 'ea5' || n.id === 'ea6') n.style.display = 'none';
+  });
+  document.getElementById('ecomLog').innerHTML = '';
+  // Add success final node
+  let hasSuccess = document.getElementById('en-success');
+  if (!hasSuccess) {
+    const successNode = document.createElement('div');
+    successNode.id = 'en-success';
+    successNode.className = 'ecom-node success-end';
+    successNode.innerHTML = '<div class="node-num">✓</div><div class="node-title">支付成功</div>';
+    document.querySelector('.ecom-branch').prepend(successNode);
+  }
+  function next() {
+    if (ecomIdx >= successPath.length) {
+      document.getElementById('en-success').classList.add('done');
+      document.getElementById('ecomLog').innerHTML +=
+        `<div class="log-entry"><span class="success">[✓] 支付成功！订单完成</span></div>`;
+      ecomIdx = 0;
+      return;
+    }
+    ecomActivate(successPath, ecomIdx);
+    ecomIdx++;
+    ecomTimer = setTimeout(next, 1000);
+  }
+  next();
+}
+
+function ecomFail() {
+  if (ecomTimer) { clearTimeout(ecomTimer); ecomTimer = null; }
+  ecomIdx = 0;
+  document.querySelectorAll('.ecom-node, .ecom-arrow').forEach(n => {
+    n.classList.remove('active', 'done');
+    if (n.id === 'ea5' || n.id === 'ea6') n.style.display = 'none';
+  });
+  document.getElementById('ecomLog').innerHTML = '';
+  function next() {
+    if (ecomIdx >= successPath.length) {
+      ecomActivateFail();
+      ecomIdx = 0;
+      return;
+    }
+    ecomActivate(successPath, ecomIdx);
+    ecomIdx++;
+    ecomTimer = setTimeout(next, 800);
+  }
+  next();
+}
+
+function ecomReset() {
+  if (ecomTimer) { clearTimeout(ecomTimer); ecomTimer = null; }
+  ecomIdx = 0;
+  document.querySelectorAll('.ecom-node, .ecom-arrow').forEach(n => {
+    n.classList.remove('active', 'done');
+    if (n.id === 'ea5' || n.id === 'ea6') n.style.display = 'none';
+  });
+  document.getElementById('ecomLog').innerHTML = '';
+}
+</script>
+```
+
+> **说明**：点击「成功路径」演示正常支付流程；点击「失败路径」演示签名验证失败后的重试流程。
 
 ---
 

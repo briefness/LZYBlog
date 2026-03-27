@@ -323,22 +323,315 @@ sequenceDiagram
 
 ---
 
-## 6. Manim 动画：启动流程动态演示
+### 可视化：启动流程动态演示
 
-核心原理配 Manim 动画，直观理解双线程启动时序。
+下面通过图示展示微信小程序的双线程启动时序和初始化过程。
 
-**动画文件**：[animations/01_startup_animation.py](animations/01_startup_animation.py)
+#### 小程序启动架构图
 
-```bash
-# 运行动画
-manim -pql animations/01_startup_animation.py StartupFlow
+```mermaid
+flowchart TB
+    subgraph "微信客户端"
+        WX["微信小程序运行环境"]
+    end
+
+    subgraph "渲染层"
+        subgraph "WebView"
+            WX_Web["微信加载 WebView 容器"]
+        end
+    end
+
+    subgraph "逻辑层"
+        subgraph "JS Engine"
+            WX_JS["启动 JS Engine"]
+        end
+    end
+
+    subgraph "Native 层"
+        NB["Native Bridge\n通信层"]
+    end
+
+    WX -->|"初始化"| WX_Web
+    WX -->|"初始化"| WX_JS
+    WX_Web -->|"通信"| NB
+    WX_JS -->|"通信"| NB
+
+    style WX fill:#07C160,stroke:#06ad57,color:#fff
+    style WX_Web fill:#FF6B6B,stroke:#ee5a5a,color:#fff
+    style WX_JS fill:#4ECDC4,stroke:#3dbdb5,color:#fff
+    style NB fill:#9B59B6,stroke:#8e44ad,color:#fff
 ```
 
-动画内容：
-1. 微信客户端节点亮起，启动信号发出
-2. 渲染层 WebView 和逻辑层 JS Engine 双线程初始化（并行）
-3. Native Bridge 桥接层建立连接
-4. 分步演示启动流程：WXML 解析 → app.js 执行 → setData → 页面渲染
+#### 启动流程时序图
+
+```mermaid
+sequenceDiagram
+    participant User as 用户
+    participant WX as 微信客户端
+    participant Web as 渲染层 WebView
+    participant JS as 逻辑层 JS Engine
+    participant NB as Native Bridge
+
+    User->>WX: 打开小程序
+    Note over WX: 加载分包代码
+
+    par 并行初始化
+        WX->>Web: 初始化 WebView 容器
+        Web-->>WX: WebView 就绪
+    and
+        WX->>JS: 启动 JS Engine
+        JS-->>WX: JS Engine 就绪
+    end
+
+    Web->>NB: 注册通信接口
+    JS->>NB: 注册通信接口
+    Note over NB: Native Bridge 建立双向通道
+
+    JS->>JS: 解析 app.js
+    JS->>JS: 执行 App({ onLaunch })
+    JS->>Web: 发送初始化数据
+    Web->>Web: 解析 WXML/WXSS
+    Web->>User: 页面渲染完成
+```
+
+#### 启动步骤动画演示
+
+下方动画演示启动的 6 个关键步骤：
+
+```html
+<div class="startup-demo">
+  <div class="demo-title">小程序启动流程</div>
+
+  <div class="arch-diagram">
+    <div class="layer wechat">
+      <div class="layer-label">微信客户端</div>
+      <div class="node" id="wx-node">微信加载分包</div>
+    </div>
+
+    <div class="dual-threads">
+      <div class="layer render">
+        <div class="layer-label">渲染层 WebView</div>
+        <div class="node" id="web-node">WebView 就绪</div>
+        <div class="node sub" id="parse-node">WXML/WXSS 解析</div>
+      </div>
+      <div class="layer logic">
+        <div class="layer-label">逻辑层 JS Engine</div>
+        <div class="node" id="js-node">JS Engine 启动</div>
+        <div class="node sub" id="app-node">app.js 执行</div>
+      </div>
+    </div>
+
+    <div class="layer native">
+      <div class="layer-label">Native Bridge</div>
+      <div class="node bridge" id="bridge-node">通信层就绪</div>
+    </div>
+  </div>
+
+  <div class="step-display">
+    <div class="step-num" id="stepNum">—</div>
+    <div class="step-desc" id="stepDesc">点击下方按钮开始演示</div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" onclick="startupStep()">▶ 下一步</button>
+    <button class="btn" onclick="startupPlay()">⏵ 自动播放</button>
+    <button class="btn" onclick="startupReset()">↺ 重置</button>
+  </div>
+</div>
+
+<style>
+.startup-demo {
+  background: #1a1a2e;
+  border-radius: 12px;
+  padding: 24px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: #e0e0e0;
+  max-width: 700px;
+  margin: 0 auto;
+}
+.demo-title {
+  text-align: center;
+  font-size: 16px;
+  color: #ffd700;
+  margin-bottom: 20px;
+}
+.arch-diagram {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.layer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid;
+}
+.layer-label {
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.wechat {
+  background: rgba(7, 193, 96, 0.1);
+  border-color: #07C160;
+}
+.wechat .layer-label { color: #07C160; }
+.render {
+  background: rgba(255, 107, 107, 0.1);
+  border-color: #FF6B6B;
+}
+.render .layer-label { color: #FF6B6B; }
+.logic {
+  background: rgba(78, 205, 196, 0.1);
+  border-color: #4ECDC4;
+}
+.logic .layer-label { color: #4ECDC4; }
+.native {
+  background: rgba(155, 89, 182, 0.1);
+  border-color: #9B59B6;
+}
+.native .layer-label { color: #9B59B6; }
+.dual-threads {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.node {
+  background: #16213e;
+  border: 1px solid #0f3460;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #aaa;
+  text-align: center;
+  transition: all 0.4s ease;
+  position: relative;
+}
+.node.sub {
+  font-size: 12px;
+  padding: 8px 12px;
+  border-color: #1a1a3e;
+  background: #0d1117;
+}
+.node.bridge {
+  text-align: center;
+}
+.node.active {
+  border-color: #ffd700;
+  background: #2a2a4a;
+  color: #ffd700;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+  transform: scale(1.02);
+}
+.node.done {
+  border-color: #00ff88;
+  background: #0a3d2a;
+  color: #00ff88;
+}
+.step-display {
+  text-align: center;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #0d1117;
+  border-radius: 8px;
+  border: 1px solid #30363d;
+}
+.step-num {
+  font-size: 14px;
+  color: #ffd700;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+.step-desc {
+  font-size: 14px;
+  color: #cdd6f4;
+}
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+.btn {
+  background: #4a4a6a;
+  border: none;
+  color: #fff;
+  padding: 8px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+.btn:hover { background: #6a6a8a; }
+</style>
+
+<script>
+const steps = [
+  { node: 'wx-node', num: 'Step 1', desc: '用户打开小程序，微信加载分包' },
+  { node: 'bridge-node', num: 'Step 2', desc: '初始化 Native Bridge 通信层' },
+  { node: 'web-node', num: 'Step 3', desc: '渲染层 WebView 就绪' },
+  { node: 'js-node', num: 'Step 4', desc: '逻辑层 JS Engine 启动' },
+  { node: 'parse-node', num: 'Step 5', desc: 'WXML/WXSS 解析为 DOM 树' },
+  { node: 'app-node', num: 'Step 6', desc: 'app.js 全局逻辑执行' },
+];
+let stepIdx = 0;
+let timer = null;
+
+function activateStep(idx) {
+  if (idx < 0 || idx >= steps.length) return;
+  document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
+  const s = steps[idx];
+  document.getElementById(s.node).classList.add('active');
+  document.getElementById('stepNum').textContent = s.num;
+  document.getElementById('stepDesc').textContent = s.desc;
+  // Mark as done after a delay
+  setTimeout(() => {
+    document.getElementById(s.node).classList.remove('active');
+    document.getElementById(s.node).classList.add('done');
+  }, 600);
+}
+
+function startupStep() {
+  if (timer) { clearTimeout(timer); timer = null; }
+  activateStep(stepIdx);
+  stepIdx++;
+  if (stepIdx >= steps.length) {
+    stepIdx = 0;
+  }
+}
+
+function startupPlay() {
+  if (timer) { clearTimeout(timer); timer = null; }
+  stepIdx = 0;
+  document.querySelectorAll('.node').forEach(n => n.classList.remove('active','done'));
+  function next() {
+    if (stepIdx >= steps.length) {
+      stepIdx = 0;
+      return;
+    }
+    activateStep(stepIdx);
+    stepIdx++;
+    timer = setTimeout(next, 1200);
+  }
+  next();
+}
+
+function startupReset() {
+  if (timer) { clearTimeout(timer); timer = null; }
+  stepIdx = 0;
+  document.querySelectorAll('.node').forEach(n => n.classList.remove('active','done'));
+  document.getElementById('stepNum').textContent = '—';
+  document.getElementById('stepDesc').textContent = '点击下方按钮开始演示';
+}
+</script>
+```
+
+> **说明**：点击「下一步」逐步演示启动流程；点击「自动播放」连续演示所有步骤。
 
 ---
 

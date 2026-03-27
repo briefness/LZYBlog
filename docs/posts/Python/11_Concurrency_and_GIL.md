@@ -330,73 +330,284 @@ flowchart TD
 - **CPU 计算为主**（数学运算、数据处理）→ `ProcessPoolExecutor` 或 Free-threaded
 - **混合场景** → `asyncio` + `run_in_executor` 把 CPU 任务扔到线程池/进程池
 
-## 8. Manim 动画：可视化 GIL 线程切换
+### 可视化：GIL 线程切换 vs Free-threaded 并行
 
-以下 Manim 代码动态展示 GIL 下多线程的切换过程 vs Free-threaded 的真并行。用 `manim render -pql gil_demo.py GILDemo` 渲染：
+下面通过时间轴动画对比展示：有 GIL 时线程交替执行 vs Free-threaded 真并行。
 
-```python
-# gil_demo.py
-from manim import *
+```html
+<div class="gil-demo">
+  <div class="demo-title">GIL vs Free-threaded 线程执行对比</div>
 
+  <!-- GIL Section -->
+  <div class="section-label gil-label">
+    <span class="lock-icon">🔒</span> 有 GIL（标准 CPython）
+    <span class="tag">同一时刻只有 1 个线程执行</span>
+  </div>
+  <div class="timeline gil-timeline">
+    <div class="time-axis">
+      <span class="axis-label">时间 →</span>
+    </div>
+    <div class="thread-row" data-thread="T1">
+      <span class="thread-label">Thread 1</span>
+      <div class="time-segments">
+        <div class="segment seg-1" style="left:0%; width:33.3%"></div>
+        <div class="segment seg-1" style="left:50%; width:16.7%"></div>
+        <div class="segment seg-1" style="left:83.3%; width:16.7%"></div>
+      </div>
+    </div>
+    <div class="thread-row" data-thread="T2">
+      <span class="thread-label">Thread 2</span>
+      <div class="time-segments">
+        <div class="segment seg-2" style="left:33.3%; width:16.7%"></div>
+        <div class="segment seg-2" style="left:66.7%; width:16.7%"></div>
+        <div class="segment seg-2" style="left:100%; width:0%"></div>
+      </div>
+    </div>
+    <div class="thread-row" data-thread="T3">
+      <span class="thread-label">Thread 3</span>
+      <div class="time-segments">
+        <div class="segment seg-3" style="left:16.7%; width:16.7%"></div>
+        <div class="segment seg-3" style="left:100%; width:0%"></div>
+      </div>
+    </div>
+    <div class="note">颜色交替 = 线程争抢 GIL，上下文不断切换</div>
+  </div>
 
-class GILDemo(Scene):
-    def construct(self):
-        title = Text("GIL vs Free-threaded 线程执行对比", font_size=32).to_edge(UP)
-        self.play(Write(title))
+  <!-- Free-threaded Section -->
+  <div class="section-label ft-label">
+    <span class="lock-icon">🔓</span> Free-threaded（Python 3.14t）
+    <span class="tag green">3 个线程同时并行执行</span>
+  </div>
+  <div class="timeline ft-timeline">
+    <div class="time-axis">
+      <span class="axis-label">时间 →</span>
+    </div>
+    <div class="thread-row parallel" data-thread="T1">
+      <span class="thread-label">Thread 1</span>
+      <div class="time-segments">
+        <div class="segment seg-1" style="left:0%; width:33.3%"></div>
+      </div>
+    </div>
+    <div class="thread-row parallel" data-thread="T2">
+      <span class="thread-label">Thread 2</span>
+      <div class="time-segments">
+        <div class="segment seg-2" style="left:0%; width:33.3%"></div>
+      </div>
+    </div>
+    <div class="thread-row parallel" data-thread="T3">
+      <span class="thread-label">Thread 3</span>
+      <div class="time-segments">
+        <div class="segment seg-3" style="left:0%; width:33.3%"></div>
+      </div>
+    </div>
+    <div class="note green">三线程并肩前进，CPU 核心充分利用，速度 ×3</div>
+  </div>
 
-        # === 有 GIL 的场景 ===
-        gil_label = Text("🔒 有 GIL（标准 CPython）", font_size=22, color=RED).shift(UP * 2 + LEFT * 3)
-        self.play(FadeIn(gil_label))
+  <!-- Animation Toggle -->
+  <div class="controls">
+    <button class="btn" onclick="toggleGilAnimation()">▶ 播放动画</button>
+    <span class="speed-label">速度：</span>
+    <button class="btn small" onclick="setSpeed(2)">2x</button>
+    <button class="btn small active" onclick="setSpeed(1)">1x</button>
+    <button class="btn small" onclick="setSpeed(0.5)">0.5x</button>
+  </div>
+</div>
 
-        colors = [BLUE, GREEN, ORANGE]
-        thread_labels = ["Thread 1", "Thread 2", "Thread 3"]
+<style>
+.gil-demo {
+  background: #1a1a2e;
+  border-radius: 12px;
+  padding: 24px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: #e0e0e0;
+  max-width: 720px;
+  margin: 0 auto;
+}
+.demo-title {
+  text-align: center;
+  font-size: 16px;
+  color: #ffd700;
+  margin-bottom: 20px;
+}
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  margin: 16px 0 8px;
+}
+.gil-label { color: #ff6b6b; }
+.ft-label { color: #51cf66; }
+.lock-icon { font-size: 16px; }
+.tag {
+  background: rgba(255,107,107,0.2);
+  color: #ff6b6b;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: normal;
+}
+.tag.green {
+  background: rgba(81,207,102,0.2);
+  color: #51cf66;
+}
+.timeline {
+  background: #0d1117;
+  border-radius: 8px;
+  padding: 16px;
+  position: relative;
+}
+.time-axis {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-left: 80px;
+}
+.axis-label {
+  font-size: 11px;
+  color: #6c7086;
+  flex: 1;
+}
+.axis-label::after {
+  content: '⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩';
+  margin-left: 8px;
+  letter-spacing: -1px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.thread-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  height: 28px;
+  position: relative;
+}
+.thread-label {
+  width: 80px;
+  font-size: 12px;
+  color: #6c7086;
+  flex-shrink: 0;
+}
+.time-segments {
+  flex: 1;
+  height: 24px;
+  position: relative;
+  background: #161b22;
+  border-radius: 4px;
+}
+.segment {
+  position: absolute;
+  height: 100%;
+  border-radius: 3px;
+  top: 0;
+}
+.seg-1 { background: rgba(137,180,250,0.8); }
+.seg-2 { background: rgba(166,227,161,0.8); }
+.seg-3 { background: rgba(250,179,135,0.8); }
+.note {
+  font-size: 11px;
+  color: #ff6b6b;
+  text-align: center;
+  margin-top: 8px;
+  opacity: 0.8;
+}
+.note.green { color: #51cf66; }
 
-        # GIL 时间线：线程交替执行
-        timeline_y = 0.5
-        total_width = 8
-        segments = []  # (start, end, thread_idx)
-        t = 0
-        for cycle in range(4):
-            for tid in range(3):
-                segments.append((t, t + 0.3, tid))
-                t += 0.3
+/* Animation */
+@keyframes slideRight {
+  from { width: 0; }
+  to { width: var(--seg-width, 33.3%); }
+}
+@keyframes slideRight2 {
+  from { width: 0; left: 33.3%; }
+  to { width: var(--seg-width2, 16.7%); }
+}
+.gil-timeline.animating .segment:nth-child(1) {
+  animation: slideRight 2s linear forwards;
+}
+.gil-timeline.animating .segment:nth-child(2) {
+  animation: slideRight2 1s linear 2s forwards;
+}
+.ft-timeline.animating .segment {
+  animation: slideRight 2s linear forwards;
+}
+@keyframes fadeInSeg {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.gil-timeline.animating .segment {
+  opacity: 0;
+  animation: fadeInSeg 0.3s forwards, slideRight 2s linear forwards;
+}
+.ft-timeline.animating .segment {
+  opacity: 0;
+  animation: fadeInSeg 0.3s forwards, slideRight 2s linear forwards;
+}
 
-        for start, end, tid in segments:
-            x_start = -4 + (start / t) * total_width
-            x_end = -4 + (end / t) * total_width
-            bar = Rectangle(
-                width=x_end - x_start, height=0.3,
-                fill_color=colors[tid], fill_opacity=0.8, stroke_width=0.5,
-            ).move_to([(x_start + x_end) / 2, timeline_y, 0])
-            self.play(FadeIn(bar), run_time=0.1)
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+.btn {
+  background: #4a4a6a;
+  border: none;
+  color: #fff;
+  padding: 8px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+.btn:hover { background: #6a6a8a; }
+.btn.small {
+  padding: 6px 12px;
+  font-size: 12px;
+  background: #313244;
+}
+.btn.small.active {
+  background: #cba6f7;
+  color: #1e1e2e;
+}
+.speed-label {
+  font-size: 12px;
+  color: #6c7086;
+  margin-left: 8px;
+}
+</style>
 
-        sequential_note = Text("同一时刻只有 1 个线程执行", font_size=18, color=GRAY)
-        sequential_note.shift(DOWN * 0.2)
-        self.play(FadeIn(sequential_note))
-        self.wait(1)
+<script>
+let animating = false;
+let speed = 1;
 
-        # === Free-threaded 场景 ===
-        ft_label = Text("🔓 Free-threaded（真并行）", font_size=22, color=GREEN)
-        ft_label.shift(DOWN * 1.5 + LEFT * 3)
-        self.play(FadeIn(ft_label))
+function toggleGilAnimation() {
+  const gil = document.querySelector('.gil-timeline');
+  const ft = document.querySelector('.ft-timeline');
+  if (!animating) {
+    gil.classList.add('animating');
+    ft.classList.add('animating');
+    animating = true;
+    setTimeout(() => {
+      gil.classList.remove('animating');
+      ft.classList.remove('animating');
+      animating = false;
+    }, 3000 / speed);
+  }
+}
 
-        for tid in range(3):
-            bar = Rectangle(
-                width=total_width / 3, height=0.3,
-                fill_color=colors[tid], fill_opacity=0.8, stroke_width=0.5,
-            ).move_to([-4 + total_width / 6 + tid * 0, -2.2 + tid * 0.4, 0])
-            # 三个线程同时并行
-            bar.move_to([0, -2.2 + tid * 0.4, 0])
-            bar.set_width(total_width * 0.8)
-            self.play(FadeIn(bar), run_time=0.2)
-
-        parallel_note = Text("3 个线程同时执行，速度 ×3", font_size=18, color=GREEN)
-        parallel_note.shift(DOWN * 3.2)
-        self.play(FadeIn(parallel_note))
-        self.wait(2)
+function setSpeed(s) {
+  speed = s;
+  document.querySelectorAll('.btn.small').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+</script>
 ```
 
-动画效果：上半部分展示 GIL 下三个线程交替获得执行权（颜色交替切换）；下半部分展示 Free-threaded 下三个线程同时并排执行。
+> **说明**：点击「播放动画」观察 GIL 下的线程切换模式（颜色交替出现）与 Free-threaded 的并行模式（三种颜色同时前进）的对比。
 
 ## 常见坑点
 

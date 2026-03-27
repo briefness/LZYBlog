@@ -328,21 +328,263 @@ sequenceDiagram
 
 ---
 
-## 5. Manim 动画：异步网络请求完整时序
+### 可视化：异步网络请求完整时序
 
-**动画文件**：[animations/05_async_flow_animation.py](animations/05_async_flow_animation.py)
+下面通过图示展示 `wx.request` 异步请求的完整流程。
 
-```bash
-# 运行动画
-manim -pql animations/05_async_flow_animation.py AsyncFlow
+#### 请求流程架构图
+
+```mermaid
+flowchart LR
+    P["Page\n(页面逻辑)"] --> WX["wx.request\n(微信API)"]
+    WX --> S["Backend\nServer"]
+    S --> CB["Callback\n回调处理"]
+    CB --> UI["UI 更新\nsetData"]
+
+    style P fill:#42A5F5,stroke:#1976D2,color:#fff
+    style WX fill:#07C160,stroke:#06ad57,color:#fff
+    style S fill:#FF6B6B,stroke:#ee5a5a,color:#fff
+    style CB fill:#FFA726,stroke:#f57c00,color:#fff
+    style UI fill:#9B59B6,stroke:#8e44ad,color:#fff
 ```
 
-动画内容：
-1. 节点依次亮起：Page → wx.request → Backend Server
-2. 箭头动态连线：HTTP 请求发出，等待响应
-3. 回调处理阶段：数据解析 → 错误判断 → 状态码检查
-4. setData 阶段：数据回传 → 页面重新渲染
-5. 强调 Promise 封装后的简洁调用模式
+#### 请求时序图
+
+```mermaid
+sequenceDiagram
+    participant P as Page
+    participant WX as wx.request
+    participant S as Backend Server
+    participant CB as Callback
+    participant UI as UI 更新
+
+    P->>P: setData({ loading: true })
+    P->>WX: 调用 wx.request()
+    Note over WX: 微信 API 封装请求
+
+    WX->>S: HTTP GET /api/users
+    Note over S: 后端处理并返回 JSON
+
+    S-->>WX: HTTP 200 + JSON
+    WX->>WX: success callback 触发
+
+    WX->>CB: 数据解析 + 错误处理
+    CB-->>P: resolve(data)
+
+    P->>UI: this.setData({ list: data })
+    UI-->>P: 页面重新渲染
+```
+
+#### 完整请求流程动画
+
+下方演示 `wx.request` 的完整请求过程：
+
+```html
+<div class="async-demo">
+  <div class="demo-title">wx.request 异步请求流程</div>
+
+  <div class="flow-nodes">
+    <div class="flow-node" id="fn-page">
+      <div class="node-icon">📱</div>
+      <div class="node-name">Page</div>
+      <div class="node-desc">页面逻辑</div>
+    </div>
+    <div class="flow-arrow" id="fa1">→</div>
+    <div class="flow-node" id="fn-wx">
+      <div class="node-icon">🔧</div>
+      <div class="node-name">wx.request</div>
+      <div class="node-desc">微信 API</div>
+    </div>
+    <div class="flow-arrow" id="fa2">→</div>
+    <div class="flow-node" id="fn-server">
+      <div class="node-icon">🖥️</div>
+      <div class="node-name">Backend</div>
+      <div class="node-desc">后端服务器</div>
+    </div>
+    <div class="flow-arrow" id="fa3">↓</div>
+    <div class="flow-node" id="fn-cb" style="grid-column: 2;">
+      <div class="node-icon">📋</div>
+      <div class="node-name">Callback</div>
+      <div class="node-desc">回调处理</div>
+    </div>
+    <div class="flow-arrow" id="fa4">←</div>
+    <div class="flow-node" id="fn-ui" style="grid-column: 3;">
+      <div class="node-icon">🎨</div>
+      <div class="node-name">UI 更新</div>
+      <div class="node-desc">页面渲染</div>
+    </div>
+  </div>
+
+  <div class="log-panel">
+    <div class="log-title">执行日志</div>
+    <div class="log-content" id="asyncLog"></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" onclick="asyncStep()">▶ 下一步</button>
+    <button class="btn" onclick="asyncPlay()">⏵ 自动播放</button>
+    <button class="btn" onclick="asyncReset()">↺ 重置</button>
+  </div>
+</div>
+
+<style>
+.async-demo {
+  background: #1a1a2e;
+  border-radius: 12px;
+  padding: 24px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: #e0e0e0;
+  max-width: 700px;
+  margin: 0 auto;
+}
+.demo-title {
+  text-align: center;
+  font-size: 16px;
+  color: #ffd700;
+  margin-bottom: 20px;
+}
+.flow-nodes {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.flow-node {
+  background: #16213e;
+  border: 2px solid #0f3460;
+  border-radius: 10px;
+  padding: 14px 12px;
+  text-align: center;
+  transition: all 0.4s ease;
+}
+.node-icon { font-size: 24px; margin-bottom: 6px; }
+.node-name { font-size: 13px; font-weight: bold; color: #cdd6f4; margin-bottom: 2px; }
+.node-desc { font-size: 11px; color: #6c7086; }
+.flow-arrow {
+  font-size: 20px;
+  color: #4a4a6a;
+  text-align: center;
+  transition: all 0.3s;
+}
+#fa3 {
+  grid-column: 2;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+#fa4 { grid-column: 3; }
+.flow-node.active {
+  border-color: #ffd700;
+  background: #2a2a4a;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  transform: scale(1.05);
+}
+.flow-node.done {
+  border-color: #00ff88;
+  background: #0a3d2a;
+}
+.flow-node.done .node-name { color: #00ff88; }
+.flow-arrow.active {
+  color: #ffd700;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+}
+.log-panel {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 12px;
+  max-height: 100px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+.log-title { font-size: 12px; color: #6c7086; margin-bottom: 8px; }
+.log-entry {
+  font-size: 12px;
+  line-height: 1.6;
+  opacity: 0;
+  animation: fadeIn 0.3s forwards;
+  color: #cdd6f4;
+}
+.log-entry .phase { color: #ffd700; font-weight: bold; }
+.log-entry .result { color: #00ff88; }
+@keyframes fadeIn { to { opacity: 1; } }
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+.btn {
+  background: #4a4a6a;
+  border: none;
+  color: #fff;
+  padding: 8px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+.btn:hover { background: #6a6a8a; }
+</style>
+
+<script>
+const asyncSteps = [
+  { node: 'fn-page', arrow: null, log: '<span class="phase">[Page]</span> setData({ loading: true }) — 显示加载中' },
+  { node: 'fn-wx', arrow: 'fa1', log: '<span class="phase">[API]</span> 调用 wx.request() — 发起网络请求' },
+  { node: 'fn-server', arrow: 'fa2', log: '<span class="phase">[Server]</span> 后端接收请求，处理并返回 JSON' },
+  { node: 'fn-cb', arrow: 'fa3', log: '<span class="phase">[Callback]</span> success 回调触发 — 数据解析 + 错误处理' },
+  { node: 'fn-ui', arrow: 'fa4', log: '<span class="phase">[UI]</span> this.setData() — 页面重新渲染，数据显示完成' },
+];
+let asyncIdx = 0;
+let asyncTimer = null;
+
+function asyncActivate(idx) {
+  if (idx < 0 || idx >= asyncSteps.length) return;
+  const s = asyncSteps[idx];
+  if (s.arrow) document.getElementById(s.arrow).classList.add('active');
+  document.getElementById(s.node).classList.add('active');
+  const log = document.getElementById('asyncLog');
+  log.innerHTML += `<div class="log-entry">${s.log}</div>`;
+  log.scrollTop = log.scrollHeight;
+  setTimeout(() => {
+    document.getElementById(s.node).classList.remove('active');
+    document.getElementById(s.node).classList.add('done');
+    if (s.arrow) document.getElementById(s.arrow).classList.remove('active');
+  }, 600);
+}
+
+function asyncStep() {
+  if (asyncTimer) { clearTimeout(asyncTimer); asyncTimer = null; }
+  asyncActivate(asyncIdx);
+  asyncIdx++;
+  if (asyncIdx >= asyncSteps.length) asyncIdx = 0;
+}
+
+function asyncPlay() {
+  if (asyncTimer) { clearTimeout(asyncTimer); asyncTimer = null; }
+  asyncIdx = 0;
+  document.querySelectorAll('.flow-node, .flow-arrow').forEach(n => n.classList.remove('active','done'));
+  document.getElementById('asyncLog').innerHTML = '';
+  function next() {
+    if (asyncIdx >= asyncSteps.length) { asyncIdx = 0; return; }
+    asyncActivate(asyncIdx);
+    asyncIdx++;
+    asyncTimer = setTimeout(next, 1400);
+  }
+  next();
+}
+
+function asyncReset() {
+  if (asyncTimer) { clearTimeout(asyncTimer); asyncTimer = null; }
+  asyncIdx = 0;
+  document.querySelectorAll('.flow-node, .flow-arrow').forEach(n => n.classList.remove('active','done'));
+  document.getElementById('asyncLog').innerHTML = '';
+}
+</script>
+```
+
+> **说明**：点击「下一步」逐步演示 wx.request 异步请求的完整流程；Promise 封装可以让回调写法更优雅。
 
 ---
 
