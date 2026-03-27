@@ -120,6 +120,45 @@ enum Role {
 }
 ```
 
+**数据模型关系图：**
+
+```mermaid
+erDiagram
+    USER ||--o| PROFILE : "1:1"
+    USER ||--o{ POST : "1:N"
+    POST }o--o{ TAG : "N:N"
+
+    USER {
+        int id PK
+        string email UK
+        string name
+        Role role
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    POST {
+        int id PK
+        string title
+        string content
+        boolean published
+        int authorId FK
+        datetime createdAt
+    }
+
+    TAG {
+        int id PK
+        string name UK
+    }
+
+    PROFILE {
+        int id PK
+        string bio
+        string avatar
+        int userId UK FK
+    }
+```
+
 ### 运行迁移
 
 ```bash
@@ -194,6 +233,34 @@ console.log(`更新了 ${result.count} 条记录`);
 
 ## 5. 关联查询与 N+1 问题
 
+**N+1 查询问题示意：**
+
+```mermaid
+flowchart TD
+    subgraph 错误的N+1查询["❌ N+1 查询（100个用户 = 101次数据库往返）"]
+        A1["findMany()"] --> B1["循环 user 1"]
+        A1 --> B2["循环 user 2"]
+        A1 --> B3["..."]
+        A1 --> B100["循环 user 100"]
+        B1 --> C1["query: posts WHERE authorId=1"]
+        B2 --> C2["query: posts WHERE authorId=2"]
+        B100 --> C100["query: posts WHERE authorId=100"]
+    end
+
+    subgraph 正确的include方案["✅ include JOIN（只需 1 次数据库往返）"]
+        D["findMany({ include: { posts: true } })"] --> E["Prisma 自动生成 JOIN SQL"]
+        E --> F["一次性返回所有数据"]
+    end
+
+    style A1 fill:#ff6b6b
+    style C1 fill:#ff6b6b
+    style C2 fill:#ff6b6b
+    style C100 fill:#ff6b6b
+    style D fill:#51cf66
+    style E fill:#51cf66
+    style F fill:#51cf66
+```
+
 ```typescript
 // ❌ N+1 问题：先查 users，再为每个 user 查 posts（N+1 次查询）
 const users = await prisma.user.findMany();
@@ -220,6 +287,32 @@ const usersWithPosts = await prisma.user.findMany({
 ```
 
 ## 6. 事务
+
+**交互式事务执行流程：**
+
+```mermaid
+flowchart TD
+    START["prisma.$transaction(async tx => {...})"] --> CHECK{"try block"}
+
+    CHECK -->|"步骤1: 创建订单"| C1["tx.order.create()"]
+    C1 --> C2["tx.product.update()\n库存 - 1"]
+
+    C2 --> CHECK_STOCK{"库存 < 0 ?"}
+
+    CHECK_STOCK -->|"是"| ROLLBACK["throw Error()"]
+    CHECK_STOCK -->|"否"| COMMIT["✅ 事务提交"]
+
+    ROLLBACK --> END_ROLLBACK["❌ 事务自动回滚"]
+    COMMIT --> END_COMMIT["✅ 返回结果"]
+
+    END_ROLLBACK -.->|"unhandled error"| TX_ABORT["数据库回滚到初始状态"]
+    END_COMMIT -.->|"commit"| TX_SUCCESS["数据持久化"]
+
+    style ROLLBACK fill:#ff6b6b,color:#fff
+    style END_ROLLBACK fill:#ffa8a8
+    style COMMIT fill:#51cf66
+    style END_COMMIT fill:#a9e34b
+```
 
 ```typescript
 // 方式一：interactive transaction（推荐，可处理复杂逻辑）
@@ -305,6 +398,40 @@ export default fp(async (app) => {
 ```
 
 ## 8. Redis 缓存集成
+
+**缓存读写流程：**
+
+```mermaid
+flowchart LR
+    subgraph 请求流程["请求流程"]
+        A["getUserWithCache(id)"] --> B{"Redis 缓存\n存在?"}
+    end
+
+    subgraph 命中缓存["✅ 命中"]
+        B -->|"是"| C1["直接返回\nJSON.parse(cached)"]
+        C1 --> C2["返回 User 对象"]
+    end
+
+    subgraph 未命中["❌ 未命中"]
+        B -->|"否"| D1["查询数据库\nprisma.user.findUnique()"]
+        D1 --> D2{"用户\n存在?"}
+        D2 -->|"是"| D3["redis.setex()\nTTL=300秒"]
+        D3 --> D4["返回 User"]
+        D2 -->|"否"| D5["返回 null"]
+    end
+
+    subgraph 缓存失效["数据更新时"]
+        E["updateUser()"] --> F["prisma.user.update()"]
+        F --> G["redis.del(user:id)"]
+        G --> H["下次请求重新写入缓存"]
+    end
+
+    style B fill:#ffd43b
+    style C1 fill:#51cf66
+    style D1 fill:#74c0fc
+    style D3 fill:#51cf66
+    style G fill:#ff6b6b
+```
 
 ```bash
 npm install ioredis
