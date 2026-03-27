@@ -376,223 +376,43 @@ sequenceDiagram
 
 下方演示 `countdown(3)` 的完整执行过程：
 
-```html
-<div class="yield-demo">
-  <div class="demo-title">生成器 yield 执行过程</div>
+下方图表通过状态机展示生成器的完整执行流程：
 
-  <div class="code-panel">
-    <div class="code-line" data-line="1"><span class="line-num">1</span><span class="line-code">def countdown(n):</span></div>
-    <div class="code-line" data-line="2"><span class="line-num">2</span><span class="line-code">    while n > 0:</span></div>
-    <div class="code-line yield-line" data-line="3"><span class="line-num">3</span><span class="line-code">        yield n  <span class="comment"># ← 暂停，返回 n</span></span></div>
-    <div class="code-line" data-line="4"><span class="line-num">4</span><span class="line-code">        n -= 1   <span class="comment"># ← 恢复后继续</span></span></div>
-    <div class="code-line" data-line="5"><span class="line-num">5</span><span class="line-code">    <span class="keyword">return</span></span></div>
-  </div>
-
-  <div class="state-panel">
-    <div class="state-item">
-      <span class="state-label">当前 n 值</span>
-      <span class="state-value" id="nValue">—</span>
-    </div>
-    <div class="state-item">
-      <span class="state-label">生成器状态</span>
-      <span class="state-value" id="genState">⏸ 已暂停</span>
-    </div>
-    <div class="state-item output-item">
-      <span class="state-label">输出序列</span>
-      <span class="state-value" id="output">[]</span>
-    </div>
-  </div>
-
-  <div class="controls">
-    <button class="btn primary" onclick="stepYield()">▶ next() 一步</button>
-    <button class="btn" onclick="autoYield()">⏵ 自动播放</button>
-    <button class="btn" onclick="resetYield()">↺ 重置</button>
-  </div>
-
-  <div class="log-panel">
-    <div class="log-title">执行日志</div>
-    <div class="log-content" id="yieldLog"></div>
-  </div>
-</div>
-
-<style>
-.yield-demo {
-  background: #1e1e2e;
-  border-radius: 12px;
-  padding: 24px;
-  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-  color: #cdd6f4;
-  max-width: 700px;
-  margin: 0 auto;
-}
-.demo-title {
-  text-align: center;
-  font-size: 16px;
-  color: #cba6f7;
-  margin-bottom: 20px;
-}
-.code-panel {
-  background: #181825;
-  border-radius: 8px;
-  padding: 16px 0;
-  margin-bottom: 16px;
-  border: 1px solid #313244;
-}
-.code-line {
-  display: flex;
-  padding: 3px 16px;
-  transition: background 0.3s;
-}
-.line-num {
-  width: 32px;
-  color: #6c7086;
-  user-select: none;
-  text-align: right;
-  padding-right: 12px;
-}
-.line-code { color: #cdd6f4; }
-.comment { color: #6c7086; font-style: italic; }
-.keyword { color: #cba6f7; }
-.code-line.active {
-  background: rgba(249, 226, 175, 0.15);
-}
-.code-line.active .line-code { color: #f9e2af; }
-.code-line.paused {
-  background: rgba(250, 179, 135, 0.2);
-  border-left: 3px solid #fab387;
-}
-.code-line.paused .line-code { color: #fab387; }
-.code-line.resumed {
-  background: rgba(166, 227, 161, 0.15);
-}
-.code-line.resumed .line-code { color: #a6e3a1; }
-.state-panel {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-.state-item {
-  background: #181825;
-  border: 1px solid #313244;
-  border-radius: 8px;
-  padding: 10px 16px;
-  min-width: 140px;
-  flex: 1;
-}
-.output-item { flex: 2; }
-.state-label {
-  display: block;
-  font-size: 11px;
-  color: #6c7086;
-  margin-bottom: 4px;
-}
-.state-value {
-  font-size: 18px;
-  font-weight: bold;
-  color: #89dceb;
-}
-.controls {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-.btn {
-  background: #313244;
-  border: 1px solid #45475a;
-  color: #cdd6f4;
-  padding: 8px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 13px;
-  transition: all 0.2s;
-}
-.btn:hover { background: #45475a; }
-.btn.primary { background: #cba6f7; color: #1e1e2e; border-color: #cba6f7; }
-.btn.primary:hover { background: #d4a5f8; }
-.log-panel {
-  background: #0d1117;
-  border: 1px solid #30363d;
-  border-radius: 8px;
-  padding: 12px;
-  max-height: 100px;
-  overflow-y: auto;
-}
-.log-title { font-size: 12px; color: #6c7086; margin-bottom: 8px; }
-.log-entry {
-  font-size: 12px;
-  line-height: 1.6;
-  opacity: 0;
-  animation: fadeIn 0.3s forwards;
-}
-.log-entry .action { color: #f9e2af; }
-.log-entry .result { color: #a6e3a1; }
-.log-entry .pause { color: #fab387; }
-.log-entry .done { color: #f38ba8; }
-@keyframes fadeIn { to { opacity: 1; } }
-</style>
-
-<script>
-let n = 3;
-let outputs = [];
-let timer = null;
-let isPaused = false;
-
-function stepYield() {
-  if (timer) { clearTimeout(timer); timer = null; }
-  if (n <= 0) {
-    document.getElementById('yieldLog').innerHTML +=
-      `<div class="log-entry"><span class="done">✅ StopIteration — 生成器已耗尽</span></div>`;
-    document.getElementById('genState').textContent = '☑ 已结束';
-    return;
-  }
-
-  // Highlight yield line (pause point)
-  document.querySelectorAll('.code-line').forEach(l => l.classList.remove('active','paused','resumed'));
-  document.querySelector('.code-line[data-line="3"]').classList.add('paused');
-  document.getElementById('nValue').textContent = n;
-  document.getElementById('genState').textContent = '⏸ 已暂停';
-  document.getElementById('yieldLog').innerHTML +=
-    `<div class="log-entry"><span class="pause">⏸ yield 暂停 → 返回 ${n}</span></div>`;
-
-  outputs.push(n);
-  document.getElementById('output').textContent = `[${outputs.join(', ')}]`;
-  document.getElementById('yieldLog').scrollTop = document.getElementById('yieldLog').scrollHeight;
-
-  // After brief pause, show resume
-  timer = setTimeout(() => {
-    document.querySelector('.code-line[data-line="4"]').classList.add('resumed');
-    document.getElementById('yieldLog').innerHTML +=
-      `<div class="log-entry"><span class="action">→ next() 调用，从断点恢复 → n -= 1</span></div>`;
-    n--;
-    document.getElementById('nValue').textContent = n > 0 ? n : '—';
-  }, 700);
-}
-
-function autoYield() {
-  if (timer) { clearTimeout(timer); timer = null; }
-  function next() {
-    if (n > 0) {
-      stepYield();
-      timer = setTimeout(next, 1800);
-    }
-  }
-  next();
-}
-
-function resetYield() {
-  if (timer) { clearTimeout(timer); timer = null; }
-  n = 3; outputs = [];
-  document.querySelectorAll('.code-line').forEach(l => l.classList.remove('active','paused','resumed'));
-  document.getElementById('nValue').textContent = '—';
-  document.getElementById('genState').textContent = '⏸ 已暂停';
-  document.getElementById('output').textContent = '[]';
-  document.getElementById('yieldLog').innerHTML = '';
-}
-</script>
+```mermaid
+stateDiagram-v2
+    [*] --> 创建: def countdown(n)
+    创建 --> 暂停中: 首次 next()
+    暂停中 --> 暂停中: yield n
+    暂停中 --> 已结束: n ≤ 0
+    暂停中 --> 暂停中: return
+    已结束 --> [*]: StopIteration
 ```
+
+#### `countdown(3)` 的完整执行轨迹
+
+| 步骤 | 调用 | yield 返回值 | n 值变化 | 生成器状态 |
+|-----|------|------------|---------|-----------|
+| 1 | `next()` | 3 | 3 → 2 | ⏸ 暂停于 `yield n` |
+| 2 | `next()` | 2 | 2 → 1 | ⏸ 暂停于 `yield n` |
+| 3 | `next()` | 1 | 1 → 0 | ⏸ 暂停于 `yield n` |
+| 4 | `next()` | — | — | ⛔ `StopIteration` 抛出，遍历结束 |
+
+```python
+def countdown(n):
+    while n > 0:
+        yield n  # ← 暂停，返回 n
+        n -= 1   # ← 恢复后继续
+    return       # ← 生成器耗尽时自动触发 StopIteration
+
+gen = countdown(3)
+print(next(gen))  # 3
+print(next(gen))  # 2
+print(next(gen))  # 1
+next(gen)          # StopIteration
+```
+
+> **说明**：`yield` 既是"返回值"也是"暂停点"。调用方通过 `next()` 从断点恢复执行，直到遇到下一个 `yield` 或 `return`。
+
 
 > **说明**：点击「next() 一步」可逐步观察生成器的执行过程；点击「自动播放」可连续演示。颜色含义：橙色 = yield 暂停点，绿色 = 恢复执行后继续。
 

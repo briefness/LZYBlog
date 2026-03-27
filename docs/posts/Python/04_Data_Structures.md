@@ -417,194 +417,45 @@ flowchart TB
 
 #### 哈希表内部结构可视化
 
-下方动画展示了插入三个 key 后的哈希表状态变化：
+下方图表展示了插入 `name`、`age`、`city` 三个 key 的哈希表状态变化过程：
 
-```html
-<div class="hash-table-demo">
-  <div class="demo-title">哈希表插入动画</div>
-  <div class="controls">
-    <button class="btn" onclick="runHashAnimation()">▶ 播放动画</button>
-    <button class="btn" onclick="resetHashTable()">↺ 重置</button>
-  </div>
-  <div class="hash-table-array">
-    <div class="bucket" data-index="0"><span class="index">0</span><span class="value"></span></div>
-    <div class="bucket" data-index="1"><span class="index">1</span><span class="value"></span></div>
-    <div class="bucket" data-index="2"><span class="index">2</span><span class="value"></span></div>
-    <div class="bucket" data-index="3"><span class="index">3</span><span class="value"></span></div>
-    <div class="bucket" data-index="4"><span class="index">4</span><span class="value"></span></div>
-    <div class="bucket active" data-index="5"><span class="index">5</span><span class="value"></span></div>
-    <div class="bucket" data-index="6"><span class="index">6</span><span class="value"></span></div>
-    <div class="bucket" data-index="7"><span class="index">7</span><span class="value"></span></div>
-  </div>
-  <div class="log-panel">
-    <div class="log-title">执行日志</div>
-    <div class="log-content" id="hashLog"></div>
-  </div>
-</div>
+```mermaid
+flowchart TD
+    subgraph step1["Step 1: insert('name', '张三')"]
+        A1["hash('name') = 4_628_293"] --> B1["4_628_293 % 8 = 5"]
+        B1 --> C1["table[5] = '张三' ✓"]
+        C1 --> D1["✅ 已写入，O(1)"]
+    end
 
-<style>
-.hash-table-demo {
-  background: #1a1a2e;
-  border-radius: 12px;
-  padding: 24px;
-  font-family: 'SF Mono', 'Fira Code', monospace;
-  color: #e0e0e0;
-  max-width: 700px;
-  margin: 0 auto;
-}
-.demo-title {
-  text-align: center;
-  font-size: 16px;
-  color: #ffd700;
-  margin-bottom: 16px;
-}
-.controls {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-.btn {
-  background: #4a4a6a;
-  border: none;
-  color: #fff;
-  padding: 8px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 13px;
-  transition: background 0.2s;
-}
-.btn:hover { background: #6a6a8a; }
-.hash-table-array {
-  display: flex;
-  gap: 6px;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-.bucket {
-  width: 70px;
-  height: 70px;
-  background: #16213e;
-  border: 2px solid #0f3460;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  position: relative;
-}
-.bucket .index {
-  font-size: 11px;
-  color: #888;
-  position: absolute;
-  top: 4px;
-  left: 6px;
-}
-.bucket .value {
-  font-size: 12px;
-  color: #00d4ff;
-  font-weight: bold;
-  text-align: center;
-}
-.bucket.highlight {
-  border-color: #ffd700;
-  background: #2a2a4a;
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
-  transform: scale(1.08);
-}
-.bucket.filled {
-  border-color: #00ff88;
-  background: #0a3d2a;
-}
-.bucket.filled .value { color: #00ff88; }
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.3); }
-  50% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.7); }
-}
-.bucket.active {
-  animation: pulse 1.5s infinite;
-}
-.log-panel {
-  background: #0d1117;
-  border: 1px solid #30363d;
-  border-radius: 8px;
-  padding: 12px;
-  max-height: 120px;
-  overflow-y: auto;
-}
-.log-title {
-  font-size: 12px;
-  color: #888;
-  margin-bottom: 8px;
-}
-.log-content {
-  font-size: 12px;
-  line-height: 1.6;
-}
-.log-entry {
-  opacity: 0;
-  animation: fadeIn 0.3s forwards;
-}
-.log-entry .step { color: #ffd700; }
-.log-entry .hash { color: #00d4ff; }
-.log-entry .result { color: #00ff88; }
-@keyframes fadeIn {
-  to { opacity: 1; }
-}
-</style>
+    subgraph step2["Step 2: insert('age', '25')"]
+        A2["hash('age') = 3_827_491"] --> B2["3_827_491 % 8 = 2"]
+        B2 --> C2["table[2] = '25' ✓"]
+        C2 --> D2["✅ 已写入，O(1)"]
+    end
 
-<script>
-const entries = [
-  { key: 'name', value: '张三', hash: 4628293, idx: 5 },
-  { key: 'age', value: '25', hash: 3827491, idx: 2 },
-  { key: 'city', value: '北京', hash: 2938471, idx: 7 },
-];
-let step = 0;
-
-function runHashAnimation() {
-  if (step >= entries.length) {
-    step = 0;
-    resetHashTable();
-    setTimeout(runHashAnimation, 500);
-    return;
-  }
-  const e = entries[step];
-  const bucket = document.querySelector(`.bucket[data-index="${e.idx}"]`);
-  const log = document.getElementById('hashLog');
-
-  // Highlight bucket
-  bucket.classList.add('highlight');
-  log.innerHTML += `<div class="log-entry"><span class="step">[Step ${step+1}]</span> hash("${e.key}") = ${e.hash} % 8 = <span class="hash">${e.idx}</span></div>`;
-
-  setTimeout(() => {
-    bucket.classList.remove('highlight');
-    bucket.classList.add('filled');
-    bucket.querySelector('.value').textContent = `${e.key}:${e.value}`;
-    log.innerHTML += `<div class="log-entry"><span class="step">[写入]</span> table[${e.idx}] = <span class="result">"${e.value}"</span> ✓ O(1)</div>`;
-    log.scrollTop = log.scrollHeight;
-    step++;
-    if (step < entries.length) {
-      setTimeout(runHashAnimation, 1200);
-    } else {
-      log.innerHTML += `<div class="log-entry" style="color:#ffd700;margin-top:8px;">✅ 哈希表插入完成 — 所有操作均为 O(1)</div>`;
-    }
-  }, 800);
-}
-
-function resetHashTable() {
-  document.querySelectorAll('.bucket').forEach(b => {
-    b.classList.remove('highlight', 'filled', 'active');
-    b.querySelector('.value').textContent = '';
-  });
-  document.getElementById('hashLog').innerHTML = '';
-  step = 0;
-}
-</script>
+    subgraph step3["Step 3: insert('city', '北京')"]
+        A3["hash('city') = 2_938_471"] --> B3["2_938_471 % 8 = 7"]
+        B3 --> C3["table[7] = '北京' ✓"]
+        C3 --> D3["✅ 已写入，O(1)"]
+    end
 ```
 
-> **说明**：点击「播放动画」可逐步查看哈希表插入过程。颜色含义：黄色高亮 = 正在计算定位，绿色填充 = 数据已写入。
+#### 哈希表最终状态
+
+| 索引 | 数据 | 说明 |
+|-----|------|------|
+| 0 | — | 空 |
+| 1 | — | 空 |
+| 2 | `"age": "25"` | 已填充 |
+| 3 | — | 空 |
+| 4 | — | 空 |
+| 5 | `"name": "张三"` | 已填充 |
+| 6 | — | 空 |
+| 7 | `"city": "北京"` | 已填充 |
+
+> **说明**：哈希函数 `hash(key) % 8` 将任意字符串映射到 0-7 范围。三个 key 恰好落在不同槽位，没有冲突，所有插入操作均为 O(1)。
+
+
 
 ## 常见坑点
 

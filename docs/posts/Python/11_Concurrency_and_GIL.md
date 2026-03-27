@@ -334,278 +334,67 @@ flowchart TD
 
 下面通过时间轴动画对比展示：有 GIL 时线程交替执行 vs Free-threaded 真并行。
 
-```html
-<div class="gil-demo">
-  <div class="demo-title">GIL vs Free-threaded 线程执行对比</div>
+下方时间轴对比展示了 GIL 下的线程切换模式与 Free-threaded 真并行的本质差异：
 
-  <!-- GIL Section -->
-  <div class="section-label gil-label">
-    <span class="lock-icon">🔒</span> 有 GIL（标准 CPython）
-    <span class="tag">同一时刻只有 1 个线程执行</span>
-  </div>
-  <div class="timeline gil-timeline">
-    <div class="time-axis">
-      <span class="axis-label">时间 →</span>
-    </div>
-    <div class="thread-row" data-thread="T1">
-      <span class="thread-label">Thread 1</span>
-      <div class="time-segments">
-        <div class="segment seg-1" style="left:0%; width:33.3%"></div>
-        <div class="segment seg-1" style="left:50%; width:16.7%"></div>
-        <div class="segment seg-1" style="left:83.3%; width:16.7%"></div>
-      </div>
-    </div>
-    <div class="thread-row" data-thread="T2">
-      <span class="thread-label">Thread 2</span>
-      <div class="time-segments">
-        <div class="segment seg-2" style="left:33.3%; width:16.7%"></div>
-        <div class="segment seg-2" style="left:66.7%; width:16.7%"></div>
-        <div class="segment seg-2" style="left:100%; width:0%"></div>
-      </div>
-    </div>
-    <div class="thread-row" data-thread="T3">
-      <span class="thread-label">Thread 3</span>
-      <div class="time-segments">
-        <div class="segment seg-3" style="left:16.7%; width:16.7%"></div>
-        <div class="segment seg-3" style="left:100%; width:0%"></div>
-      </div>
-    </div>
-    <div class="note">颜色交替 = 线程争抢 GIL，上下文不断切换</div>
-  </div>
-
-  <!-- Free-threaded Section -->
-  <div class="section-label ft-label">
-    <span class="lock-icon">🔓</span> Free-threaded（Python 3.14t）
-    <span class="tag green">3 个线程同时并行执行</span>
-  </div>
-  <div class="timeline ft-timeline">
-    <div class="time-axis">
-      <span class="axis-label">时间 →</span>
-    </div>
-    <div class="thread-row parallel" data-thread="T1">
-      <span class="thread-label">Thread 1</span>
-      <div class="time-segments">
-        <div class="segment seg-1" style="left:0%; width:33.3%"></div>
-      </div>
-    </div>
-    <div class="thread-row parallel" data-thread="T2">
-      <span class="thread-label">Thread 2</span>
-      <div class="time-segments">
-        <div class="segment seg-2" style="left:0%; width:33.3%"></div>
-      </div>
-    </div>
-    <div class="thread-row parallel" data-thread="T3">
-      <span class="thread-label">Thread 3</span>
-      <div class="time-segments">
-        <div class="segment seg-3" style="left:0%; width:33.3%"></div>
-      </div>
-    </div>
-    <div class="note green">三线程并肩前进，CPU 核心充分利用，速度 ×3</div>
-  </div>
-
-  <!-- Animation Toggle -->
-  <div class="controls">
-    <button class="btn" onclick="toggleGilAnimation()">▶ 播放动画</button>
-    <span class="speed-label">速度：</span>
-    <button class="btn small" onclick="setSpeed(2)">2x</button>
-    <button class="btn small active" onclick="setSpeed(1)">1x</button>
-    <button class="btn small" onclick="setSpeed(0.5)">0.5x</button>
-  </div>
-</div>
-
-<style>
-.gil-demo {
-  background: #1a1a2e;
-  border-radius: 12px;
-  padding: 24px;
-  font-family: 'SF Mono', 'Fira Code', monospace;
-  color: #e0e0e0;
-  max-width: 720px;
-  margin: 0 auto;
-}
-.demo-title {
-  text-align: center;
-  font-size: 16px;
-  color: #ffd700;
-  margin-bottom: 20px;
-}
-.section-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: bold;
-  margin: 16px 0 8px;
-}
-.gil-label { color: #ff6b6b; }
-.ft-label { color: #51cf66; }
-.lock-icon { font-size: 16px; }
-.tag {
-  background: rgba(255,107,107,0.2);
-  color: #ff6b6b;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: normal;
-}
-.tag.green {
-  background: rgba(81,207,102,0.2);
-  color: #51cf66;
-}
-.timeline {
-  background: #0d1117;
-  border-radius: 8px;
-  padding: 16px;
-  position: relative;
-}
-.time-axis {
-  display: flex;
-  align-items: center;
-  margin-bottom: 12px;
-  padding-left: 80px;
-}
-.axis-label {
-  font-size: 11px;
-  color: #6c7086;
-  flex: 1;
-}
-.axis-label::after {
-  content: '⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩⟩';
-  margin-left: 8px;
-  letter-spacing: -1px;
-  overflow: hidden;
-  white-space: nowrap;
-}
-.thread-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: 8px;
-  height: 28px;
-  position: relative;
-}
-.thread-label {
-  width: 80px;
-  font-size: 12px;
-  color: #6c7086;
-  flex-shrink: 0;
-}
-.time-segments {
-  flex: 1;
-  height: 24px;
-  position: relative;
-  background: #161b22;
-  border-radius: 4px;
-}
-.segment {
-  position: absolute;
-  height: 100%;
-  border-radius: 3px;
-  top: 0;
-}
-.seg-1 { background: rgba(137,180,250,0.8); }
-.seg-2 { background: rgba(166,227,161,0.8); }
-.seg-3 { background: rgba(250,179,135,0.8); }
-.note {
-  font-size: 11px;
-  color: #ff6b6b;
-  text-align: center;
-  margin-top: 8px;
-  opacity: 0.8;
-}
-.note.green { color: #51cf66; }
-
-/* Animation */
-@keyframes slideRight {
-  from { width: 0; }
-  to { width: var(--seg-width, 33.3%); }
-}
-@keyframes slideRight2 {
-  from { width: 0; left: 33.3%; }
-  to { width: var(--seg-width2, 16.7%); }
-}
-.gil-timeline.animating .segment:nth-child(1) {
-  animation: slideRight 2s linear forwards;
-}
-.gil-timeline.animating .segment:nth-child(2) {
-  animation: slideRight2 1s linear 2s forwards;
-}
-.ft-timeline.animating .segment {
-  animation: slideRight 2s linear forwards;
-}
-@keyframes fadeInSeg {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-.gil-timeline.animating .segment {
-  opacity: 0;
-  animation: fadeInSeg 0.3s forwards, slideRight 2s linear forwards;
-}
-.ft-timeline.animating .segment {
-  opacity: 0;
-  animation: fadeInSeg 0.3s forwards, slideRight 2s linear forwards;
-}
-
-.controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 16px;
-}
-.btn {
-  background: #4a4a6a;
-  border: none;
-  color: #fff;
-  padding: 8px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 13px;
-  transition: background 0.2s;
-}
-.btn:hover { background: #6a6a8a; }
-.btn.small {
-  padding: 6px 12px;
-  font-size: 12px;
-  background: #313244;
-}
-.btn.small.active {
-  background: #cba6f7;
-  color: #1e1e2e;
-}
-.speed-label {
-  font-size: 12px;
-  color: #6c7086;
-  margin-left: 8px;
-}
-</style>
-
-<script>
-let animating = false;
-let speed = 1;
-
-function toggleGilAnimation() {
-  const gil = document.querySelector('.gil-timeline');
-  const ft = document.querySelector('.ft-timeline');
-  if (!animating) {
-    gil.classList.add('animating');
-    ft.classList.add('animating');
-    animating = true;
-    setTimeout(() => {
-      gil.classList.remove('animating');
-      ft.classList.remove('animating');
-      animating = false;
-    }, 3000 / speed);
-  }
-}
-
-function setSpeed(s) {
-  speed = s;
-  document.querySelectorAll('.btn.small').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
-}
-</script>
+```mermaid
+gantt
+    title 有 GIL（标准 CPython）- 线程争抢同一把锁
+    dateFormat X
+    axisFormat %s
+    
+    section Thread 1
+    T1 执行 GIL      :0, 33
+    T1 等待 GIL      :33, 50
+    T1 再次争抢成功  :50, 67
+    T1 再次等待      :67, 83
+    T1 最后执行      :83, 100
+    
+    section Thread 2
+    等待 GIL         :0, 33
+    T2 争抢成功执行  :33, 50
+    T2 等待 GIL      :50, 67
+    T2 再次争抢成功  :67, 83
+    T2 等待          :83, 100
+    
+    section Thread 3
+    T3 争抢成功      :0, 17
+    T3 等待 GIL      :17, 50
+    T3 再次争抢成功  :50, 67
+    T3 等待          :67, 100
 ```
+
+> 🔴 颜色交替 = 线程不断争抢 GIL（每 5ms 一次），上下文切换开销巨大，CPU 利用率低。
+
+---
+
+```mermaid
+gantt
+    title Free-threaded（Python 3.14t）- 3 个线程真正并行
+    dateFormat X
+    axisFormat %s
+    
+    section Thread 1
+    T1 全程执行 ✓  :0, 100
+    section Thread 2
+    T2 全程执行 ✓  :0, 100
+    section Thread 3
+    T3 全程执行 ✓  :0, 100
+```
+
+> 🟢 三线程并肩前进，每个 CPU 核心充分利用，速度理论上 ×3（单线程性能略降作为代价）。
+
+#### 核心对比
+
+| 维度 | 有 GIL（标准 CPython） | Free-threaded（`python3.14t`） |
+|-----|----------------------|------------------------------|
+| 线程并行 | ❌ 同一时刻只有 1 个线程执行 | ✅ 真正并行 |
+| CPU 利用率 | 🔴 低（频繁上下文切换） | 🟢 高 |
+| 适用场景 | IO 密集型 | CPU 密集型 |
+| 单线程性能 | 基准 | 约 -10%~15%（GIL 移除代价）|
+| 使用方式 | `python` | `python3.14t` |
+
+> **说明**：GIL 下的线程交替出现（颜色交替），Free-threaded 的三个颜色段同时存在。
+
 
 > **说明**：点击「播放动画」观察 GIL 下的线程切换模式（颜色交替出现）与 Free-threaded 的并行模式（三种颜色同时前进）的对比。
 

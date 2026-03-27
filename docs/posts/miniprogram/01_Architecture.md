@@ -398,238 +398,38 @@ sequenceDiagram
 
 下方动画演示启动的 6 个关键步骤：
 
-```html
-<div class="startup-demo">
-  <div class="demo-title">小程序启动流程</div>
+下方时序图展示了小程序从启动到渲染完成的完整过程：
 
-  <div class="arch-diagram">
-    <div class="layer wechat">
-      <div class="layer-label">微信客户端</div>
-      <div class="node" id="wx-node">微信加载分包</div>
-    </div>
+```mermaid
+sequenceDiagram
+    participant User as 用户
+    participant App as 微信客户端
+    participant WV as WebView (视图层)
+    participant JS as JS Engine (逻辑层)
+    participant NB as Native Bridge
 
-    <div class="dual-threads">
-      <div class="layer render">
-        <div class="layer-label">渲染层 WebView</div>
-        <div class="node" id="web-node">WebView 就绪</div>
-        <div class="node sub" id="parse-node">WXML/WXSS 解析</div>
-      </div>
-      <div class="layer logic">
-        <div class="layer-label">逻辑层 JS Engine</div>
-        <div class="node" id="js-node">JS Engine 启动</div>
-        <div class="node sub" id="app-node">app.js 执行</div>
-      </div>
-    </div>
-
-    <div class="layer native">
-      <div class="layer-label">Native Bridge</div>
-      <div class="node bridge" id="bridge-node">通信层就绪</div>
-    </div>
-  </div>
-
-  <div class="step-display">
-    <div class="step-num" id="stepNum">—</div>
-    <div class="step-desc" id="stepDesc">点击下方按钮开始演示</div>
-  </div>
-
-  <div class="controls">
-    <button class="btn" onclick="startupStep()">▶ 下一步</button>
-    <button class="btn" onclick="startupPlay()">⏵ 自动播放</button>
-    <button class="btn" onclick="startupReset()">↺ 重置</button>
-  </div>
-</div>
-
-<style>
-.startup-demo {
-  background: #1a1a2e;
-  border-radius: 12px;
-  padding: 24px;
-  font-family: 'SF Mono', 'Fira Code', monospace;
-  color: #e0e0e0;
-  max-width: 700px;
-  margin: 0 auto;
-}
-.demo-title {
-  text-align: center;
-  font-size: 16px;
-  color: #ffd700;
-  margin-bottom: 20px;
-}
-.arch-diagram {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-.layer {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 1px solid;
-}
-.layer-label {
-  font-size: 11px;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 4px;
-}
-.wechat {
-  background: rgba(7, 193, 96, 0.1);
-  border-color: #07C160;
-}
-.wechat .layer-label { color: #07C160; }
-.render {
-  background: rgba(255, 107, 107, 0.1);
-  border-color: #FF6B6B;
-}
-.render .layer-label { color: #FF6B6B; }
-.logic {
-  background: rgba(78, 205, 196, 0.1);
-  border-color: #4ECDC4;
-}
-.logic .layer-label { color: #4ECDC4; }
-.native {
-  background: rgba(155, 89, 182, 0.1);
-  border-color: #9B59B6;
-}
-.native .layer-label { color: #9B59B6; }
-.dual-threads {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-.node {
-  background: #16213e;
-  border: 1px solid #0f3460;
-  border-radius: 6px;
-  padding: 10px 14px;
-  font-size: 13px;
-  color: #aaa;
-  text-align: center;
-  transition: all 0.4s ease;
-  position: relative;
-}
-.node.sub {
-  font-size: 12px;
-  padding: 8px 12px;
-  border-color: #1a1a3e;
-  background: #0d1117;
-}
-.node.bridge {
-  text-align: center;
-}
-.node.active {
-  border-color: #ffd700;
-  background: #2a2a4a;
-  color: #ffd700;
-  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
-  transform: scale(1.02);
-}
-.node.done {
-  border-color: #00ff88;
-  background: #0a3d2a;
-  color: #00ff88;
-}
-.step-display {
-  text-align: center;
-  margin-bottom: 16px;
-  padding: 12px;
-  background: #0d1117;
-  border-radius: 8px;
-  border: 1px solid #30363d;
-}
-.step-num {
-  font-size: 14px;
-  color: #ffd700;
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-.step-desc {
-  font-size: 14px;
-  color: #cdd6f4;
-}
-.controls {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-}
-.btn {
-  background: #4a4a6a;
-  border: none;
-  color: #fff;
-  padding: 8px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 13px;
-  transition: background 0.2s;
-}
-.btn:hover { background: #6a6a8a; }
-</style>
-
-<script>
-const steps = [
-  { node: 'wx-node', num: 'Step 1', desc: '用户打开小程序，微信加载分包' },
-  { node: 'bridge-node', num: 'Step 2', desc: '初始化 Native Bridge 通信层' },
-  { node: 'web-node', num: 'Step 3', desc: '渲染层 WebView 就绪' },
-  { node: 'js-node', num: 'Step 4', desc: '逻辑层 JS Engine 启动' },
-  { node: 'parse-node', num: 'Step 5', desc: 'WXML/WXSS 解析为 DOM 树' },
-  { node: 'app-node', num: 'Step 6', desc: 'app.js 全局逻辑执行' },
-];
-let stepIdx = 0;
-let timer = null;
-
-function activateStep(idx) {
-  if (idx < 0 || idx >= steps.length) return;
-  document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
-  const s = steps[idx];
-  document.getElementById(s.node).classList.add('active');
-  document.getElementById('stepNum').textContent = s.num;
-  document.getElementById('stepDesc').textContent = s.desc;
-  // Mark as done after a delay
-  setTimeout(() => {
-    document.getElementById(s.node).classList.remove('active');
-    document.getElementById(s.node).classList.add('done');
-  }, 600);
-}
-
-function startupStep() {
-  if (timer) { clearTimeout(timer); timer = null; }
-  activateStep(stepIdx);
-  stepIdx++;
-  if (stepIdx >= steps.length) {
-    stepIdx = 0;
-  }
-}
-
-function startupPlay() {
-  if (timer) { clearTimeout(timer); timer = null; }
-  stepIdx = 0;
-  document.querySelectorAll('.node').forEach(n => n.classList.remove('active','done'));
-  function next() {
-    if (stepIdx >= steps.length) {
-      stepIdx = 0;
-      return;
-    }
-    activateStep(stepIdx);
-    stepIdx++;
-    timer = setTimeout(next, 1200);
-  }
-  next();
-}
-
-function startupReset() {
-  if (timer) { clearTimeout(timer); timer = null; }
-  stepIdx = 0;
-  document.querySelectorAll('.node').forEach(n => n.classList.remove('active','done'));
-  document.getElementById('stepNum').textContent = '—';
-  document.getElementById('stepDesc').textContent = '点击下方按钮开始演示';
-}
-</script>
+    User->>App: 打开小程序
+    App->>WV: 加载 app.wxml + app.wxss
+    App->>JS: 启动 JS Engine
+    JS-->>NB: 初始化 app.js / app.json
+    NB-->>JS: Native 层就绪
+    JS->>WV: App onLaunch() 回调
+    WV-->>User: 首屏渲染完成
+    Note over JS,WV: 双线程架构通过 Bridge 通信
 ```
+
+#### 关键里程碑
+
+| 阶段 | 耗时 | 涉及线程 | 产物 |
+|-----|-----|---------|-----|
+| 微信加载 WebView | ~200ms | 视图层 | WXML/WXSS 解析完成 |
+| JS Engine 启动 | ~100ms | 逻辑层 | V8/CoreJS 初始化 |
+| Native Bridge 就绪 | ~50ms | 两侧 | 通信通道建立 |
+| `app.js` 执行 | ~20ms | 逻辑层 | 全局状态初始化 |
+| 首屏渲染 | ~50ms | 视图层 | 用户看到页面 |
+
+> **说明**：整个冷启动链路在高端设备上约 **300-500ms**，双线程架构是性能瓶颈的根源——视图层和逻辑层必须通过 `setData` 跨线程通信，任何频繁的状态更新都会产生额外的序列化/反序列化开销。
+
 
 > **说明**：点击「下一步」逐步演示启动流程；点击「自动播放」连续演示所有步骤。
 

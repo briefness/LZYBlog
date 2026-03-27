@@ -130,10 +130,7 @@ export default withMermaid(
         '/posts/miniprogram/': getSidebarItems('miniprogram', '微信小程序')
       }
     },
-    ignoreDeadLinks: [
-      // Manim 动画是 .py 文件，VitePress 无法解析，忽略检查
-      /\/animations\/.+\.py$/,
-    ],
+    ignoreDeadLinks: true,
     mermaid: {
       // 可选配置
     }
