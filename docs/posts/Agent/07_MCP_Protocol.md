@@ -269,7 +269,16 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
     raise ValueError(f"未知工具: {name}")
 ```
 
-两个安全措施：**SQL 前缀检查**（只允许 SELECT）和**行数限制**（最多返回 50 行）。生产环境还需要加 SQL 注入防御——用参数化查询替代字符串拼接。
+有两个安全措施：**SQL 前缀检查**（只允许 SELECT）和**行数限制**（最多返回 50 行）。生产环境还需要加 SQL 注入防御——用参数化查询替代字符串拼接。
+
+## 6. 生产级 MCP 的容灾与局部降级 (Degraded Mode)
+
+在实际的生产环境中（尤其是挂载了四五个异构远程 MCP Server 的复杂 Agent），“某个 Server 的 API 密钥过期了”或“某个本地 Server 拉起超时（Handshake failure）”是常态。
+
+生产级 Agent 不应因为单个 MCP Server 挂了就整体 Crash退出。高阶的 Harness（如 `claw-code` 等追求极高稳定性的生产引擎）会主动实现 **局部降级模式（degraded_mcp）**：
+- 如果查询天气的 Server 握手失败，Harness 捕获到错误并将错误结构化告警外抛；
+- Agent 和其它的健壮节点接管后，会带着剩下存活的 Server（如数据库、文件系统）继续提供有限度（Degraded）的智能服务。
+- Agent 自己也可以通过内部报错流（`tool_result`）得知天气 Server 下线，然后回复用户：“抱歉，外部天气系统节点断线了，但我这里还可以继续查本地数据库”。
 
 ## 常见坑点
 

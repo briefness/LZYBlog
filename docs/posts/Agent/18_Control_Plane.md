@@ -411,7 +411,15 @@ stateDiagram-v2
 1. **无限重试**：工具一直失败，Agent 一直调，Token 烧光
 2. **静默失败**：工具报错了，Agent 假装没看见，继续用错误数据做下一步
 
-### 4.2 数据结构
+### 4.2 事件驱动与显式状态机 (Machine-Readable State)
+
+如果你只看标准输出的纯文本日志，Agent 卡死和 Agent 正在静默安装依赖看起来是一样的。高阶的生产实践（如 `claw-code` 架构）已经抛弃了纯文本日志截取（Log-scraping），转而维护一套更完善的生命周期状态机：
+
+- `Spawning` → `TrustRequired` → `ReadyForPrompt` → `Running` → `Finished`/`Failed`
+
+控制面在处理每次权限阻拦、错误恢复或工具结束时，不是仅仅在终端打印日志，而是**原子化地将当前状态以 JSON 格式写入系统态文件**（如 `.claw/worker-state.json`）。这也构成了无头（Headless）运行环境与外部调度器或 CI/CD 流水线做到高度集成的根本前提。
+
+### 4.3 数据结构
 
 ```python
 class RecoveryState(Enum):

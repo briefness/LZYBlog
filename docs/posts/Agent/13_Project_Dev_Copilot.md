@@ -250,6 +250,13 @@ print(f"\n测试结果: {result['test_result']}")
 
 **不执行真实代码**。测试节点是让 LLM 审查代码逻辑，不是 run pytest。执行 Agent 生成的代码有安全风险（无限循环、文件删除）。如果需要真实执行，必须在 Docker 沙箱里跑。
 
+## 6. 高阶形态：执行策略引擎与任务载荷 (Task Packets)
+
+生产级的 Copilot 应当具备前置防御式的调度与拦截机制。一个高阶编排模型（如业界极度纯粹的机器执行器 `claw-code`）会把易错常态沉淀至策略控制引擎拦截：
+
+1. **结构化任务载荷 (Task Packet)**：摒弃含糊的原始自然语言 Prompt 字符串请求，逐步推倒重构为包含大目标 (objective)、受控环境边界 (scope)、和机器可校验规则 (acceptance criteria) 的硬性包体。
+2. **分支新鲜度防干扰拦截 (Branch Freshness)**：在让 LLM 启动推理修 Bug 或执行代价高昂的 **全量测试用例 (run pytest)** 前，控制流强行做一次等价于 `branch.stale_against_main` 的超前检查预判。很多情况下“修不好的代码 Bug”仅仅是因为你的独立开发分支已经严重落后并错过了 `main` 上的主干漏洞修复。尽早切断任务要求用户先 merge，远远优于继续无头苍蝇似的调试报错。
+
 ## 常见坑点
 
 **1. 代码块的 Markdown 标记干扰**
