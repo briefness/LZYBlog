@@ -10,7 +10,23 @@
 
 这个 Agent 能做什么：接收自然语言任务，自主决定调用哪些工具、以什么顺序执行，最终返回结果。
 
+在编写代码之前，我们需要先搭建好项目环境。我们使用 `uv` 来管理依赖：
+
+```bash
+# 1. 创建并进入项目目录
+mkdir mini_agent
+cd mini_agent
+
+# 2. 初始化项目结构
+uv init
+
+# 3. 安装必要的依赖
+uv add openai python-dotenv
 ```
+
+初始化完成后，建立以下项目结构：
+
+```text
 mini_agent/
 ├── agent.py        # Agent 循环核心
 ├── tools.py        # 工具定义与注册
@@ -21,7 +37,14 @@ mini_agent/
 `.env` 文件内容：
 
 ```bash
+# 默认使用 OpenAI
 OPENAI_API_KEY=sk-your-key-here
+
+# 🌟 进阶：如何使用 OpenRouter / DeepSeek 等兼容 API？
+# 由于 openai 官方库会自动读取以下两项环境变量，
+# 你只需取消下面两行的注释并填入你的 OpenRouter Key 即可无缝切换，连一行 Python 代码都不用改！
+# OPENAI_BASE_URL=https://openrouter.ai/api/v1
+# OPENAI_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxx
 ```
 
 ## 2. 工具注册表：Agent 的四肢
@@ -223,7 +246,11 @@ if __name__ == "__main__":
     for query in queries:
         print(f"\n{'='*50}")
         print(f"用户: {query}")
+        
+        # 默认使用 gpt-4o。如果使用了 OpenRouter，只需在这里指定模型名：
+        # answer = run_agent(query, model="anthropic/claude-3-haiku")
         answer = run_agent(query)
+        
         print(f"Agent: {answer}")
 ```
 
