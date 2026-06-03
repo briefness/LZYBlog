@@ -1,4 +1,4 @@
-# AI 核心原理（十）—— 重塑大脑：模型微调与 LoRA 降维打击
+# 10. 重塑大脑：模型微调与 LoRA 降维打击
 
 > **环境：** LLaMA-Factory 0.8+, HuggingFace PEFT 框架, 适用单张 24G 消费级显卡
 

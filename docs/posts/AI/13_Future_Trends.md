@@ -1,5 +1,7 @@
 # 13. AI 的终极形态：世界模型 (World Models) 与 JEPA
 
+> **环境：** 概念性前沿讨论，无特定编程环境要求
+
 > [!WARNING]
 > **超越概率**
 > 
@@ -74,7 +76,7 @@ $$ s_{t+1} = \text{Predictor}(s_t, a_t, z_t) $$
 ### 代表性进展
 
 | 项目 | 厂商 | 核心思路 |
-|------|------|---------|
+|------|------|---------:|
 | RT-2 / RT-X | Google DeepMind | VLA (Vision-Language-Action)，用 Transformer 直接输出机器人关节控制指令 |
 | Optimus Gen 2 | Tesla | 基于 FSD 的视觉神经网络迁移，端到端训练行走与抓取 |
 | Figure 02 | Figure AI | 接入 GPT-4o 实现语音对话 + 自主操作，能听人说话然后递苹果 |
@@ -93,10 +95,10 @@ $$ s_{t+1} = \text{Predictor}(s_t, a_t, z_t) $$
 ### 代表性端侧模型
 
 *   **Phi-4-mini (Microsoft)**: 3.8B 参数，在数学推理上超越了部分 7B 模型。
-*   **Gemma (Google)**: 多版本覆盖（1B 到 27B），可在 Pixel 手机上本地运行，持续迭代中。
+*   **Gemini (Google)**: 多版本覆盖（1B 到 27B），可在 Pixel 手机上本地运行，持续迭代中。
 *   **Apple Intelligence**: 基于端侧 3B 模型 + 云端 Private Cloud Compute 的混合架构。
 
-### 混合推断 (Hybrid Inference)
+### 混合推理 (Hybrid Inference)
 
 端侧 AI 的终极形态不是让手机替代云端，而是**智能路由**：
 

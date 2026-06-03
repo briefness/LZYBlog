@@ -1,5 +1,7 @@
 # 09. Agent：有限状态机 (FSM) 与图论架构
 
+> **环境：** PydanticAI 0.1+, LangGraph 0.2+, MCP SDK
+
 > [!NOTE]
 > **从脚本到自主系统**
 > 
@@ -24,12 +26,12 @@ stateDiagram-v2
     Thought --> Answer : 决定结束并回答
     
     Action --> Observation : 执行 external_tool()
-    Observation --> Thought : 将结果追加到History
+    Observation --> Thought : 将结果甩回到History
     
     Answer --> [*]
 ```
 
-**关键点**：防止 LLM 幻觉。LLM 生成 `Action` 后必须**被强制打断 (Stop Sequence)**，由程序去执行工具，再把结果喂回给 LLM。如果不打断，LLM 会自己"想象"工具的返回结果，然后基于幻觉继续推理，最终输出一本正经的胡说八道。
+**关键点**：防止 LLM 幻觉。LLM 生成 `Action` 后必须**被强制打断 (Stop Sequence)**，由程序去执行工具，再把结果塞回给 LLM。如果不打断，LLM 会自己"想象"工具的返回结果，然后基于幻觉继续推理，最终输出一本正经的胡说八道。
 
 ## 2. 架构进阶：从 Chain 到 Graph
 
@@ -45,13 +47,13 @@ LangChain 推出的框架，引入了 **图 (Graph)** 的概念。
 
 ```mermaid
 graph TD
-    Start((开始)) --> Planner
+    Start(("开始")) --> Planner
     Planner --> Coder
     Coder --> Reviewer
     Reviewer -->|发现 Bug| Coder
     Reviewer -->|通过| Tester
     Tester -->|测试失败| Coder
-    Tester -->|测试通过| End((结束))
+    Tester -->|测试通过| End(("结束"))
     
     style Planner fill:#e3f2fd,stroke:#1565c0
     style Coder fill:#fff3e0,stroke:#e65100

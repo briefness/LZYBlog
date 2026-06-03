@@ -27,7 +27,7 @@
 *   [08. RAG：向量检索与重排序算法详解](./08_RAG_External_Brain.md)
     *   *关键词：HNSW, Cross-Encoder, GraphRAG, Knowledge Graphs*
 *   [09. Agent：有限状态机 (FSM) 与图论架构](./09_Agents_and_Tools.md)
-    *   *关键词：ReAct, LangGraph, PydanticAI, MCP Inspector*
+    *   *关键词：ReAct, LangGraph, PydanticAI, MCP Protocol, A2A, CrewAI*
 
 ## 第五章：优化与运维 (Optimization & Ops)
 *   [10. 模型微调：PEFT 与 LoRA 数学原理](./10_Fine_Tuning.md)
@@ -39,4 +39,4 @@
 *   [12. 推理模型：System 2 与强化学习 (DeepSeek R1 / o1)](./12_Reasoning_Models.md)
     *   *关键词：Reinforcement Learning, GRPO, System 2 Thinking*
 *   [13. AI 的终极形态：世界模型 (World Models) 与 JEPA](./13_Future_Trends.md)
-    *   *关键词：World Models, JEPA, Embodied AI, On-Device Intelligence*
+    *   *关键词：World Models, JEPA, Embodied AI, Multimodal, On-Device NPU*

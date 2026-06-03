@@ -1,4 +1,4 @@
-# AI 核心原理（十一）—— 拒绝玄学：LLMOps 监控与 Ragas 量化评测
+# 11. 拒绝玄学：LLMOps 监控与 Ragas 量化评测
 
 > **环境：** Ragas 0.1.x, DeepEval 0.2+, LangSmith/Langfuse 溯源追踪平台
 

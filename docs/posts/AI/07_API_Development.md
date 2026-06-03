@@ -1,4 +1,4 @@
-# AI 核心原理（七）—— API 工程化：Token 算法、SSE 与函数调用
+# 07. API 工程化：Token 算法、SSE 与函数调用
 
 > **环境：** OpenAI/Anthropic 官方 API 标准接口，Python 3.10+, Tiktoken SDK
 

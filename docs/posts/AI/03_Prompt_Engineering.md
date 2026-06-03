@@ -1,4 +1,4 @@
-# AI 核心原理（三）—— 提示工程实战：In-Context Learning 机制详解
+# 03. 提示工程实战：In-Context Learning 机制详解
 
 > **环境：** 任意支持 System Prompt 与 Few-Shot 能力的指令微调大模型 API（如 Claude 3.5, GPT-4o）
 

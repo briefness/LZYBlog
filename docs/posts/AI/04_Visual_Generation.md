@@ -1,4 +1,4 @@
-# AI 核心原理（四）—— 视觉生成：从 Diffusion 数学原理到 DiT 演进
+# 04. 视觉生成：从 Diffusion 数学原理到 DiT 演进
 
 > **环境：** Diffusers 0.30+, PyTorch 2.4+，底层覆盖 Flux.1/SD3/Sora 架构生态
 
