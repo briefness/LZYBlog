@@ -108,6 +108,7 @@ export default withMermaid(
             { text: '微信小程序', link: '/posts/miniprogram/index' }
           ]
         },
+        { text: '开源项目', link: '/github/' },
         { text: '🎮 编程游戏', items: [
             { text: '码界觉醒', link: '/playground/code-quest' }
           ]
