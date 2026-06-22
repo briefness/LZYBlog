@@ -62,12 +62,12 @@ async def read_file(ctx: RunContext[None], file_path: str) -> str:
         file_path: 相对于工作目录的文件路径
     """
     target = WORKSPACE / file_path
-    # 安全校验：防止路径穿越
+    # 安全校验：防止路径穿越（Path Traversal）
     if not target.resolve().is_relative_to(WORKSPACE.resolve()):
         return "错误：不允许访问工作目录之外的文件"
     if not target.exists():
         return f"文件不存在: {file_path}"
-    return target.read_text(encoding="utf-8")[:5000]  # 限制读取长度
+    return target.read_text(encoding="utf-8")[:5000]  # 限制读取长度，防止庅大内容占满上下文
 
 
 @agent.tool
@@ -101,7 +101,7 @@ async def list_files(ctx: RunContext[None], directory: str = ".") -> str:
         if p.is_file() and ".git" not in p.parts:
             rel = p.relative_to(WORKSPACE)
             files.append(str(rel))
-    return "\n".join(files[:50])  # 限制文件数量
+    return "\n".join(files[:50])  # 限制文件数量，避免输出过大
 ```
 
 **路径穿越防御**是硬性要求。Agent 传入的 `file_path` 不可信——`../../etc/passwd` 这种路径必须拦截。`is_relative_to()` 检查确保所有操作都在工作目录内。

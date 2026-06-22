@@ -15,32 +15,35 @@ from pydantic import BaseModel, Field
 from pydantic_ai import Agent
 
 
-class WeatherReport(BaseModel):
+class WeatherResult(BaseModel):
     """天气报告的结构化数据"""
     city: str = Field(description="城市名称")
     temperature: float = Field(description="温度，摄氏度")
     condition: str = Field(description="天气状况，如 晴/多云/雨")
-    humidity: int = Field(description="湿度百分比，0-100")
-    summary: str = Field(description="一句话天气总结")
+    humidity: int = Field(ge=0, le=100, description="湿度百分比")
+    suggestion: str = Field(description="一句话生活建议")
 
 
 agent = Agent(
     "openai:gpt-4o",
-    output_type=WeatherReport,  # <--- 核心：约束返回类型
-    system_prompt="你是一个天气分析师，根据用户问题返回结构化天气数据。",
+    output_type=WeatherResult,  # <--- 核心：约束返回类型
+    system_prompt=(
+        "你是天气助手。用户问天气时，返回结构化数据而不是自然语言描述。"
+        "建议要具体可执行，不要泛泛而谈。"
+    ),
 )
 
 result = agent.run_sync("北京今天天气怎么样？")
-report = result.output  # 类型是 WeatherReport，不是 str
+weather = result.output  # 直接得到 WeatherResult 实例，有完整类型安全保证
 
-print(f"城市: {report.city}")
-print(f"温度: {report.temperature}°C")
-print(f"状况: {report.condition}")
-print(f"湿度: {report.humidity}%")
-print(f"总结: {report.summary}")
+print(f"城市: {weather.city}")
+print(f"温度: {weather.temperature}°C")
+print(f"状况: {weather.condition}")
+print(f"湿度: {weather.humidity}%")
+print(f"建议: {weather.suggestion}")
 ```
 
-**观测与验证**：`result.output` 的类型是 `WeatherReport` 实例，IDE 有完整的自动补全。`report.temperature` 是 `float`，可以直接做数值比较（如 `if report.temperature > 30`），不需要正则解析。
+**观测与验证**：`result.output` 的类型是 `WeatherResult` 实例，IDE 有完整的自动补全。`weather.temperature` 是 `float`，可以直接做数值比较（如 `if weather.temperature > 30`），不需要正则解析。
 
 底层发生了什么：
 

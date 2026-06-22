@@ -96,7 +96,7 @@ def search(query: str, top_k: int = 3) -> list[dict]:
             "id": results["ids"][0][i],
             "content": results["documents"][0][i],
             "source": results["metadatas"][0][i]["source"],
-            "distance": results["distances"][0][i],
+            "distance": results["distances"][0][i],  # 余弦距离，越小越相关
         })
     return hits
 ```
@@ -126,6 +126,7 @@ docs = [
     },
 ]
 
+# 将文档同步至知识库
 add_documents(docs)
 print(f"已导入 {len(docs)} 个文档片段")
 ```

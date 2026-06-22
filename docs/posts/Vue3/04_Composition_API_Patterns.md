@@ -119,7 +119,7 @@ export const ShoeColorKey: InjectionKey<Ref<string>> = Symbol('shoeColor')
 
 - 配合 `toValue` 和 `onUnmounted` 等辅助方法，Composable 函数才能成为真正无惧副作用和调用输入类型污染的高质量封装。
 - 定义在 Composable 模块外层空间的响应式数据，可以被灵活运用为轻量全局状态单例。
-- `Provide / Inject` 减轻了 Props 透传噩梦，但应审慎使用，避免构建过于隐匿的数据依赖环境。
+- `Provide / Inject` 减少了多层级 Props 逐层传递，但会增加隐性耦合，应审慎使用。
 
 ## 7. 参考
 

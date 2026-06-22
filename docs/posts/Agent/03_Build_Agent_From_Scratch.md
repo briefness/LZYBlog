@@ -10,7 +10,7 @@
 
 这个 Agent 能做什么：接收自然语言任务，自主决定调用哪些工具、以什么顺序执行，最终返回结果。
 
-在编写代码之前，我们需要先搭建好项目环境。我们使用 `uv` 来管理依赖：
+用 `uv` 初始化项目：
 
 ```bash
 # 1. 创建并进入项目目录
@@ -69,7 +69,7 @@ def get_weather(city: str) -> str:
 def calculate(expression: str) -> str:
     """计算数学表达式，支持基本运算和 math 模块函数"""
     try:
-        # 限制可用函数，阻止代码注入
+        # 限制可用函数名，阻止代码注入
         allowed = {"abs": abs, "round": round, "math": math}
         result = eval(expression, {"__builtins__": {}}, allowed)
         return str(result)
@@ -204,12 +204,11 @@ def run_agent(user_input: str, model: str = "gpt-4o") -> str:
         choice = response.choices[0]
         assistant_message = choice.message
 
-        # 把 assistant 的回复追加到对话历史
+        # 将 assistant 的回复追加到对话历史
         messages.append(assistant_message)
 
-        # 检查是否需要调用工具
+        # 没有工具调用 → LLM 决定直接回答，循环结束
         if not assistant_message.tool_calls:
-            # LLM 决定直接回答，循环结束
             return assistant_message.content or "(无内容)"
 
         # 执行所有工具调用（支持并行）

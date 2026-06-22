@@ -55,7 +55,7 @@ async def chat(request: ChatRequest):
         return ChatResponse(
             answer=result.output,
             latency_ms=round(latency, 1),
-            token_usage=None,  # PydanticAI 的 usage 可从 result 提取
+            token_usage=None,  # 可从 result.usage 提取，这里暂时略去
         )
     except Exception as err:
         logger.exception("Agent 执行失败")

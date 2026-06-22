@@ -67,8 +67,8 @@ export const useUserStore = defineStore('user', () => {
 
 **显式权衡（Trade-offs）**：
 开发者可以手动在数据的变更处写入 `localStorage.setItem`，但这将使得原本纯粹的业务逻辑与底层 I/O 深度耦合。
-引入 `pinia-plugin-persistedstate` 插件是目前常见的解决方案，它能在底层自动执行状态向存储介质的序列化以及初始化时候的神奇注入。
-需要注意的是，**这种自动序列化由于使用 `JSON.stringify` 并在主线程执行，若 Store 内存储了数百 KB 甚至 MB 级的巨型复杂对象（如图表实例、大量表格数据），频繁的变更会带来明显的帧数骤降与主线程阻塞**。因此持久化应严控在核心必要字段级别。
+引入 `pinia-plugin-persistedstate` 插件是目前常见的解决方案，它在底层自动执行状态序列化写入和初始化时的反序列化读取。
+需要注意的是，**这种自动序列化使用 `JSON.stringify` 在主线程执行，若 Store 内存储了数百 KB 甚至 MB 级的大型对象（如图表实例、大量表格数据），频繁的变更会带来明显的主线程阻塞**。持久化应严控在必要的关键字段上。
 
 ```typescript
 // main.ts 无需在各个组件修改即可配置全局插件

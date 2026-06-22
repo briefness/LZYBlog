@@ -167,7 +167,7 @@ agent = Agent(
 
 
 async def main():
-    async with agent.run_mcp_servers():  # 启动 MCP Server 进程
+    async with agent.run_mcp_servers():  # 启动 MCP Server 子进程
         result = await agent.run("北京和上海的天气分别怎么样？")
         print(result.output)
 

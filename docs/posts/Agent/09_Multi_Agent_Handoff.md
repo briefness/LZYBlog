@@ -82,53 +82,55 @@ tech_agent = Agent(
 )
 
 
-# ---- 路由 Agent ----
-router_agent = Agent(
+# ---- 专家 Agent：账单处理 ----
+billing_agent = Agent(
     "openai:gpt-4o",
+    system_prompt="你是账单专员，专门处理付款、账单和订阅问题。",
+)
+
+triage_agent = Agent(
+    "openai:gpt-4o-mini",  # 分诊只做意图分类，小模型已足够准确且成本低
     system_prompt=(
-        "你是客服入口。根据用户问题，委派给合适的专家。"
-        "订单相关问题调用 handle_order，"
-        "技术问题调用 handle_tech，"
-        "其他问题直接回答。"
+        "你是客服分诊台。根据用户问题，把请求转交给合适的专家：\n"
+        "- 技术问题 → transfer_to_technical\n"
+        "- 账单问题 → transfer_to_billing\n"
+        "- 其他 → 直接回答"
     ),
 )
 
 
-@router_agent.tool
-async def handle_order(ctx: RunContext[None], user_message: str) -> str:
-    """将订单相关问题委派给订单处理专员
-
-    Args:
-        user_message: 用户关于订单的完整问题
-    """
-    result = await order_agent.run(user_message)
+@triage_agent.tool
+async def transfer_to_technical(ctx: RunContext[None]) -> str:
+    """将对话转交给技术支持专家处理"""
+    result = await tech_agent.run(
+        ctx.prompt,          # 把当前用户消息传给专家 Agent
+        message_history=ctx.messages,  # 带上完整对话历史，保持上下文连续
+    )
     return result.output
 
 
-@router_agent.tool
-async def handle_tech(ctx: RunContext[None], user_message: str) -> str:
-    """将技术问题委派给技术支持专员
-
-    Args:
-        user_message: 用户关于技术问题的完整描述
-    """
-    result = await tech_agent.run(user_message)
+@triage_agent.tool
+async def transfer_to_billing(ctx: RunContext[None]) -> str:
+    """将对话转交给账单专员处理"""
+    result = await billing_agent.run(
+        ctx.prompt,
+        message_history=ctx.messages,
+    )
     return result.output
 
 
 # ---- 运行 ----
-result = router_agent.run_sync("我的订单 ORD-12345 到哪了？")
+result = triage_agent.run_sync("我的订单 ORD-12345 到哪了？")
 print(result.output)
 ```
 
 **执行流程**：
 
 1. 用户说"我的订单 ORD-12345 到哪了？"
-2. 路由 Agent 识别为订单问题，调用 `handle_order()`
-3. `handle_order()` 内部调用 `order_agent.run()`
-4. 订单 Agent 调用 `query_order("ORD-12345")`，拿到物流状态
-5. 订单 Agent 组织回答，返回给路由 Agent
-6. 路由 Agent 直接把结果转发给用户
+2. `triage_agent` 识别为订单相关，调用 `transfer_to_billing()` 或直接回复
+3. 工具内部调用对应专家 `agent.run()`，传入用户消息和对话历史
+4. 专家 Agent 执行工具调用，组织回答后返回
+5. `triage_agent` 把结果转发给用户
 
 ## 4. 共享状态 vs 消息传递
 

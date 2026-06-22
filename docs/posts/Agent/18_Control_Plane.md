@@ -118,7 +118,7 @@ WRITE_TOOLS = {"write_file", "bash", "git_commit"}
 DENY_RULES = [
     PermissionRule("bash", PermissionBehavior.DENY, r"sudo\s+"),
     PermissionRule("bash", PermissionBehavior.DENY, r"rm\s+-rf\s+/"),
-    PermissionRule("bash", PermissionBehavior.DENY, r"\$\("),  # 命令替换
+    PermissionRule("bash", PermissionBehavior.DENY, r"\$\("),  # 命令替换可能被注入
 ]
 
 ALLOW_RULES = [

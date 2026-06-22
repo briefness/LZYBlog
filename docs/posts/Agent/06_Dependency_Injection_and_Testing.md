@@ -90,7 +90,7 @@ from agent import agent, AgentDeps  # 导入你的 Agent
 def mock_deps():
     """构造测试用的假依赖"""
     return AgentDeps(
-        http_client=None,  # TestModel 不会真正调用工具
+        http_client=None,  # TestModel 不会真正调用工具，传 None 即可
         api_base_url="https://test.example.com",
     )
 
@@ -99,7 +99,7 @@ def test_agent_basic(mock_deps):
     """测试 Agent 的基本行为"""
     with agent.override(model=TestModel()):  # <--- 替换为测试模型
         result = agent.run_sync("北京天气", deps=mock_deps)
-        # TestModel 会返回预设的文本，不调 LLM
+        # TestModel 直接返回预设文本，不发起任何网络请求
         assert result.output is not None
 ```
 
@@ -153,7 +153,7 @@ def mock_http_client():
     client = AsyncMock(spec=httpx.AsyncClient)
     mock_response = AsyncMock()
     mock_response.text = "晴天，22°C"
-    mock_response.raise_for_status = lambda: None
+    mock_response.raise_for_status = lambda: None  # 不抛异常，模拟正常响应
     client.get.return_value = mock_response
     return client
 
