@@ -10,7 +10,6 @@ const username = 'briefness'
 const allowedRepos = [
   'fabric-region',
   'ant-design-l',
-  'InstantVideo',
   'B2B2C',
   'OmniPost',
   'PoseAI',
