@@ -19,6 +19,8 @@ const allowedRepos = [
   'HarmonyDemo',
   'BaseCut',
   'Google-Timer',
+  'SecPilot',
+  'kling-ad-automation',
 ]
 
 // GitHub 语言品牌色
