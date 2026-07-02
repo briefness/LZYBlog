@@ -61,7 +61,7 @@ async function fetchRepos() {
     const data = await res.json()
     repos.value = data
       .filter(repo => allowedRepos.includes(repo.name))
-      .sort((a, b) => b.stargazers_count - a.stargazers_count)
+      .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
   } catch (e) {
     error.value = e.message
   } finally {
